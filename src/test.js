@@ -1,4 +1,10 @@
-import { createFixture, printFixture, buildFixtureSummary } from './fixture.js';
+import {
+  createFixture,
+  assignPlayersToGame,
+  recordGameResult,
+  printFixture,
+  buildFixtureSummary
+} from './fixture.js';
 
 const fixture = createFixture({
   fixtureName: 'ODA League Night 1',
@@ -58,6 +64,31 @@ const fixture = createFixture({
   ]
 });
 
+console.log('\n===== FIXTURE ASSIGNMENT + SCORING TEST =====');
+printFixture(fixture);
+
+// Assign players
+assignPlayersToGame(fixture, 1, ['A1', 'A2'], ['B1', 'B2']);
+assignPlayersToGame(fixture, 2, ['A3', 'A4'], ['B3', 'B4']);
+assignPlayersToGame(fixture, 3, ['A1'], ['B1']);
+assignPlayersToGame(fixture, 4, ['A2'], ['B2']);
+assignPlayersToGame(fixture, 5, ['A3'], ['B3']);
+assignPlayersToGame(fixture, 6, ['A4'], ['B4']);
+assignPlayersToGame(fixture, 7, ['A1', 'A2', 'A3', 'A4'], ['B1', 'B2', 'B3', 'B4']);
+
+console.log('\n===== AFTER ASSIGNMENTS =====');
+printFixture(fixture);
+
+// Record some results
+recordGameResult(fixture, 1, { winner: 'teamA' });
+recordGameResult(fixture, 2, { winner: 'teamB' });
+recordGameResult(fixture, 3, { winner: 'teamA' });
+recordGameResult(fixture, 4, { winner: 'teamB' });
+recordGameResult(fixture, 5, { winner: 'teamA' });
+recordGameResult(fixture, 6, { winner: 'teamB' });
+recordGameResult(fixture, 7, { winner: 'teamA' });
+
+console.log('\n===== AFTER RESULTS =====');
 printFixture(fixture);
 
 const summary = buildFixtureSummary(fixture);
