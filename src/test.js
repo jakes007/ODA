@@ -1,155 +1,158 @@
-import { createMatch } from './engine.js';
-import { processTurn } from './rules.js';
-import { buildMatchSummary } from './matchSummary.js';
 import {
-  createFixture,
-  assignPlayersToGame,
-  recordGameResult,
-  printFixture,
-  buildFixtureSummary
-} from './fixture.js';
+  createPlayerMasterRecord,
+  buildPlayerPrivateProfile,
+  buildPlayerPublicProfile,
+  createCompetition,
+  createCompetitionMembership,
+  createTeam,
+  createFixtureTemplate,
+  createPlayerEditRequest,
+  printObject
+} from './dataModel.js';
 
-// ----------------------
-// Build a real leg summary
-// ----------------------
-let leg = createMatch('A1', 'B1', 40);
-
-processTurn(leg, {
-  points: 40,
-  dartsUsed: 1,
-  finishedOnDouble: true
+// --------------------------------------------
+// PLAYER MASTER RECORD
+// --------------------------------------------
+const jason = createPlayerMasterRecord({
+  fullName: 'Jason Isaacs',
+  dsaNumber: 'DSA12345',
+  idNumber: '9001015009087',
+  dateOfBirth: '1990-01-01',
+  race: 'ExampleRace',
+  gender: 'Male',
+  registrationStatus: 'active',
+  associationName: 'Observatory Darts Association',
+  provinceName: 'Western Cape',
+  phone: '0820000000',
+  email: 'jason@example.com',
+  addressLine1: '1 Main Road',
+  addressLine2: 'Observatory',
+  city: 'Cape Town',
+  postalCode: '7925'
 });
 
-const realLegSummary = buildMatchSummary(leg);
+printObject('PLAYER MASTER RECORD', jason);
 
-// ----------------------
-// Build fixture
-// ----------------------
-const fixture = createFixture({
-  fixtureName: 'ODA League Night 1',
-  teamAName: 'Observatory A',
-  teamBName: 'Observatory B',
-  pointsSystem: 3,
+// --------------------------------------------
+// PRIVATE + PUBLIC PROFILES
+// --------------------------------------------
+const jasonPrivate = buildPlayerPrivateProfile(jason);
+const jasonPublic = buildPlayerPublicProfile(jason, {
+  displayName: 'Jason Isaacs'
+});
+
+printObject('PLAYER PRIVATE PROFILE', jasonPrivate);
+printObject('PLAYER PUBLIC PROFILE', jasonPublic);
+
+// --------------------------------------------
+// COMPETITIONS
+// --------------------------------------------
+const odaLeague = createCompetition({
+  name: 'ODA League',
+  type: 'league',
+  season: '2026',
+  status: 'active',
+  associationName: 'Observatory Darts Association',
+  provinceName: 'Western Cape'
+});
+
+const odaSingles = createCompetition({
+  name: 'ODA Singles League',
+  type: 'singles',
+  season: '2026',
+  status: 'active',
+  associationName: 'Observatory Darts Association',
+  provinceName: 'Western Cape'
+});
+
+const odaMemorial = createCompetition({
+  name: 'ODA Memorial',
+  type: 'memorial',
+  season: '2026',
+  status: 'active',
+  associationName: 'Observatory Darts Association',
+  provinceName: 'Western Cape'
+});
+
+printObject('COMPETITION 1', odaLeague);
+printObject('COMPETITION 2', odaSingles);
+printObject('COMPETITION 3', odaMemorial);
+
+// --------------------------------------------
+// TEAM
+// --------------------------------------------
+const observatoryA = createTeam({
+  name: 'Observatory A',
+  associationName: 'Observatory Darts Association',
+  competitionId: odaLeague.competitionId,
+  captainPlayerId: jason.playerId
+});
+
+printObject('TEAM', observatoryA);
+
+// --------------------------------------------
+// MEMBERSHIPS
+// Jason in multiple active competitions
+// --------------------------------------------
+const membership1 = createCompetitionMembership({
+  playerId: jason.playerId,
+  competitionId: odaLeague.competitionId,
+  teamId: observatoryA.teamId,
+  role: 'player',
+  status: 'active'
+});
+
+const membership2 = createCompetitionMembership({
+  playerId: jason.playerId,
+  competitionId: odaSingles.competitionId,
+  role: 'player',
+  status: 'active'
+});
+
+const membership3 = createCompetitionMembership({
+  playerId: jason.playerId,
+  competitionId: odaMemorial.competitionId,
+  role: 'player',
+  status: 'active'
+});
+
+printObject('MEMBERSHIP 1', membership1);
+printObject('MEMBERSHIP 2', membership2);
+printObject('MEMBERSHIP 3', membership3);
+
+// --------------------------------------------
+// FIXTURE TEMPLATE
+// Template + manual override later
+// --------------------------------------------
+const odaLeagueTemplate = createFixtureTemplate({
+  name: 'ODA League Standard Format',
+  competitionType: 'league',
+  associationName: 'Observatory Darts Association',
   games: [
-    {
-      label: 'Singles 1',
-      type: 'singles',
-      startingScore: 501,
-      legsMode: 'fixed',
-      totalLegs: 1
-    },
-    {
-      label: 'Singles 2',
-      type: 'singles',
-      startingScore: 501,
-      legsMode: 'fixed',
-      totalLegs: 1
-    },
-    {
-      label: 'Singles 3',
-      type: 'singles',
-      startingScore: 501,
-      legsMode: 'fixed',
-      totalLegs: 1
-    }
+    { label: 'Doubles 1', type: 'doubles', startingScore: 501, legsMode: 'fixed', totalLegs: 1 },
+    { label: 'Doubles 2', type: 'doubles', startingScore: 501, legsMode: 'fixed', totalLegs: 1 },
+    { label: 'Singles 1', type: 'singles', startingScore: 501, legsMode: 'fixed', totalLegs: 1 },
+    { label: 'Singles 2', type: 'singles', startingScore: 501, legsMode: 'fixed', totalLegs: 1 },
+    { label: 'Singles 3', type: 'singles', startingScore: 501, legsMode: 'fixed', totalLegs: 1 },
+    { label: 'Singles 4', type: 'singles', startingScore: 501, legsMode: 'fixed', totalLegs: 1 },
+    { label: 'Team Decider', type: 'team', startingScore: 701, legsMode: 'fixed', totalLegs: 1 }
   ]
 });
 
-console.log('\n===== FIXTURE GAME SUMMARY LINK TEST =====');
-printFixture(fixture);
+printObject('FIXTURE TEMPLATE', odaLeagueTemplate);
 
-// assignments
-assignPlayersToGame(fixture, 1, ['A1'], ['B1']);
-assignPlayersToGame(fixture, 2, ['A2'], ['B2']);
-assignPlayersToGame(fixture, 3, ['A3'], ['B3']);
-
-console.log('\n===== AFTER ASSIGNMENTS =====');
-printFixture(fixture);
-
-// record results
-recordGameResult(fixture, 1, {
-  winner: 'teamA',
-  summary: realLegSummary
-});
-
-recordGameResult(fixture, 2, {
-  winner: 'teamB',
-  summary: {
-    matchComplete: true,
-    winner: 'B2',
-    players: [
-      {
-        name: 'A2',
-        result: 'loss',
-        finalScore: 20,
-        dartsUsed: 15,
-        throws: 5,
-        totalScored: 481,
-        threeDartAverage: 96.2,
-        count100Plus: 2,
-        count140Plus: 1,
-        count180s: 0,
-        highestCheckout: 0
-      },
-      {
-        name: 'B2',
-        result: 'win',
-        finalScore: 0,
-        dartsUsed: 14,
-        throws: 5,
-        totalScored: 501,
-        threeDartAverage: 107.36,
-        count100Plus: 3,
-        count140Plus: 1,
-        count180s: 1,
-        highestCheckout: 40
-      }
-    ],
-    createdAt: new Date().toISOString()
+// --------------------------------------------
+// PLAYER EDIT REQUEST
+// Example of self-service changes
+// --------------------------------------------
+const editRequest = createPlayerEditRequest({
+  playerId: jason.playerId,
+  requestedChanges: {
+    contact: {
+      phone: '0831111111',
+      email: 'newjason@example.com'
+    }
   }
 });
 
-recordGameResult(fixture, 3, {
-  winner: 'teamA',
-  summary: {
-    matchComplete: true,
-    winner: 'A3',
-    players: [
-      {
-        name: 'A3',
-        result: 'win',
-        finalScore: 0,
-        dartsUsed: 18,
-        throws: 6,
-        totalScored: 501,
-        threeDartAverage: 83.5,
-        count100Plus: 2,
-        count140Plus: 0,
-        count180s: 0,
-        highestCheckout: 32
-      },
-      {
-        name: 'B3',
-        result: 'loss',
-        finalScore: 40,
-        dartsUsed: 18,
-        throws: 6,
-        totalScored: 461,
-        threeDartAverage: 76.83,
-        count100Plus: 1,
-        count140Plus: 0,
-        count180s: 0,
-        highestCheckout: 0
-      }
-    ],
-    createdAt: new Date().toISOString()
-  }
-});
-
-console.log('\n===== AFTER RESULTS WITH LINKED SUMMARIES =====');
-printFixture(fixture);
-
-const summary = buildFixtureSummary(fixture);
-
-console.log('RAW FIXTURE SUMMARY:');
-console.log(JSON.stringify(summary, null, 2));
+printObject('PLAYER EDIT REQUEST', editRequest);

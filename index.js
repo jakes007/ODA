@@ -1,3 +1,3 @@
 import './src/test.js';
 
-console.log('Darts engine running');
+console.log('Core data model running');
