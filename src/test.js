@@ -1,13 +1,24 @@
-import { createMatch, printMatch } from './engine.js';
+import { printMatch } from './engine.js';
 import { processTurn } from './rules.js';
+import {
+  createMultiLegMatch,
+  recordCompletedLeg,
+  printSeries,
+  buildSeriesSummary
+} from './multiLegMatch.js';
 
-let match = createMatch('Alice', 'Bob', 501);
+const series = createMultiLegMatch({
+  player1Name: 'Alice',
+  player2Name: 'Bob',
+  startingScore: 40,
+  legsMode: 'fixed',
+  totalLegs: 2
+});
 
 function turn(label, input) {
   console.log('\n➡️ ' + label);
 
-  const result = processTurn(match, input);
-  match = result.match;
+  const result = processTurn(series.currentLeg, input);
 
   if (!result.success) {
     console.log('❌ ' + result.reason);
@@ -15,32 +26,42 @@ function turn(label, input) {
     console.log('✅ OK');
   }
 
-  printMatch(match);
+  printMatch(series.currentLeg);
 }
 
-console.log('\n===== SCENARIO 1 =====');
+console.log('\n===== MULTI-LEG TEST =====');
+printSeries(series);
 
-turn('Alice 140', { points: 140 });
-turn('Bob 100', { points: 100 });
-
-console.log('\n===== SCENARIO 2 =====');
-
-turn('Alice bust', { points: 0 });
-
-console.log('\n===== SCENARIO 3 =====');
-
-match = createMatch('Alice', 'Bob', 40);
-
-turn('Alice tries to finish without double', {
+// ----------------------
+// LEG 1: Alice wins
+// ----------------------
+turn('Leg 1 - Alice wins on double', {
   points: 40,
-  finishedOnDouble: false
-});
-
-console.log('\n===== SCENARIO 4 =====');
-
-match = createMatch('Alice', 'Bob', 40);
-
-turn('Alice wins', {
-  points: 40,
+  dartsUsed: 1,
   finishedOnDouble: true
 });
+
+recordCompletedLeg(series);
+printSeries(series);
+
+// ----------------------
+// LEG 2: Bob wins
+// ----------------------
+turn('Leg 2 - Alice busts', {
+  points: 0
+});
+
+turn('Leg 2 - Bob wins on double', {
+  points: 40,
+  dartsUsed: 2,
+  finishedOnDouble: true
+});
+
+recordCompletedLeg(series);
+printSeries(series);
+
+// Final summary
+const summary = buildSeriesSummary(series);
+
+console.log('\nRAW SERIES SUMMARY:');
+console.log(JSON.stringify(summary, null, 2));
