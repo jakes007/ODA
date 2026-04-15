@@ -1,3 +1,6 @@
+import { createMatch } from './engine.js';
+import { processTurn } from './rules.js';
+import { buildMatchSummary } from './matchSummary.js';
 import {
   createFixture,
   assignPlayersToGame,
@@ -6,26 +9,28 @@ import {
   buildFixtureSummary
 } from './fixture.js';
 
+// ----------------------
+// Build a real leg summary
+// ----------------------
+let leg = createMatch('A1', 'B1', 40);
+
+processTurn(leg, {
+  points: 40,
+  dartsUsed: 1,
+  finishedOnDouble: true
+});
+
+const realLegSummary = buildMatchSummary(leg);
+
+// ----------------------
+// Build fixture
+// ----------------------
 const fixture = createFixture({
   fixtureName: 'ODA League Night 1',
   teamAName: 'Observatory A',
   teamBName: 'Observatory B',
-  pointsSystem: 7,
+  pointsSystem: 3,
   games: [
-    {
-      label: 'Doubles 1',
-      type: 'doubles',
-      startingScore: 501,
-      legsMode: 'fixed',
-      totalLegs: 1
-    },
-    {
-      label: 'Doubles 2',
-      type: 'doubles',
-      startingScore: 501,
-      legsMode: 'fixed',
-      totalLegs: 1
-    },
     {
       label: 'Singles 1',
       type: 'singles',
@@ -46,49 +51,102 @@ const fixture = createFixture({
       startingScore: 501,
       legsMode: 'fixed',
       totalLegs: 1
-    },
-    {
-      label: 'Singles 4',
-      type: 'singles',
-      startingScore: 501,
-      legsMode: 'fixed',
-      totalLegs: 1
-    },
-    {
-      label: 'Team Decider',
-      type: 'team',
-      startingScore: 701,
-      legsMode: 'fixed',
-      totalLegs: 1
     }
   ]
 });
 
-console.log('\n===== FIXTURE ASSIGNMENT + SCORING TEST =====');
+console.log('\n===== FIXTURE GAME SUMMARY LINK TEST =====');
 printFixture(fixture);
 
-// Assign players
-assignPlayersToGame(fixture, 1, ['A1', 'A2'], ['B1', 'B2']);
-assignPlayersToGame(fixture, 2, ['A3', 'A4'], ['B3', 'B4']);
-assignPlayersToGame(fixture, 3, ['A1'], ['B1']);
-assignPlayersToGame(fixture, 4, ['A2'], ['B2']);
-assignPlayersToGame(fixture, 5, ['A3'], ['B3']);
-assignPlayersToGame(fixture, 6, ['A4'], ['B4']);
-assignPlayersToGame(fixture, 7, ['A1', 'A2', 'A3', 'A4'], ['B1', 'B2', 'B3', 'B4']);
+// assignments
+assignPlayersToGame(fixture, 1, ['A1'], ['B1']);
+assignPlayersToGame(fixture, 2, ['A2'], ['B2']);
+assignPlayersToGame(fixture, 3, ['A3'], ['B3']);
 
 console.log('\n===== AFTER ASSIGNMENTS =====');
 printFixture(fixture);
 
-// Record some results
-recordGameResult(fixture, 1, { winner: 'teamA' });
-recordGameResult(fixture, 2, { winner: 'teamB' });
-recordGameResult(fixture, 3, { winner: 'teamA' });
-recordGameResult(fixture, 4, { winner: 'teamB' });
-recordGameResult(fixture, 5, { winner: 'teamA' });
-recordGameResult(fixture, 6, { winner: 'teamB' });
-recordGameResult(fixture, 7, { winner: 'teamA' });
+// record results
+recordGameResult(fixture, 1, {
+  winner: 'teamA',
+  summary: realLegSummary
+});
 
-console.log('\n===== AFTER RESULTS =====');
+recordGameResult(fixture, 2, {
+  winner: 'teamB',
+  summary: {
+    matchComplete: true,
+    winner: 'B2',
+    players: [
+      {
+        name: 'A2',
+        result: 'loss',
+        finalScore: 20,
+        dartsUsed: 15,
+        throws: 5,
+        totalScored: 481,
+        threeDartAverage: 96.2,
+        count100Plus: 2,
+        count140Plus: 1,
+        count180s: 0,
+        highestCheckout: 0
+      },
+      {
+        name: 'B2',
+        result: 'win',
+        finalScore: 0,
+        dartsUsed: 14,
+        throws: 5,
+        totalScored: 501,
+        threeDartAverage: 107.36,
+        count100Plus: 3,
+        count140Plus: 1,
+        count180s: 1,
+        highestCheckout: 40
+      }
+    ],
+    createdAt: new Date().toISOString()
+  }
+});
+
+recordGameResult(fixture, 3, {
+  winner: 'teamA',
+  summary: {
+    matchComplete: true,
+    winner: 'A3',
+    players: [
+      {
+        name: 'A3',
+        result: 'win',
+        finalScore: 0,
+        dartsUsed: 18,
+        throws: 6,
+        totalScored: 501,
+        threeDartAverage: 83.5,
+        count100Plus: 2,
+        count140Plus: 0,
+        count180s: 0,
+        highestCheckout: 32
+      },
+      {
+        name: 'B3',
+        result: 'loss',
+        finalScore: 40,
+        dartsUsed: 18,
+        throws: 6,
+        totalScored: 461,
+        threeDartAverage: 76.83,
+        count100Plus: 1,
+        count140Plus: 0,
+        count180s: 0,
+        highestCheckout: 0
+      }
+    ],
+    createdAt: new Date().toISOString()
+  }
+});
+
+console.log('\n===== AFTER RESULTS WITH LINKED SUMMARIES =====');
 printFixture(fixture);
 
 const summary = buildFixtureSummary(fixture);

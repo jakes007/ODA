@@ -19,20 +19,16 @@ export function createFixture(config) {
     games: games.map((game, index) => ({
       id: index + 1,
       order: index + 1,
-      type: game.type, // singles | doubles | team
+      type: game.type,
       startingScore: game.startingScore ?? 501,
       legsMode: game.legsMode ?? 'fixed',
       totalLegs: game.totalLegs ?? 1,
       label: game.label ?? `Game ${index + 1}`,
       status: 'pending',
-
-      // assignments
       teamAPlayers: [],
       teamBPlayers: [],
-
-      // result
-      winner: null, // 'teamA' | 'teamB' | 'draw' | null
-      summary: null
+      winner: null,          // 'teamA' | 'teamB' | 'draw' | null
+      summary: null          // real leg/match summary object
     })),
     complete: false
   };
@@ -116,6 +112,12 @@ export function printFixture(fixture) {
     console.log(`     ${fixture.teamAName}: ${aPlayers}`);
     console.log(`     ${fixture.teamBName}: ${bPlayers}`);
     console.log(`     Winner: ${game.winner ?? '-'}`);
+
+    if (game.summary) {
+      console.log(`     Summary Linked: Yes`);
+    } else {
+      console.log(`     Summary Linked: No`);
+    }
   });
 
   console.log('\n======================\n');
@@ -140,7 +142,8 @@ export function buildFixtureSummary(fixture) {
       status: game.status,
       teamAPlayers: game.teamAPlayers,
       teamBPlayers: game.teamBPlayers,
-      winner: game.winner
+      winner: game.winner,
+      summary: game.summary
     }))
   };
 }
