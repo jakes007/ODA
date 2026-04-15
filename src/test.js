@@ -1,67 +1,66 @@
-import { printMatch } from './engine.js';
-import { processTurn } from './rules.js';
-import {
-  createMultiLegMatch,
-  recordCompletedLeg,
-  printSeries,
-  buildSeriesSummary
-} from './multiLegMatch.js';
+import { createFixture, printFixture, buildFixtureSummary } from './fixture.js';
 
-const series = createMultiLegMatch({
-  player1Name: 'Alice',
-  player2Name: 'Bob',
-  startingScore: 40,
-  legsMode: 'fixed',
-  totalLegs: 2
+const fixture = createFixture({
+  fixtureName: 'ODA League Night 1',
+  teamAName: 'Observatory A',
+  teamBName: 'Observatory B',
+  pointsSystem: 7,
+  games: [
+    {
+      label: 'Doubles 1',
+      type: 'doubles',
+      startingScore: 501,
+      legsMode: 'fixed',
+      totalLegs: 1
+    },
+    {
+      label: 'Doubles 2',
+      type: 'doubles',
+      startingScore: 501,
+      legsMode: 'fixed',
+      totalLegs: 1
+    },
+    {
+      label: 'Singles 1',
+      type: 'singles',
+      startingScore: 501,
+      legsMode: 'fixed',
+      totalLegs: 1
+    },
+    {
+      label: 'Singles 2',
+      type: 'singles',
+      startingScore: 501,
+      legsMode: 'fixed',
+      totalLegs: 1
+    },
+    {
+      label: 'Singles 3',
+      type: 'singles',
+      startingScore: 501,
+      legsMode: 'fixed',
+      totalLegs: 1
+    },
+    {
+      label: 'Singles 4',
+      type: 'singles',
+      startingScore: 501,
+      legsMode: 'fixed',
+      totalLegs: 1
+    },
+    {
+      label: 'Team Decider',
+      type: 'team',
+      startingScore: 701,
+      legsMode: 'fixed',
+      totalLegs: 1
+    }
+  ]
 });
 
-function turn(label, input) {
-  console.log('\n➡️ ' + label);
+printFixture(fixture);
 
-  const result = processTurn(series.currentLeg, input);
+const summary = buildFixtureSummary(fixture);
 
-  if (!result.success) {
-    console.log('❌ ' + result.reason);
-  } else {
-    console.log('✅ OK');
-  }
-
-  printMatch(series.currentLeg);
-}
-
-console.log('\n===== MULTI-LEG TEST =====');
-printSeries(series);
-
-// ----------------------
-// LEG 1: Alice wins
-// ----------------------
-turn('Leg 1 - Alice wins on double', {
-  points: 40,
-  dartsUsed: 1,
-  finishedOnDouble: true
-});
-
-recordCompletedLeg(series);
-printSeries(series);
-
-// ----------------------
-// LEG 2: Bob wins
-// ----------------------
-turn('Leg 2 - Alice busts', {
-  points: 0
-});
-
-turn('Leg 2 - Bob wins on double', {
-  points: 40,
-  dartsUsed: 2,
-  finishedOnDouble: true
-});
-
-recordCompletedLeg(series);
-printSeries(series);
-
-// Final summary
-const summary = buildSeriesSummary(series);
-
-console.log('\nRAW SERIES SUMMARY:');
+console.log('RAW FIXTURE SUMMARY:');
 console.log(JSON.stringify(summary, null, 2));
