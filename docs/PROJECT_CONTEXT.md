@@ -1,48 +1,39 @@
-# Darts App - Core Architecture
+🧠 UPDATED PROJECT CONTEXT
+🎯 What you are building
 
-## Engine
-- Handles ONE leg only
-- No UI, no Firebase
-- Tracks:
-  - score
-  - dartsUsed
-  - throws
-  - totalScored
-  - 100+, 140+, 180s
-  - highestCheckout
+A multi-competition darts management system that supports:
 
-## Rules
-- Max 180 per turn
-- Bust = 0 turn (score unchanged, turn switches)
-- Cannot leave 1
-- Double-out required
-- Impossible checkouts blocked
-
-## Match Summary
-- Built after each leg
-- Includes:
-  - winner
-  - stats
-  - averages
-  - result (win/loss)
-
-## Multi-Leg Match
-- Supports:
-  - bestOf
-  - fixed (draw possible)
-- Tracks:
-  - legWins
-  - overallWinner
-  - overallResult
-  - completedLegs (array of summaries)
-
-## Scoring Model (IMPORTANT)
-- Scorekeeper enters:
-  - real score OR
-  - 0 for bust/invalid
-- Engine NEVER calculates bust reason
-
-## Stats Model
-- Based on turns (not dart-by-dart tracking)
-- Bust counts as 3 darts
-- Average = (totalScored / dartsUsed) * 3
+Player registry (DSA-aligned)
+Team leagues + singles + tournaments
+Real-world match formats (singles, doubles, team)
+Lineups + substitutions
+Match scoring + stats
+Fixture management
+Admin + player + public views
+🧱 Current Architecture (NOW COMPLETE)
+🔹 Core Domains
+Player Master Record (admin)
+Player Private Profile (self-service)
+Player Public Profile (safe)
+Competition
+Competition Membership
+Team
+🔹 Match System
+Engine (scoring logic)
+Rules (validation)
+Match Summary (stats output)
+Multi-leg support
+🔹 Fixture System
+Fixture Templates
+Fixture Generation
+Squad support
+Lineup Builder
+Substitution System
+Game Results + Summary Linking
+🧠 Key Design Principles (LOCK THESE IN)
+One Player → Many Competitions
+Private ≠ Public Data
+Template → Instance → Override
+Completed Games Never Change
+Substitutions Only Affect Future Games
+Database ≠ Export Format (DSA mapping later)
