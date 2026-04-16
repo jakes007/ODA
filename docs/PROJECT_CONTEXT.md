@@ -1,151 +1,158 @@
 # PROJECT CONTEXT
 
 ## Product Goal
-A multi-competition darts management system for associations, leagues, singles competitions, memorial events, and team fixtures.
+A multi-competition darts management system supporting:
+- Leagues
+- Singles competitions
+- Memorial tournaments
+- Team fixtures
 
 The system must support:
-- admin-only registry data
-- player self-service for allowed profile fields
-- public-safe player views
-- singles, doubles, and team formats
-- lineups and substitutions
-- match stats and summaries
-- fixture generation from templates
-- real match execution from fixture games
+- Player registry (DSA aligned)
+- Player self-service profiles
+- Public-safe player views
+- Match scoring and stats
+- Fixture management
+- Lineups and substitutions
+- Multi-competition participation
+- Stats aggregation and leaderboards
+
+---
 
 ## Core Architecture
 
 ### Player Domain
-- One player can belong to multiple active competitions at the same time.
-- Private and public data are separated.
+- One player can belong to multiple competitions simultaneously.
 
-#### Player Master Record
-Admin-controlled official registry record.
-May contain:
-- DSA number
-- ID number
-- DOB
-- address
-- phone
-- email
-- status
-- association / province
+#### Player Master Record (Admin Only)
+- DSA Number
+- ID Number
+- Full Name
+- Date of Birth
+- Address
+- Phone
+- Email
+- Status (Active / Inactive)
+- Association / Province
 
 #### Player Private Profile
-Visible to the player themselves.
-Can later support editable fields and edit requests.
+- Visible to the player themselves
+- Editable fields (future: approval flow)
 
 #### Player Public Profile
-Visible to public / other players.
-Only safe fields should appear here.
+- Visible to other users
+- Only safe, non-sensitive data
+
+---
 
 ### Competition Domain
-- Competitions are separate entities.
-- A player joins competitions through memberships.
-- Team-based and non-team competitions are both supported.
+- Competitions are independent entities
+- Types: league, singles, tournament
+- Players join via membership
+
+---
 
 ### Team Domain
-- Teams belong to competitions.
-- Teams can later have captains, squads, and lineups.
+- Teams belong to competitions
+- Teams have squads
+- Teams produce lineups per fixture
 
-## Match / Scoring Architecture
+---
 
-### Engine
-`engine.js`
-- single-leg state manager
-- score updates
-- stats storage
-- no rule validation
+## Match / Scoring System
 
-### Rules
-`rules.js`
-- max 180
-- bust behavior
-- cannot leave 1
-- double-out
-- invalid checkout handling
+### Engine (`engine.js`)
+- Handles scoring state
+- Tracks darts, throws, score
+- No validation logic
 
-### Match Summary
-`matchSummary.js`
-- exports finished leg summary
-- includes winner and player stats
+### Rules (`rules.js`)
+- Max 180
+- Bust logic
+- Double-out enforcement
+- Invalid checkout handling
 
-### Multi-Leg Match
-`multiLegMatch.js`
-- wraps multiple legs
-- supports fixed and best-of modes
-- supports draw-capable formats like 1-1
+### Match Summary (`matchSummary.js`)
+- Outputs final match data
+- Includes player stats
 
-## Fixture Architecture
+### Multi-Leg System (`multiLegMatch.js`)
+- Supports:
+  - fixed legs
+  - best-of format
+  - draw scenarios
 
-### Fixture Template
-Reusable game format definition.
+---
+
+## Fixture System
+
+### Fixture Templates
+Reusable definitions of match formats.
+
 Examples:
 - 2 doubles + 4 singles + team decider
-- singles-only format
-- memorial format
+- singles-only competitions
 
-Templates are starting points, not hardcoded rules.
-Admin must still be able to override generated fixtures later.
+Templates are flexible:
+- Admin can override generated fixtures later
 
-### Fixture Generator
-`fixtureGenerator.js`
-Creates real fixture instances from:
-- competition
-- template
-- team A
-- team B
+---
+
+### Fixture Generator (`fixtureGenerator.js`)
+Creates fixtures with:
+- teams
 - squads
-
-Generated fixtures contain:
-- team squads
 - ordered games
-- original assignments
-- active assignments
-- substitutions
+- assignments
 - scores
 - summaries
 
-### Lineup Builder
-`lineupBuilder.js`
-Applies ordered lineups to a generated fixture.
+---
+
+### Lineup Builder (`lineupBuilder.js`)
+Applies lineups to fixtures.
 
 Supports:
-- singles assignment by order
-- doubles pairing by order
-- team games using full lineup
+- singles assignment
+- doubles pairing
+- team games
 
-Also validates:
-- no duplicate players
-- all lineup players must exist in squad
-- enough players must exist for the fixture format
+Validation:
+- no duplicates
+- must exist in squad
+- sufficient players
 
-### Substitution Model
-Substitutions only affect future unplayed games.
+---
 
-Important rule:
-- completed games never change
-- original assignment is preserved
-- active assignment can change for future games
-- substitution events are logged
+### Substitution System
+- Only affects future games
+- Completed games are immutable
+- Tracks original vs active players
 
-### Match Execution Layer
-`matchExecutor.js`
+---
+
+## Match Execution Layer (`matchExecutor.js`)
+
 Supports:
-- starting a fixture game
-- creating a live match
-- playing turns through the rules engine
-- finalizing the match
-- building the summary
-- writing winner + summary back into the fixture
+- Starting fixture games
+- Live match tracking
+- Turn processing
+- Multi-leg execution
+- Finalizing matches
+- Writing results into fixture
 
-Current V1 limitation:
-- execution layer supports singles fixture games only
+Supports:
+- singles
+- doubles
+- team games
+- multi-leg formats
 
-## Stats Model
+---
+
+## Stats System
 
 ### Match-Level Stats
-Currently tracked per leg:
+Tracked per match:
 - dartsUsed
 - throws
 - totalScored
@@ -155,26 +162,47 @@ Currently tracked per leg:
 - 180s
 - highest checkout
 
-Important rule:
-- bust / zero turn still counts as 3 darts and 1 throw
+Rule:
+- bust = still counts as 3 darts
 
-## Key Design Decisions
-1. One player can be active in many competitions at once.
-2. Private registry data must never be public.
-3. Templates generate fixtures, but fixtures must remain manually editable.
-4. Completed games never change after completion.
-5. Substitutions only affect future unplayed assignments.
-6. Database structure must stay separate from DSA export format.
-7. Logic stays outside UI to avoid bloated code.
-8. Fixture games should execute through the same scoring engine, not through duplicate logic.
+---
 
-## Current Working Modules
-- `dataModel.js`
-- `engine.js`
-- `rules.js`
-- `matchSummary.js`
-- `multiLegMatch.js`
-- `fixture.js`
-- `fixtureGenerator.js`
-- `lineupBuilder.js`
-- `matchExecutor.js`
+### Aggregation System (`statsAggregator.js`)
+
+Supports:
+- player overall stats
+- per-competition stats
+- leaderboard generation
+
+Pipeline:
+
+Match → Summary → Aggregate → Leaderboard
+
+
+---
+
+## Key Design Principles
+
+1. One player → many competitions
+2. Private data never exposed publicly
+3. Templates generate fixtures but are editable
+4. Completed games never change
+5. Substitutions only affect future games
+6. Stats must aggregate across competitions correctly
+7. Logic must stay outside UI (prevent bloat)
+8. Single source of truth for match results
+
+---
+
+## Current Modules
+
+- dataModel.js
+- engine.js
+- rules.js
+- matchSummary.js
+- multiLegMatch.js
+- fixture.js
+- fixtureGenerator.js
+- lineupBuilder.js
+- matchExecutor.js
+- statsAggregator.js

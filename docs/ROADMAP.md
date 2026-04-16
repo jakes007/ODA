@@ -1,99 +1,119 @@
 # ROADMAP
 
-## Completed
+## ✅ COMPLETED
 
-### Core Scoring
-- Single-leg scoring engine
-- Rules validation layer
-- Match stats tracking
-- Match summary builder
+### Core Engine
+- Scoring system
+- Rules validation
+- Match summaries
 
-### Multi-Leg Support
-- Fixed multi-leg mode
-- Best-of capable structure
-- Draw-capable wrapper
+### Multi-Leg Matches
+- Fixed legs
+- Best-of format
+- Draw support
 
 ### Fixture System
-- Fixture creation
-- Fixture summaries
-- Player assignment to games
-- Result recording
-- Fixture score tracking
-- Summary linking into fixture games
+- Template-based generation
+- Game structure
+- Score tracking
+- Summary linking
 
-### Core Data Model
-- Player master record
-- Player private profile
-- Player public profile
-- Competition
-- Competition membership
-- Team
-- Fixture template
-- Player edit request
+### Lineup System
+- Automatic assignment
+- Doubles + singles + team
+- Validation rules
 
-### Generated Fixtures
-- Generate fixture from template
-- Team squad support
-- Original vs active assignments
-- Substitution tracking
-
-### Lineup Builder
-- Automatic lineup assignment for:
-  - singles
-  - doubles
-  - team games
-- Validation against squad
-- Duplicate prevention
-- Invalid lineup prevention
+### Substitution System
+- Future-game substitution logic
+- Immutable completed games
 
 ### Match Execution
-- Start singles fixture game from generated fixture
-- Create live match
-- Process turns
-- Finalize game
-- Write summary + result back into fixture
+- Start match from fixture
+- Live scoring
+- Finalize match
+- Write back into fixture
+- Supports:
+  - singles
+  - doubles
+  - team
+  - multi-leg
 
-## Next
+### Stats Aggregation
+- Player aggregates
+- Competition aggregates
+- Leaderboards
+- Multi-competition support
 
-### 1. Expand Match Execution Beyond Singles
-Add support for:
-- doubles fixture games
-- team fixture games
-- multi-leg fixture games
+---
 
-### 2. Captain / Admin Override Rules
-Support:
-- manual reordering
-- manual reassignment
-- controlled overrides
-- lineup edits before game start
+## 🔥 NEXT
 
-### 3. Player / Competition Stats Aggregation
-Build:
-- player history per competition
-- overall player history
-- leaderboards
-- team stats
+### 1. Player Registry System
+Build full DSA-aligned player system:
+- Master record (admin)
+- Private profile (player)
+- Public profile
+- Edit request workflow
 
-## Later
+---
 
-### Registry Workflow
-- edit request approval flow
-- admin review tools
-- export to DSA spreadsheet format
+### 2. Player Match History
+- Store all match summaries per player
+- View match-by-match history
+- Connect to aggregates
 
-### Firebase / Persistence
-- store all entities
-- auth
-- role-based access
-- real-time updates
+---
 
-### UI
-- admin dashboard
-- player self-service
-- public competition pages
-- match scoring screens
+### 3. Competition Stats Views
+- Standings tables
+- Player rankings
+- Team rankings
 
-## Strategic Rule
-Keep building backend logic first.
-Do not move core business logic into UI.
+---
+
+## 🔜 LATER
+
+### Admin System
+- Player management
+- Competition creation
+- Template management
+- Fixture control
+
+---
+
+### Firebase / Backend
+- Data persistence
+- Authentication
+- Roles (admin/player)
+- Real-time updates
+
+---
+
+### UI (React)
+- Admin dashboard
+- Match scoring interface
+- Player profiles
+- Public competition pages
+
+---
+
+## 🧠 STRATEGY
+
+- Build backend first
+- Keep logic modular
+- Avoid UI logic duplication
+- Ensure data integrity before UI
+
+---
+
+## 📍 CURRENT POSITION
+
+Core Engine ✅
+Fixtures ✅
+Lineups ✅
+Validation ✅
+Substitutions ✅
+Execution ✅
+Stats Aggregation ✅
+⬇
+NEXT → Player Registry
