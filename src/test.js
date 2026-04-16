@@ -20,9 +20,6 @@ import {
   printLiveFixtureMatch
 } from './matchExecutor.js';
 
-// --------------------------------------------
-// Setup base data
-// --------------------------------------------
 const competition = createCompetition({
   name: 'ODA League',
   type: 'league',
@@ -45,88 +42,105 @@ const teamB = createTeam({
 });
 
 const template = createFixtureTemplate({
-  name: 'ODA League Standard Format',
+  name: 'Execution Expansion Test',
   competitionType: 'league',
   associationName: 'Observatory Darts Association',
   games: [
     { label: 'Singles 1', type: 'singles', startingScore: 40, legsMode: 'fixed', totalLegs: 1 },
-    { label: 'Singles 2', type: 'singles', startingScore: 501, legsMode: 'fixed', totalLegs: 1 }
+    { label: 'Doubles 1', type: 'doubles', startingScore: 40, legsMode: 'fixed', totalLegs: 1 },
+    { label: 'Team Best of 3', type: 'team', startingScore: 40, legsMode: 'bestOf', totalLegs: 3 }
   ]
 });
 
-// --------------------------------------------
-// Generate fixture
-// --------------------------------------------
 const fixture = createFixtureFromTemplate({
   template,
   competition,
   teamA,
   teamB,
-  teamASquad: ['Jason', 'A2'],
-  teamBSquad: ['B1', 'B2'],
-  fixtureName: 'Observatory A vs Observatory B - Execution Test'
+  teamASquad: ['Jason', 'A2', 'A3', 'A4'],
+  teamBSquad: ['B1', 'B2', 'B3', 'B4'],
+  fixtureName: 'Execution Expansion Fixture'
 });
 
-// --------------------------------------------
-// Apply lineups
-// --------------------------------------------
 applyLineupToFixture(fixture, {
-  teamALineup: ['Jason', 'A2'],
-  teamBLineup: ['B1', 'B2']
+  teamALineup: ['Jason', 'A2', 'A3', 'A4'],
+  teamBLineup: ['B1', 'B2', 'B3', 'B4']
 });
 
 console.log('\n===== FIXTURE BEFORE EXECUTION =====');
 printGeneratedFixture(fixture);
 
-// --------------------------------------------
-// Start first fixture game
-// --------------------------------------------
-console.log('\n===== START GAME 1 =====');
-const startResult = startFixtureGameMatch(fixture, 1);
-
-if (!startResult.success) {
-  console.log(`❌ ${startResult.reason}`);
-} else {
-  console.log('✅ Game 1 started');
-}
-
+// ----------------------
+// GAME 1 - singles
+// ----------------------
+console.log('\n===== START SINGLES =====');
+startFixtureGameMatch(fixture, 1);
 printLiveFixtureMatch(fixture, 1);
 
-// --------------------------------------------
-// Play the live match
-// Jason vs B1 on 40
-// Jason finishes on double with 1 dart
-// --------------------------------------------
-console.log('\n===== PLAY GAME 1 =====');
-
-let turnResult = playTurnInFixtureGame(fixture, 1, {
+playTurnInFixtureGame(fixture, 1, {
   points: 40,
   dartsUsed: 1,
   finishedOnDouble: true
 });
 
-if (!turnResult.success && turnResult.reason) {
-  console.log(`❌ ${turnResult.reason}`);
-} else {
-  console.log('✅ Turn processed');
-}
-
+console.log('\n===== AFTER SINGLES TURN =====');
 printLiveFixtureMatch(fixture, 1);
 
-// --------------------------------------------
-// Finalize and write back into fixture
-// --------------------------------------------
-console.log('\n===== FINALIZE GAME 1 =====');
-const finalizeResult = finalizeFixtureGameMatch(fixture, 1);
+const singlesFinalize = finalizeFixtureGameMatch(fixture, 1);
+console.log('\n===== SINGLES FINALIZED =====');
+console.log(JSON.stringify(singlesFinalize.summary, null, 2));
 
-if (!finalizeResult.success) {
-  console.log(`❌ ${finalizeResult.reason}`);
-} else {
-  console.log('✅ Game 1 finalized and linked back to fixture');
-}
+// ----------------------
+// GAME 2 - doubles
+// ----------------------
+console.log('\n===== START DOUBLES =====');
+startFixtureGameMatch(fixture, 2);
+printLiveFixtureMatch(fixture, 2);
 
-console.log('\n===== FIXTURE AFTER GAME 1 =====');
+playTurnInFixtureGame(fixture, 2, {
+  points: 40,
+  dartsUsed: 2,
+  finishedOnDouble: true
+});
+
+console.log('\n===== AFTER DOUBLES TURN =====');
+printLiveFixtureMatch(fixture, 2);
+
+const doublesFinalize = finalizeFixtureGameMatch(fixture, 2);
+console.log('\n===== DOUBLES FINALIZED =====');
+console.log(JSON.stringify(doublesFinalize.summary, null, 2));
+
+// ----------------------
+// GAME 3 - team best of 3
+// Team A wins 2-0
+// ----------------------
+console.log('\n===== START TEAM BEST OF 3 =====');
+startFixtureGameMatch(fixture, 3);
+printLiveFixtureMatch(fixture, 3);
+
+// Leg 1
+playTurnInFixtureGame(fixture, 3, {
+  points: 40,
+  dartsUsed: 1,
+  finishedOnDouble: true
+});
+
+console.log('\n===== AFTER TEAM LEG 1 =====');
+printLiveFixtureMatch(fixture, 3);
+
+// Leg 2
+playTurnInFixtureGame(fixture, 3, {
+  points: 40,
+  dartsUsed: 2,
+  finishedOnDouble: true
+});
+
+console.log('\n===== AFTER TEAM LEG 2 =====');
+printLiveFixtureMatch(fixture, 3);
+
+const teamFinalize = finalizeFixtureGameMatch(fixture, 3);
+console.log('\n===== TEAM MATCH FINALIZED =====');
+console.log(JSON.stringify(teamFinalize.summary, null, 2));
+
+console.log('\n===== FINAL FIXTURE =====');
 printGeneratedFixture(fixture);
-
-console.log('\nRAW GAME 1 SUMMARY:');
-console.log(JSON.stringify(finalizeResult.summary, null, 2));
