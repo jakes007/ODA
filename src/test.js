@@ -15,9 +15,6 @@ import {
   printLineup
 } from './lineupBuilder.js';
 
-// --------------------------------------------
-// Base data
-// --------------------------------------------
 const competition = createCompetition({
   name: 'ODA League',
   type: 'league',
@@ -54,9 +51,6 @@ const template = createFixtureTemplate({
   ]
 });
 
-// --------------------------------------------
-// Generate fixture
-// --------------------------------------------
 const fixture = createFixtureFromTemplate({
   template,
   competition,
@@ -70,18 +64,12 @@ const fixture = createFixtureFromTemplate({
 console.log('\n===== GENERATED FIXTURE =====');
 printGeneratedFixture(fixture);
 
-// --------------------------------------------
-// Build lineups
-// --------------------------------------------
 const teamALineup = ['Jason', 'A2', 'A3', 'A4'];
 const teamBLineup = ['B1', 'B2', 'B3', 'B4'];
 
 printLineup('TEAM A LINEUP', teamALineup);
 printLineup('TEAM B LINEUP', teamBLineup);
 
-// --------------------------------------------
-// Apply lineup to fixture
-// --------------------------------------------
 const lineupResult = applyLineupToFixture(fixture, {
   teamALineup,
   teamBLineup
@@ -90,10 +78,33 @@ const lineupResult = applyLineupToFixture(fixture, {
 if (!lineupResult.success) {
   console.log(`\n❌ ${lineupResult.reason}`);
 } else {
-  console.log('\n✅ Lineup applied successfully');
+  console.log('\n✅ Valid lineup applied successfully');
 }
 
-console.log('\n===== AFTER LINEUP APPLIED =====');
+console.log('\n===== AFTER VALID LINEUP =====');
 printGeneratedFixture(fixture);
 
-printObject('RAW FIXTURE AFTER LINEUP', fixture);
+// invalid test: player not in squad
+const badFixture = createFixtureFromTemplate({
+  template,
+  competition,
+  teamA,
+  teamB,
+  teamASquad: ['Jason', 'A2', 'A3', 'A4', 'SubA1'],
+  teamBSquad: ['B1', 'B2', 'B3', 'B4', 'SubB1'],
+  fixtureName: 'Invalid Lineup Test'
+});
+
+const badResult = applyLineupToFixture(badFixture, {
+  teamALineup: ['Jason', 'A2', 'A3', 'NotInSquad'],
+  teamBLineup: ['B1', 'B2', 'B3', 'B4']
+});
+
+console.log('\n===== INVALID LINEUP TEST =====');
+if (!badResult.success) {
+  console.log(`❌ ${badResult.reason}`);
+} else {
+  console.log('✅ Unexpected success');
+}
+
+printObject('RAW FIXTURE AFTER VALIDATION TESTS', fixture);

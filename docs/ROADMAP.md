@@ -1,102 +1,99 @@
-🗺️ UPDATED ROADMAP
+# ROADMAP
 
-We now move from Core Engine Phase → Product Phase
+## Completed
 
-✅ PHASE 1 — CORE ENGINE (DONE)
+### Core Scoring
+- Single-leg scoring engine
+- Rules validation layer
+- Match stats tracking
+- Match summary builder
 
-✔ Scoring engine
-✔ Match stats
-✔ Multi-leg matches
-✔ Fixture system
-✔ Templates
-✔ Lineups
-✔ Substitutions
+### Multi-Leg Support
+- Fixed multi-leg mode
+- Best-of capable structure
+- Draw-capable wrapper
 
-🟡 PHASE 2 — MATCH FLOW (NEXT)
-🔥 Step 1 (NEXT)
+### Fixture System
+- Fixture creation
+- Fixture summaries
+- Player assignment to games
+- Result recording
+- Fixture score tracking
+- Summary linking into fixture games
 
-Lineup Validation Rules
+### Core Data Model
+- Player master record
+- Player private profile
+- Player public profile
+- Competition
+- Competition membership
+- Team
+- Fixture template
+- Player edit request
 
-validate lineup against squad
-prevent invalid assignments
-enforce minimum players
-🔥 Step 2
+### Generated Fixtures
+- Generate fixture from template
+- Team squad support
+- Original vs active assignments
+- Substitution tracking
 
-Match Execution Integration
+### Lineup Builder
+- Automatic lineup assignment for:
+  - singles
+  - doubles
+  - team games
 
+## Next
+
+### 1. Lineup Validation Rules
+Add validation for:
+- player must exist in squad
+- no duplicate players
+- enough players for each format
+- invalid lineup prevention
+
+### 2. Match Execution Integration
 Connect:
+- fixture game
+- match engine
+- summary output
+- fixture result recording
 
-Fixture Game → Match Engine → Summary → Fixture
+Goal:
+A fixture game should be playable from the generated fixture structure.
 
-So you can:
+### 3. Captain / Admin Override Rules
+Support:
+- manual reordering
+- manual reassignment
+- controlled overrides
+- lineup edits before game start
 
-start a game
-play it
-save result into fixture
+## Later
 
-👉 This is where your app becomes interactive
+### Player Statistics
+- aggregate per competition
+- aggregate overall
+- player history
+- leaderboards
 
-🔥 Step 3
+### Registry Workflow
+- edit request approval flow
+- admin review tools
+- export to DSA spreadsheet format
 
-Admin Match Control Logic
+### Firebase / Persistence
+- store all entities
+- auth
+- role-based access
+- real-time updates
 
-mark game as started
-prevent editing after start
-enforce match flow order
-🟢 PHASE 3 — PLAYER & STATS
-Player match history
-Per competition stats
-Leaderboards
-Team stats
-🔵 PHASE 4 — ADMIN SYSTEM
-Player registry management
-Edit request approval
-Competition creation
-Template management
-Fixture creation UI logic
-🟣 PHASE 5 — FIREBASE / BACKEND
-Persist all data
-Auth (admin vs player)
-Real-time updates
-🟠 PHASE 6 — FRONTEND (React)
-Admin dashboard
-Match scoring UI
-Player profile UI
-Public results view
-⚠️ IMPORTANT STRATEGY DECISION (WE FOLLOW THIS)
+### UI
+- admin dashboard
+- player self-service
+- public competition pages
+- match scoring screens
 
-We will:
-
-❌ NOT jump to UI yet
-✅ Build complete backend logic first
-
-Because:
-
-avoids rewrites
-keeps logic clean
-makes UI easy later
-📌 WHERE YOU ARE RIGHT NOW
-
-You are here:
-
-Core Engine ✅
-Fixtures ✅
-Lineups ✅
-Substitutions ✅
-⬇
-NEXT → Validation + Match Flow
-🚀 NEXT STEP
-
-Now we tighten the system so it becomes admin-proof.
-
-Say:
-
-add lineup validation rules
-
-and we’ll upgrade your lineup builder to:
-
-validate against squad
-enforce constraints
-prevent bad data
-
-After that, we plug in real match execution 🔥
+## Strategic Rule
+Keep building backend logic first.
+Do not move core business logic into UI.
