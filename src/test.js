@@ -1,122 +1,99 @@
-import { createCompetition } from './dataModel.js';
-import { createMatch } from './engine.js';
-import { processTurn } from './rules.js';
-import { buildMatchSummary } from './matchSummary.js';
 import {
-  createPlayerAggregate,
-  addMatchSummaryToPlayerAggregate,
-  buildLeaderboardRows,
-  sortLeaderboardByAverage,
-  printAggregate,
-  printLeaderboard
-} from './statsAggregator.js';
+  createEmptyRegistry,
+  registerPlayer,
+  getAdminPlayerView,
+  getPrivatePlayerView,
+  getPublicPlayerView,
+  submitPlayerEditRequest,
+  approvePlayerEditRequest,
+  rejectPlayerEditRequest,
+  printRegistryState
+} from './playerRegistry.js';
 
 // --------------------------------------------
-// Create competitions
+// Create registry
 // --------------------------------------------
-const odaLeague = createCompetition({
-  name: 'ODA League',
-  type: 'league',
-  season: '2026',
-  status: 'active',
+const registry = createEmptyRegistry();
+
+// --------------------------------------------
+// Register player
+// --------------------------------------------
+const registerResult = registerPlayer(registry, {
+  fullName: 'Jason Isaacs',
+  dsaNumber: 'DSA12345',
+  idNumber: '9001015009087',
+  dateOfBirth: '1990-01-01',
+  race: 'ExampleRace',
+  gender: 'Male',
+  registrationStatus: 'active',
   associationName: 'Observatory Darts Association',
-  provinceName: 'Western Cape'
+  provinceName: 'Western Cape',
+  phone: '0820000000',
+  email: 'jason@example.com',
+  addressLine1: '1 Main Road',
+  addressLine2: 'Observatory',
+  city: 'Cape Town',
+  postalCode: '7925'
 });
 
-const odaSingles = createCompetition({
-  name: 'ODA Singles League',
-  type: 'singles',
-  season: '2026',
-  status: 'active',
-  associationName: 'Observatory Darts Association',
-  provinceName: 'Western Cape'
+const playerId = registerResult.player.playerId;
+
+printRegistryState('REGISTERED PLAYER', registerResult.player);
+
+// --------------------------------------------
+// View layers
+// --------------------------------------------
+const adminView = getAdminPlayerView(registry, playerId);
+const privateView = getPrivatePlayerView(registry, playerId);
+const publicView = getPublicPlayerView(registry, playerId, {
+  displayName: 'Jason Isaacs'
 });
 
-// --------------------------------------------
-// Build some real match summaries
-// --------------------------------------------
+printRegistryState('ADMIN VIEW', adminView.player);
+printRegistryState('PRIVATE VIEW', privateView.player);
+printRegistryState('PUBLIC VIEW', publicView.player);
 
-// Match 1: Jason beats B1 in ODA League
-let match1 = createMatch('Jason', 'B1', 40);
-processTurn(match1, {
-  points: 40,
-  dartsUsed: 1,
-  finishedOnDouble: true
+// --------------------------------------------
+// Submit edit request
+// --------------------------------------------
+const editRequestResult = submitPlayerEditRequest(registry, playerId, {
+  contact: {
+    phone: '0831111111',
+    email: 'newjason@example.com',
+    addressLine1: '99 Updated Road'
+  }
 });
-const summary1 = buildMatchSummary(match1);
 
-// Match 2: Jason loses to B2 in ODA League
-let match2 = createMatch('Jason', 'B2', 40);
-processTurn(match2, {
-  points: 0
+const requestId = editRequestResult.request.requestId;
+
+printRegistryState('SUBMITTED EDIT REQUEST', editRequestResult.request);
+
+// --------------------------------------------
+// Approve edit request
+// --------------------------------------------
+const approveResult = approvePlayerEditRequest(registry, requestId, 'admin_jake');
+
+printRegistryState('APPROVED EDIT REQUEST', approveResult.request);
+printRegistryState('PLAYER AFTER APPROVAL', approveResult.player);
+
+// --------------------------------------------
+// Submit second request and reject it
+// --------------------------------------------
+const secondEditRequest = submitPlayerEditRequest(registry, playerId, {
+  contact: {
+    phone: '0849999999'
+  }
 });
-processTurn(match2, {
-  points: 40,
-  dartsUsed: 2,
-  finishedOnDouble: true
-});
-const summary2 = buildMatchSummary(match2);
 
-// Match 3: Jason beats Mike in ODA Singles League
-let match3 = createMatch('Jason', 'Mike', 81);
-processTurn(match3, {
-  points: 81,
-  dartsUsed: 3,
-  finishedOnDouble: true
-});
-const summary3 = buildMatchSummary(match3);
+const secondRequestId = secondEditRequest.request.requestId;
+
+printRegistryState('SECOND SUBMITTED EDIT REQUEST', secondEditRequest.request);
+
+const rejectResult = rejectPlayerEditRequest(registry, secondRequestId, 'admin_jake');
+
+printRegistryState('REJECTED EDIT REQUEST', rejectResult.request);
 
 // --------------------------------------------
-// Create player aggregates
+// Final registry state
 // --------------------------------------------
-const jasonAggregate = createPlayerAggregate('player_jason', 'Jason');
-const b1Aggregate = createPlayerAggregate('player_b1', 'B1');
-const b2Aggregate = createPlayerAggregate('player_b2', 'B2');
-const mikeAggregate = createPlayerAggregate('player_mike', 'Mike');
-
-// --------------------------------------------
-// Apply summaries to aggregates
-// --------------------------------------------
-addMatchSummaryToPlayerAggregate(jasonAggregate, odaLeague.competitionId, odaLeague.name, summary1);
-addMatchSummaryToPlayerAggregate(b1Aggregate, odaLeague.competitionId, odaLeague.name, summary1);
-
-addMatchSummaryToPlayerAggregate(jasonAggregate, odaLeague.competitionId, odaLeague.name, summary2);
-addMatchSummaryToPlayerAggregate(b2Aggregate, odaLeague.competitionId, odaLeague.name, summary2);
-
-addMatchSummaryToPlayerAggregate(jasonAggregate, odaSingles.competitionId, odaSingles.name, summary3);
-addMatchSummaryToPlayerAggregate(mikeAggregate, odaSingles.competitionId, odaSingles.name, summary3);
-
-// --------------------------------------------
-// Print aggregates
-// --------------------------------------------
-printAggregate('JASON AGGREGATE', jasonAggregate);
-printAggregate('B1 AGGREGATE', b1Aggregate);
-printAggregate('B2 AGGREGATE', b2Aggregate);
-printAggregate('MIKE AGGREGATE', mikeAggregate);
-
-// --------------------------------------------
-// Build leaderboards
-// --------------------------------------------
-const allAggregates = [jasonAggregate, b1Aggregate, b2Aggregate, mikeAggregate];
-
-const overallLeaderboard = sortLeaderboardByAverage(
-  buildLeaderboardRows(allAggregates)
-);
-
-const odaLeagueLeaderboard = sortLeaderboardByAverage(
-  buildLeaderboardRows(allAggregates, odaLeague.competitionId)
-);
-
-const odaSinglesLeaderboard = sortLeaderboardByAverage(
-  buildLeaderboardRows(allAggregates, odaSingles.competitionId)
-);
-
-printLeaderboard('OVERALL LEADERBOARD', overallLeaderboard);
-printLeaderboard('ODA LEAGUE LEADERBOARD', odaLeagueLeaderboard);
-printLeaderboard('ODA SINGLES LEADERBOARD', odaSinglesLeaderboard);
-
-// --------------------------------------------
-// Raw summaries
-// --------------------------------------------
-console.log('\n===== RAW MATCH SUMMARIES =====');
-console.log(JSON.stringify([summary1, summary2, summary3], null, 2));
+printRegistryState('FINAL REGISTRY STATE', registry);
