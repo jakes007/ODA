@@ -155,11 +155,11 @@ export default function LandingPage() {
         </div>
 
         <div className="landing-actions">
-          <button className="primary-btn" type="button">
+          <Link to="/login" className="primary-btn">
             Login
-          </button>
-          <Link to="/competition/overview" className="secondary-btn">
-            Explore Competition
+          </Link>
+          <Link to="/register" className="secondary-btn">
+            Register
           </Link>
         </div>
       </section>

@@ -8,10 +8,17 @@
   box-sizing: border-box;
 }
 
-body {
+html,
+body,
+#root {
   margin: 0;
+  min-height: 100%;
   background: #f3f4f6;
   color: #111827;
+}
+
+body {
+  margin: 0;
 }
 
 a {
@@ -58,16 +65,30 @@ button {
   gap: 8px;
 }
 
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .sidebar-link {
   padding: 10px 12px;
   border-radius: 10px;
   color: #d1d5db;
+  display: block;
 }
 
 .sidebar-link.active,
 .sidebar-link:hover {
   background: #1f2937;
   color: white;
+}
+
+.sidebar-login-link {
+  font-weight: 600;
 }
 
 .mobile-sidebar {
@@ -365,6 +386,52 @@ button {
   gap: 16px;
 }
 
+.auth-panel {
+  max-width: 560px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.form-input {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: white;
+  color: #111827;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.auth-submit-btn {
+  width: fit-content;
+}
+
+.auth-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
 @media (max-width: 960px) {
   .sidebar {
     display: none;
@@ -453,8 +520,13 @@ button {
   }
 
   .history-stats,
-  .landing-actions {
+  .landing-actions,
+  .auth-footer {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .auth-submit-btn {
+    width: 100%;
   }
 }

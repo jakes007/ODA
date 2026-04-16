@@ -46,6 +46,28 @@ export default function Sidebar({ mobile = false, isOpen = false, onClose = null
           </NavLink>
         ))}
       </nav>
+
+      <div className="sidebar-footer">
+        <NavLink
+          to="/login"
+          onClick={mobile ? onClose : undefined}
+          className={({ isActive }) =>
+            `sidebar-link sidebar-login-link${isActive ? ' active' : ''}`
+          }
+        >
+          Login
+        </NavLink>
+
+        <NavLink
+          to="/register"
+          onClick={mobile ? onClose : undefined}
+          className={({ isActive }) =>
+            `sidebar-link sidebar-login-link${isActive ? ' active' : ''}`
+          }
+        >
+          Register
+        </NavLink>
+      </div>
     </aside>
   );
 }
