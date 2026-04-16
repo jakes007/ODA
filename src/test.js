@@ -1,99 +1,140 @@
+import { createCompetition } from './dataModel.js';
+import { createMatch } from './engine.js';
+import { processTurn } from './rules.js';
+import { buildMatchSummary } from './matchSummary.js';
 import {
-  createEmptyRegistry,
-  registerPlayer,
-  getAdminPlayerView,
-  getPrivatePlayerView,
-  getPublicPlayerView,
-  submitPlayerEditRequest,
-  approvePlayerEditRequest,
-  rejectPlayerEditRequest,
-  printRegistryState
-} from './playerRegistry.js';
+  createPlayerHistoryStore,
+  recordMatchSummaryForPlayers,
+  getPlayerHistory,
+  getPlayerHistoryByCompetition,
+  printPlayerHistory
+} from './playerHistory.js';
 
 // --------------------------------------------
-// Create registry
+// Competitions
 // --------------------------------------------
-const registry = createEmptyRegistry();
-
-// --------------------------------------------
-// Register player
-// --------------------------------------------
-const registerResult = registerPlayer(registry, {
-  fullName: 'Jason Isaacs',
-  dsaNumber: 'DSA12345',
-  idNumber: '9001015009087',
-  dateOfBirth: '1990-01-01',
-  race: 'ExampleRace',
-  gender: 'Male',
-  registrationStatus: 'active',
+const odaLeague = createCompetition({
+  name: 'ODA League',
+  type: 'league',
+  season: '2026',
+  status: 'active',
   associationName: 'Observatory Darts Association',
-  provinceName: 'Western Cape',
-  phone: '0820000000',
-  email: 'jason@example.com',
-  addressLine1: '1 Main Road',
-  addressLine2: 'Observatory',
-  city: 'Cape Town',
-  postalCode: '7925'
+  provinceName: 'Western Cape'
 });
 
-const playerId = registerResult.player.playerId;
-
-printRegistryState('REGISTERED PLAYER', registerResult.player);
-
-// --------------------------------------------
-// View layers
-// --------------------------------------------
-const adminView = getAdminPlayerView(registry, playerId);
-const privateView = getPrivatePlayerView(registry, playerId);
-const publicView = getPublicPlayerView(registry, playerId, {
-  displayName: 'Jason Isaacs'
+const odaSingles = createCompetition({
+  name: 'ODA Singles League',
+  type: 'singles',
+  season: '2026',
+  status: 'active',
+  associationName: 'Observatory Darts Association',
+  provinceName: 'Western Cape'
 });
 
-printRegistryState('ADMIN VIEW', adminView.player);
-printRegistryState('PRIVATE VIEW', privateView.player);
-printRegistryState('PUBLIC VIEW', publicView.player);
+// --------------------------------------------
+// History store
+// --------------------------------------------
+const historyStore = createPlayerHistoryStore();
+
+// simple player ID map for test
+const playerIdMap = {
+  Jason: 'player_jason',
+  B1: 'player_b1',
+  B2: 'player_b2',
+  Mike: 'player_mike'
+};
 
 // --------------------------------------------
-// Submit edit request
+// Match 1: Jason beats B1 in ODA League
 // --------------------------------------------
-const editRequestResult = submitPlayerEditRequest(registry, playerId, {
-  contact: {
-    phone: '0831111111',
-    email: 'newjason@example.com',
-    addressLine1: '99 Updated Road'
-  }
+let match1 = createMatch('Jason', 'B1', 40);
+processTurn(match1, {
+  points: 40,
+  dartsUsed: 1,
+  finishedOnDouble: true
 });
+const summary1 = buildMatchSummary(match1);
 
-const requestId = editRequestResult.request.requestId;
-
-printRegistryState('SUBMITTED EDIT REQUEST', editRequestResult.request);
+recordMatchSummaryForPlayers(
+  historyStore,
+  {
+    playerIdMap,
+    competitionId: odaLeague.competitionId,
+    competitionName: odaLeague.name,
+    matchType: 'singles',
+    fixtureId: 'fixture_001',
+    fixtureName: 'Observatory A vs Observatory B'
+  },
+  summary1
+);
 
 // --------------------------------------------
-// Approve edit request
+// Match 2: Jason loses to B2 in ODA League
 // --------------------------------------------
-const approveResult = approvePlayerEditRequest(registry, requestId, 'admin_jake');
-
-printRegistryState('APPROVED EDIT REQUEST', approveResult.request);
-printRegistryState('PLAYER AFTER APPROVAL', approveResult.player);
-
-// --------------------------------------------
-// Submit second request and reject it
-// --------------------------------------------
-const secondEditRequest = submitPlayerEditRequest(registry, playerId, {
-  contact: {
-    phone: '0849999999'
-  }
+let match2 = createMatch('Jason', 'B2', 40);
+processTurn(match2, { points: 0 });
+processTurn(match2, {
+  points: 40,
+  dartsUsed: 2,
+  finishedOnDouble: true
 });
+const summary2 = buildMatchSummary(match2);
 
-const secondRequestId = secondEditRequest.request.requestId;
-
-printRegistryState('SECOND SUBMITTED EDIT REQUEST', secondEditRequest.request);
-
-const rejectResult = rejectPlayerEditRequest(registry, secondRequestId, 'admin_jake');
-
-printRegistryState('REJECTED EDIT REQUEST', rejectResult.request);
+recordMatchSummaryForPlayers(
+  historyStore,
+  {
+    playerIdMap,
+    competitionId: odaLeague.competitionId,
+    competitionName: odaLeague.name,
+    matchType: 'singles',
+    fixtureId: 'fixture_002',
+    fixtureName: 'Observatory A vs Observatory C'
+  },
+  summary2
+);
 
 // --------------------------------------------
-// Final registry state
+// Match 3: Jason beats Mike in ODA Singles League
 // --------------------------------------------
-printRegistryState('FINAL REGISTRY STATE', registry);
+let match3 = createMatch('Jason', 'Mike', 81);
+processTurn(match3, {
+  points: 81,
+  dartsUsed: 3,
+  finishedOnDouble: true
+});
+const summary3 = buildMatchSummary(match3);
+
+recordMatchSummaryForPlayers(
+  historyStore,
+  {
+    playerIdMap,
+    competitionId: odaSingles.competitionId,
+    competitionName: odaSingles.name,
+    matchType: 'singles',
+    fixtureId: null,
+    fixtureName: 'Singles Round 1'
+  },
+  summary3
+);
+
+// --------------------------------------------
+// Query history
+// --------------------------------------------
+const jasonHistory = getPlayerHistory(historyStore, 'player_jason');
+const jasonLeagueHistory = getPlayerHistoryByCompetition(
+  historyStore,
+  'player_jason',
+  odaLeague.competitionId
+);
+const jasonSinglesHistory = getPlayerHistoryByCompetition(
+  historyStore,
+  'player_jason',
+  odaSingles.competitionId
+);
+
+printPlayerHistory('JASON FULL HISTORY', jasonHistory);
+printPlayerHistory('JASON ODA LEAGUE HISTORY', jasonLeagueHistory);
+printPlayerHistory('JASON ODA SINGLES HISTORY', jasonSinglesHistory);
+
+console.log('\n===== RAW HISTORY STORE =====');
+console.log(JSON.stringify(historyStore, null, 2));
