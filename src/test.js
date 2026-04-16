@@ -1,8 +1,7 @@
 import {
   createCompetition,
   createTeam,
-  createFixtureTemplate,
-  printObject
+  createFixtureTemplate
 } from './dataModel.js';
 
 import {
@@ -11,10 +10,19 @@ import {
 } from './fixtureGenerator.js';
 
 import {
-  applyLineupToFixture,
-  printLineup
+  applyLineupToFixture
 } from './lineupBuilder.js';
 
+import {
+  startFixtureGameMatch,
+  playTurnInFixtureGame,
+  finalizeFixtureGameMatch,
+  printLiveFixtureMatch
+} from './matchExecutor.js';
+
+// --------------------------------------------
+// Setup base data
+// --------------------------------------------
 const competition = createCompetition({
   name: 'ODA League',
   type: 'league',
@@ -41,70 +49,84 @@ const template = createFixtureTemplate({
   competitionType: 'league',
   associationName: 'Observatory Darts Association',
   games: [
-    { label: 'Doubles 1', type: 'doubles', startingScore: 501, legsMode: 'fixed', totalLegs: 1 },
-    { label: 'Doubles 2', type: 'doubles', startingScore: 501, legsMode: 'fixed', totalLegs: 1 },
-    { label: 'Singles 1', type: 'singles', startingScore: 501, legsMode: 'fixed', totalLegs: 1 },
-    { label: 'Singles 2', type: 'singles', startingScore: 501, legsMode: 'fixed', totalLegs: 1 },
-    { label: 'Singles 3', type: 'singles', startingScore: 501, legsMode: 'fixed', totalLegs: 1 },
-    { label: 'Singles 4', type: 'singles', startingScore: 501, legsMode: 'fixed', totalLegs: 1 },
-    { label: 'Team Decider', type: 'team', startingScore: 701, legsMode: 'fixed', totalLegs: 1 }
+    { label: 'Singles 1', type: 'singles', startingScore: 40, legsMode: 'fixed', totalLegs: 1 },
+    { label: 'Singles 2', type: 'singles', startingScore: 501, legsMode: 'fixed', totalLegs: 1 }
   ]
 });
 
+// --------------------------------------------
+// Generate fixture
+// --------------------------------------------
 const fixture = createFixtureFromTemplate({
   template,
   competition,
   teamA,
   teamB,
-  teamASquad: ['Jason', 'A2', 'A3', 'A4', 'SubA1'],
-  teamBSquad: ['B1', 'B2', 'B3', 'B4', 'SubB1'],
-  fixtureName: 'Observatory A vs Observatory B - Round 1'
+  teamASquad: ['Jason', 'A2'],
+  teamBSquad: ['B1', 'B2'],
+  fixtureName: 'Observatory A vs Observatory B - Execution Test'
 });
 
-console.log('\n===== GENERATED FIXTURE =====');
+// --------------------------------------------
+// Apply lineups
+// --------------------------------------------
+applyLineupToFixture(fixture, {
+  teamALineup: ['Jason', 'A2'],
+  teamBLineup: ['B1', 'B2']
+});
+
+console.log('\n===== FIXTURE BEFORE EXECUTION =====');
 printGeneratedFixture(fixture);
 
-const teamALineup = ['Jason', 'A2', 'A3', 'A4'];
-const teamBLineup = ['B1', 'B2', 'B3', 'B4'];
+// --------------------------------------------
+// Start first fixture game
+// --------------------------------------------
+console.log('\n===== START GAME 1 =====');
+const startResult = startFixtureGameMatch(fixture, 1);
 
-printLineup('TEAM A LINEUP', teamALineup);
-printLineup('TEAM B LINEUP', teamBLineup);
-
-const lineupResult = applyLineupToFixture(fixture, {
-  teamALineup,
-  teamBLineup
-});
-
-if (!lineupResult.success) {
-  console.log(`\n❌ ${lineupResult.reason}`);
+if (!startResult.success) {
+  console.log(`❌ ${startResult.reason}`);
 } else {
-  console.log('\n✅ Valid lineup applied successfully');
+  console.log('✅ Game 1 started');
 }
 
-console.log('\n===== AFTER VALID LINEUP =====');
+printLiveFixtureMatch(fixture, 1);
+
+// --------------------------------------------
+// Play the live match
+// Jason vs B1 on 40
+// Jason finishes on double with 1 dart
+// --------------------------------------------
+console.log('\n===== PLAY GAME 1 =====');
+
+let turnResult = playTurnInFixtureGame(fixture, 1, {
+  points: 40,
+  dartsUsed: 1,
+  finishedOnDouble: true
+});
+
+if (!turnResult.success && turnResult.reason) {
+  console.log(`❌ ${turnResult.reason}`);
+} else {
+  console.log('✅ Turn processed');
+}
+
+printLiveFixtureMatch(fixture, 1);
+
+// --------------------------------------------
+// Finalize and write back into fixture
+// --------------------------------------------
+console.log('\n===== FINALIZE GAME 1 =====');
+const finalizeResult = finalizeFixtureGameMatch(fixture, 1);
+
+if (!finalizeResult.success) {
+  console.log(`❌ ${finalizeResult.reason}`);
+} else {
+  console.log('✅ Game 1 finalized and linked back to fixture');
+}
+
+console.log('\n===== FIXTURE AFTER GAME 1 =====');
 printGeneratedFixture(fixture);
 
-// invalid test: player not in squad
-const badFixture = createFixtureFromTemplate({
-  template,
-  competition,
-  teamA,
-  teamB,
-  teamASquad: ['Jason', 'A2', 'A3', 'A4', 'SubA1'],
-  teamBSquad: ['B1', 'B2', 'B3', 'B4', 'SubB1'],
-  fixtureName: 'Invalid Lineup Test'
-});
-
-const badResult = applyLineupToFixture(badFixture, {
-  teamALineup: ['Jason', 'A2', 'A3', 'NotInSquad'],
-  teamBLineup: ['B1', 'B2', 'B3', 'B4']
-});
-
-console.log('\n===== INVALID LINEUP TEST =====');
-if (!badResult.success) {
-  console.log(`❌ ${badResult.reason}`);
-} else {
-  console.log('✅ Unexpected success');
-}
-
-printObject('RAW FIXTURE AFTER VALIDATION TESTS', fixture);
+console.log('\nRAW GAME 1 SUMMARY:');
+console.log(JSON.stringify(finalizeResult.summary, null, 2));
