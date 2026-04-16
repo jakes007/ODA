@@ -124,3 +124,33 @@ export function getCompetitionRankings() {
     ]
   };
 }
+
+export function getCompetitionFixtures() {
+  return {
+    competition: {
+      name: 'ODA League',
+      season: '2026',
+      status: 'active'
+    },
+    fixtures: [
+      {
+        id: 'fixture_001',
+        fixtureName: 'Observatory A vs Observatory B',
+        scoreText: '4 - 3',
+        complete: true
+      },
+      {
+        id: 'fixture_002',
+        fixtureName: 'Observatory C vs Observatory A',
+        scoreText: '3 - 3',
+        complete: true
+      },
+      {
+        id: 'fixture_003',
+        fixtureName: 'Observatory B vs Observatory C',
+        scoreText: '5 - 2',
+        complete: true
+      }
+    ]
+  };
+}

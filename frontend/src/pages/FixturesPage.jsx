@@ -1,16 +1,18 @@
 import PageHeader from '../components/common/PageHeader';
-import { fixturesRows } from '../data/mockCompetitionData';
+import { getCompetitionFixtures } from '../data/realData';
 
 export default function FixturesPage() {
+  const data = getCompetitionFixtures();
+
   return (
     <div className="page-stack">
       <PageHeader
         title="Fixtures"
-        subtitle="Competition results and fixtures"
+        subtitle={`${data.competition.name} • ${data.competition.season}`}
       />
 
       <div className="card-list">
-        {fixturesRows.map((fixture) => (
+        {data.fixtures.map((fixture) => (
           <div key={fixture.id} className="panel">
             <div className="fixture-card-header">
               <h3 className="panel-title">{fixture.fixtureName}</h3>
