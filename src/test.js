@@ -1,18 +1,22 @@
-import { createCompetition } from './dataModel.js';
-import { createMatch } from './engine.js';
-import { processTurn } from './rules.js';
-import { buildMatchSummary } from './matchSummary.js';
+import { createCompetition, createTeam } from './dataModel.js';
 import {
-  createPlayerHistoryStore,
-  recordMatchSummaryForPlayers
-} from './playerHistory.js';
+  createCompetitionTableStore,
+  recordFixtureResultForStandings,
+  recordPlayerAggregateForRanking,
+  getSortedTeamStandings,
+  getSortedPlayerRankings
+} from './competitionTables.js';
+import { createPlayerAggregate } from './statsAggregator.js';
 import {
-  buildHeadToHead,
-  printHeadToHead
-} from './headToHead.js';
+  buildCompetitionStandingsPage,
+  buildCompetitionRankingsPage,
+  buildCompetitionFixturesPage,
+  buildCompetitionOverviewPage,
+  printCompetitionView
+} from './competitionViews.js';
 
 // --------------------------------------------
-// Competitions
+// Competition
 // --------------------------------------------
 const odaLeague = createCompetition({
   name: 'ODA League',
@@ -23,133 +27,189 @@ const odaLeague = createCompetition({
   provinceName: 'Western Cape'
 });
 
-const odaSingles = createCompetition({
-  name: 'ODA Singles League',
-  type: 'singles',
-  season: '2026',
-  status: 'active',
+// --------------------------------------------
+// Teams
+// --------------------------------------------
+const observatoryA = createTeam({
+  name: 'Observatory A',
   associationName: 'Observatory Darts Association',
-  provinceName: 'Western Cape'
+  competitionId: odaLeague.competitionId
+});
+
+const observatoryB = createTeam({
+  name: 'Observatory B',
+  associationName: 'Observatory Darts Association',
+  competitionId: odaLeague.competitionId
+});
+
+const observatoryC = createTeam({
+  name: 'Observatory C',
+  associationName: 'Observatory Darts Association',
+  competitionId: odaLeague.competitionId
 });
 
 // --------------------------------------------
-// History store
+// Table store + standings
 // --------------------------------------------
-const historyStore = createPlayerHistoryStore();
+const tableStore = createCompetitionTableStore();
 
-const playerIdMap = {
-  Jason: 'player_jason',
-  Mike: 'player_mike',
-  B1: 'player_b1'
+recordFixtureResultForStandings(tableStore, {
+  teamA: { teamId: observatoryA.teamId, name: observatoryA.name },
+  teamB: { teamId: observatoryB.teamId, name: observatoryB.name },
+  score: { teamA: 4, teamB: 3 }
+});
+
+recordFixtureResultForStandings(tableStore, {
+  teamA: { teamId: observatoryC.teamId, name: observatoryC.name },
+  teamB: { teamId: observatoryA.teamId, name: observatoryA.name },
+  score: { teamA: 3, teamB: 3 }
+});
+
+recordFixtureResultForStandings(tableStore, {
+  teamA: { teamId: observatoryB.teamId, name: observatoryB.name },
+  teamB: { teamId: observatoryC.teamId, name: observatoryC.name },
+  score: { teamA: 5, teamB: 2 }
+});
+
+const standings = getSortedTeamStandings(tableStore);
+
+// --------------------------------------------
+// Player rankings
+// --------------------------------------------
+const jasonAggregate = createPlayerAggregate('player_jason', 'Jason');
+jasonAggregate.competitions[odaLeague.competitionId] = {
+  competitionId: odaLeague.competitionId,
+  competitionName: odaLeague.name,
+  stats: {
+    matchesPlayed: 3,
+    matchesWon: 2,
+    matchesLost: 1,
+    matchesDrawn: 0,
+    dartsUsed: 7,
+    throws: 3,
+    totalScored: 121,
+    count100Plus: 0,
+    count140Plus: 0,
+    count180s: 0,
+    highestCheckout: 81,
+    threeDartAverage: 51.86
+  }
 };
 
-// --------------------------------------------
-// Match 1: Jason beats Mike in league
-// --------------------------------------------
-let match1 = createMatch('Jason', 'Mike', 40);
-processTurn(match1, {
-  points: 40,
-  dartsUsed: 1,
-  finishedOnDouble: true
-});
-const summary1 = buildMatchSummary(match1);
+const mikeAggregate = createPlayerAggregate('player_mike', 'Mike');
+mikeAggregate.competitions[odaLeague.competitionId] = {
+  competitionId: odaLeague.competitionId,
+  competitionName: odaLeague.name,
+  stats: {
+    matchesPlayed: 3,
+    matchesWon: 1,
+    matchesLost: 2,
+    matchesDrawn: 0,
+    dartsUsed: 9,
+    throws: 3,
+    totalScored: 100,
+    count100Plus: 1,
+    count140Plus: 0,
+    count180s: 0,
+    highestCheckout: 40,
+    threeDartAverage: 33.33
+  }
+};
 
-recordMatchSummaryForPlayers(
-  historyStore,
+const peterAggregate = createPlayerAggregate('player_peter', 'Peter');
+peterAggregate.competitions[odaLeague.competitionId] = {
+  competitionId: odaLeague.competitionId,
+  competitionName: odaLeague.name,
+  stats: {
+    matchesPlayed: 2,
+    matchesWon: 2,
+    matchesLost: 0,
+    matchesDrawn: 0,
+    dartsUsed: 4,
+    throws: 2,
+    totalScored: 80,
+    count100Plus: 0,
+    count140Plus: 0,
+    count180s: 0,
+    highestCheckout: 40,
+    threeDartAverage: 60
+  }
+};
+
+recordPlayerAggregateForRanking(tableStore, jasonAggregate, odaLeague.competitionId);
+recordPlayerAggregateForRanking(tableStore, mikeAggregate, odaLeague.competitionId);
+recordPlayerAggregateForRanking(tableStore, peterAggregate, odaLeague.competitionId);
+
+const rankings = getSortedPlayerRankings(tableStore);
+
+// --------------------------------------------
+// Fixture list
+// --------------------------------------------
+const fixtures = [
   {
-    playerIdMap,
-    competitionId: odaLeague.competitionId,
-    competitionName: odaLeague.name,
-    matchType: 'singles',
     fixtureId: 'fixture_001',
-    fixtureName: 'Observatory A vs Observatory B'
+    fixtureName: 'Observatory A vs Observatory B',
+    teamA: { teamId: observatoryA.teamId, name: observatoryA.name },
+    teamB: { teamId: observatoryB.teamId, name: observatoryB.name },
+    score: { teamA: 4, teamB: 3 },
+    complete: true,
+    games: [
+      { order: 1, label: 'Singles 1', type: 'singles', status: 'completed', winner: 'teamA' },
+      { order: 2, label: 'Singles 2', type: 'singles', status: 'completed', winner: 'teamB' }
+    ]
   },
-  summary1
-);
-
-// --------------------------------------------
-// Match 2: Mike beats Jason in league
-// --------------------------------------------
-let match2 = createMatch('Jason', 'Mike', 40);
-processTurn(match2, { points: 0 });
-processTurn(match2, {
-  points: 40,
-  dartsUsed: 2,
-  finishedOnDouble: true
-});
-const summary2 = buildMatchSummary(match2);
-
-recordMatchSummaryForPlayers(
-  historyStore,
   {
-    playerIdMap,
-    competitionId: odaLeague.competitionId,
-    competitionName: odaLeague.name,
-    matchType: 'singles',
     fixtureId: 'fixture_002',
-    fixtureName: 'Observatory A vs Observatory C'
+    fixtureName: 'Observatory C vs Observatory A',
+    teamA: { teamId: observatoryC.teamId, name: observatoryC.name },
+    teamB: { teamId: observatoryA.teamId, name: observatoryA.name },
+    score: { teamA: 3, teamB: 3 },
+    complete: true,
+    games: [
+      { order: 1, label: 'Singles 1', type: 'singles', status: 'completed', winner: 'teamA' },
+      { order: 2, label: 'Singles 2', type: 'singles', status: 'completed', winner: 'teamB' }
+    ]
   },
-  summary2
-);
-
-// --------------------------------------------
-// Match 3: Jason beats Mike in singles comp
-// --------------------------------------------
-let match3 = createMatch('Jason', 'Mike', 81);
-processTurn(match3, {
-  points: 81,
-  dartsUsed: 3,
-  finishedOnDouble: true
-});
-const summary3 = buildMatchSummary(match3);
-
-recordMatchSummaryForPlayers(
-  historyStore,
   {
-    playerIdMap,
-    competitionId: odaSingles.competitionId,
-    competitionName: odaSingles.name,
-    matchType: 'singles',
-    fixtureId: null,
-    fixtureName: 'Singles Round 1'
-  },
-  summary3
-);
-
-// --------------------------------------------
-// Unrelated match: Jason vs B1
-// --------------------------------------------
-let match4 = createMatch('Jason', 'B1', 40);
-processTurn(match4, {
-  points: 40,
-  dartsUsed: 1,
-  finishedOnDouble: true
-});
-const summary4 = buildMatchSummary(match4);
-
-recordMatchSummaryForPlayers(
-  historyStore,
-  {
-    playerIdMap,
-    competitionId: odaLeague.competitionId,
-    competitionName: odaLeague.name,
-    matchType: 'singles',
     fixtureId: 'fixture_003',
-    fixtureName: 'Observatory A vs Observatory D'
-  },
-  summary4
-);
+    fixtureName: 'Observatory B vs Observatory C',
+    teamA: { teamId: observatoryB.teamId, name: observatoryB.name },
+    teamB: { teamId: observatoryC.teamId, name: observatoryC.name },
+    score: { teamA: 5, teamB: 2 },
+    complete: true,
+    games: [
+      { order: 1, label: 'Singles 1', type: 'singles', status: 'completed', winner: 'teamA' },
+      { order: 2, label: 'Singles 2', type: 'singles', status: 'completed', winner: 'teamA' }
+    ]
+  }
+];
 
 // --------------------------------------------
-// Build head-to-head
+// Build view models
 // --------------------------------------------
-const jasonVsMike = buildHeadToHead(
-  historyStore,
-  'player_jason',
-  'player_mike'
-);
+const standingsPage = buildCompetitionStandingsPage({
+  competition: odaLeague,
+  standings
+});
 
-printHeadToHead('JASON VS MIKE', jasonVsMike);
+const rankingsPage = buildCompetitionRankingsPage({
+  competition: odaLeague,
+  rankings
+});
 
-console.log('\n===== RAW HEAD TO HEAD =====');
-console.log(JSON.stringify(jasonVsMike, null, 2));
+const fixturesPage = buildCompetitionFixturesPage({
+  competition: odaLeague,
+  fixtures
+});
+
+const overviewPage = buildCompetitionOverviewPage({
+  competition: odaLeague,
+  standings,
+  rankings,
+  fixtures
+});
+
+printCompetitionView('STANDINGS PAGE', standingsPage);
+printCompetitionView('RANKINGS PAGE', rankingsPage);
+printCompetitionView('FIXTURES PAGE', fixturesPage);
+printCompetitionView('OVERVIEW PAGE', overviewPage);
