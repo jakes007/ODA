@@ -16,39 +16,41 @@
 - competition tables
 - player profiles
 - head-to-head system
+- competition view models
+
+---
 
 ## NEXT
 
-### 1. Competition Pages / View Models
-- standings page data
-- rankings page data
-- fixture results page data
+### 1. UI Layer (Frontend)
+- standings page UI
+- rankings page UI
+- fixtures page UI
+- competition dashboard
 
-### 2. Profile UI Layer
-- frontend-ready player profile shapes
-- tabs / sections structure
-- optimize profile queries
+### 2. Player Profile UI
+- tabs (overview / history / stats)
+- competition filtering
+- head-to-head integration
 
-### 3. Admin View Models
-- dashboard summaries
-- competition overview cards
-- fixture management views
+### 3. Admin Dashboard
+- manage players
+- manage competitions
+- manage fixtures
+
+---
 
 ## LATER
 
-### Backend
-- Firebase integration
+### Backend Integration
+- Firebase
 - authentication
 - roles (admin/player)
 
-### Frontend
-- admin dashboard
-- player profiles
-- match scoring UI
-- public competition pages
+---
 
 ## CURRENT POSITION
 
-Backend Platform Core Complete
+Backend System COMPLETE
 
-Next Step → Competition Page View Models
+Next Step → Frontend UI Layer
