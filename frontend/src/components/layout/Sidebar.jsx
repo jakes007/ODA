@@ -20,7 +20,9 @@ export default function Sidebar({ mobile = false, isOpen = false, onClose = null
   const dashboardLink =
     currentUser?.role === 'admin'
       ? { to: '/admin', label: 'Admin Dashboard' }
-      : { to: '/dashboard', label: 'Dashboard' };
+      : currentUser?.role === 'captain'
+        ? { to: '/captain', label: 'Captain Dashboard' }
+        : { to: '/dashboard', label: 'Dashboard' };
 
   function handleLogout() {
     logout();

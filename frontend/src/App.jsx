@@ -13,7 +13,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import PlayerDashboardPage from './pages/PlayerDashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
-
+import CaptainDashboardPage from './pages/CaptainDashboardPage';
 
 export default function App() {
   return (
@@ -36,6 +36,17 @@ export default function App() {
             <ProtectedRoute>
               <RoleRoute allowedRoles={['player']}>
                 <PlayerDashboardPage />
+              </RoleRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/captain"
+          element={
+            <ProtectedRoute>
+              <RoleRoute allowedRoles={['captain']}>
+                <CaptainDashboardPage />
               </RoleRoute>
             </ProtectedRoute>
           }

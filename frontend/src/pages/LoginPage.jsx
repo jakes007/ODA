@@ -35,6 +35,11 @@ export default function LoginPage() {
       return;
     }
 
+    if (role === 'captain') {
+      navigate('/captain', { replace: true });
+      return;
+    }
+
     navigate('/dashboard', { replace: true });
   }
 
@@ -42,7 +47,7 @@ export default function LoginPage() {
     <div className="page-stack">
       <PageHeader
         title="Login"
-        subtitle="Player and admin access"
+        subtitle="Player, captain, and admin access"
       />
 
       <section className="panel auth-panel">
@@ -50,6 +55,8 @@ export default function LoginPage() {
           Demo accounts:
           <br />
           player@oda.com / 123456
+          <br />
+          captain@oda.com / 123456
           <br />
           admin@oda.com / 123456
         </div>
