@@ -1,5 +1,6 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
+import LandingPage from './pages/LandingPage';
 import CompetitionOverviewPage from './pages/CompetitionOverviewPage';
 import StandingsPage from './pages/StandingsPage';
 import RankingsPage from './pages/RankingsPage';
@@ -10,7 +11,7 @@ export default function App() {
   return (
     <AppLayout>
       <Routes>
-        <Route path="/" element={<Navigate to="/competition/overview" replace />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/competition/overview" element={<CompetitionOverviewPage />} />
         <Route path="/competition/standings" element={<StandingsPage />} />
         <Route path="/competition/rankings" element={<RankingsPage />} />
