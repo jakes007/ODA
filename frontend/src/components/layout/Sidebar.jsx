@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
-const navItems = [
+const publicNavItems = [
   { to: '/', label: 'Home' },
   { to: '/competition/overview', label: 'Overview' },
   { to: '/competition/standings', label: 'Standings' },
@@ -10,9 +11,23 @@ const navItems = [
 ];
 
 export default function Sidebar({ mobile = false, isOpen = false, onClose = null }) {
+  const { currentUser, isAuthenticated, logout } = useAuth();
+
   const sidebarClassName = mobile
     ? `sidebar mobile-sidebar${isOpen ? ' open' : ''}`
     : 'sidebar';
+
+  const dashboardLink =
+    currentUser?.role === 'admin'
+      ? { to: '/admin', label: 'Admin Dashboard' }
+      : { to: '/dashboard', label: 'Dashboard' };
+
+  function handleLogout() {
+    logout();
+    if (mobile && onClose) {
+      onClose();
+    }
+  }
 
   return (
     <aside className={sidebarClassName}>
@@ -32,7 +47,7 @@ export default function Sidebar({ mobile = false, isOpen = false, onClose = null
       </div>
 
       <nav className="sidebar-nav">
-        {navItems.map((item) => (
+        {publicNavItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
@@ -48,25 +63,49 @@ export default function Sidebar({ mobile = false, isOpen = false, onClose = null
       </nav>
 
       <div className="sidebar-footer">
-        <NavLink
-          to="/login"
-          onClick={mobile ? onClose : undefined}
-          className={({ isActive }) =>
-            `sidebar-link sidebar-login-link${isActive ? ' active' : ''}`
-          }
-        >
-          Login
-        </NavLink>
+        {isAuthenticated ? (
+          <>
+            <NavLink
+              to={dashboardLink.to}
+              onClick={mobile ? onClose : undefined}
+              className={({ isActive }) =>
+                `sidebar-link sidebar-login-link${isActive ? ' active' : ''}`
+              }
+            >
+              {dashboardLink.label}
+            </NavLink>
 
-        <NavLink
-          to="/register"
-          onClick={mobile ? onClose : undefined}
-          className={({ isActive }) =>
-            `sidebar-link sidebar-login-link${isActive ? ' active' : ''}`
-          }
-        >
-          Register
-        </NavLink>
+            <button
+              type="button"
+              className="sidebar-link sidebar-action-btn"
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <NavLink
+              to="/login"
+              onClick={mobile ? onClose : undefined}
+              className={({ isActive }) =>
+                `sidebar-link sidebar-login-link${isActive ? ' active' : ''}`
+              }
+            >
+              Login
+            </NavLink>
+
+            <NavLink
+              to="/register"
+              onClick={mobile ? onClose : undefined}
+              className={({ isActive }) =>
+                `sidebar-link sidebar-login-link${isActive ? ' active' : ''}`
+              }
+            >
+              Register
+            </NavLink>
+          </>
+        )}
       </div>
     </aside>
   );

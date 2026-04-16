@@ -79,15 +79,25 @@ button {
   border-radius: 10px;
   color: #d1d5db;
   display: block;
+  background: transparent;
+  border: none;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
 }
 
 .sidebar-link.active,
-.sidebar-link:hover {
+.sidebar-link:hover,
+.sidebar-action-btn:hover {
   background: #1f2937;
   color: white;
 }
 
 .sidebar-login-link {
+  font-weight: 600;
+}
+
+.sidebar-action-btn {
   font-weight: 600;
 }
 
@@ -419,6 +429,12 @@ button {
 .form-input:focus {
   outline: none;
   border-color: #2563eb;
+}
+
+.form-error {
+  color: #b91c1c;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .auth-submit-btn {
