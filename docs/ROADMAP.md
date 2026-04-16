@@ -1,42 +1,42 @@
 # ROADMAP
 
-## ✅ COMPLETED
+## COMPLETED
 
 ### Core Engine
-- Scoring system
+- Scoring engine
 - Rules validation
 - Match summaries
 
 ### Multi-Leg Matches
-- Fixed legs
-- Best-of format
+- Fixed leg mode
+- Best-of mode
 - Draw support
 
 ### Fixture System
-- Template-based generation
-- Game structure
+- Template-based fixture generation
+- Game structures
 - Score tracking
 - Summary linking
 
 ### Lineup System
-- Automatic assignment
-- Doubles + singles + team
-- Validation rules
+- Automatic lineup assignment
+- Supports singles, doubles, team games
+- Validation rules (duplicates, squad checks, minimum players)
 
 ### Substitution System
-- Future-game substitution logic
-- Immutable completed games
+- Future-game substitutions
+- Completed games remain unchanged
 
 ### Match Execution
 - Start match from fixture
 - Live scoring
 - Finalize match
-- Write back into fixture
+- Write results back into fixture
 - Supports:
   - singles
   - doubles
-  - team
-  - multi-leg
+  - team games
+  - multi-leg formats
 
 ### Stats Aggregation
 - Player aggregates
@@ -44,76 +44,57 @@
 - Leaderboards
 - Multi-competition support
 
----
-
-## 🔥 NEXT
-
-### 1. Player Registry System
-Build full DSA-aligned player system:
-- Master record (admin)
-- Private profile (player)
-- Public profile
+### Player Registry System
+- Admin master records
+- Private player profiles
+- Public player views
 - Edit request workflow
+- Approval / rejection system
+- Audit tracking
 
 ---
 
-### 2. Player Match History
+## NEXT
+
+### 1. Player Match History
 - Store all match summaries per player
 - View match-by-match history
-- Connect to aggregates
+- Filter by competition
 
----
-
-### 3. Competition Stats Views
-- Standings tables
+### 2. Competition Tables
+- League standings
 - Player rankings
 - Team rankings
 
+### 3. Stats UI Preparation
+- Structure data for frontend use
+- Optimize leaderboard queries
+
 ---
 
-## 🔜 LATER
+## LATER
 
 ### Admin System
-- Player management
+- Player management UI
 - Competition creation
-- Template management
-- Fixture control
+- Fixture builder tools
 
----
-
-### Firebase / Backend
+### Backend (Firebase)
 - Data persistence
 - Authentication
-- Roles (admin/player)
+- Role-based access
 - Real-time updates
 
----
-
-### UI (React)
+### Frontend (React)
 - Admin dashboard
-- Match scoring interface
 - Player profiles
+- Match scoring UI
 - Public competition pages
 
 ---
 
-## 🧠 STRATEGY
+## CURRENT POSITION
 
-- Build backend first
-- Keep logic modular
-- Avoid UI logic duplication
-- Ensure data integrity before UI
+Backend Core Complete
 
----
-
-## 📍 CURRENT POSITION
-
-Core Engine ✅
-Fixtures ✅
-Lineups ✅
-Validation ✅
-Substitutions ✅
-Execution ✅
-Stats Aggregation ✅
-⬇
-NEXT → Player Registry
+Next Step → Player Match History
