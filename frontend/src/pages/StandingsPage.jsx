@@ -1,6 +1,6 @@
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/tables/DataTable';
-import { getCompetitionStandings } from '../data/realData';
+import { getCompetitionStandings } from '../services/competitionData';
 
 const columns = [
   { key: 'position', label: '#', render: (_, index) => index + 1 },

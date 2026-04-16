@@ -1,5 +1,5 @@
 import PageHeader from '../components/common/PageHeader';
-import { getCompetitionFixtures } from '../data/realData';
+import { getCompetitionFixtures } from '../services/competitionData';
 
 export default function FixturesPage() {
   const data = getCompetitionFixtures();

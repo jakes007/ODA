@@ -2,11 +2,11 @@ import { useParams } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
 import StatCard from '../components/common/StatCard';
 import EmptyState from '../components/common/EmptyState';
-import { playerProfiles } from '../data/mockCompetitionData';
+import { getPlayerProfile } from '../services/playerData';
 
 export default function PlayerProfilePage() {
   const { playerId } = useParams();
-  const profile = playerProfiles[playerId];
+  const profile = getPlayerProfile(playerId);
 
   if (!profile) {
     return <EmptyState message="Player profile not found." />;
@@ -28,6 +28,7 @@ export default function PlayerProfilePage() {
 
       <section className="panel">
         <h3 className="panel-title">Match History</h3>
+
         {profile.history.map((entry) => {
           const playerRow = entry.summary.players.find((p) => p.isProfileOwner);
 
@@ -36,6 +37,7 @@ export default function PlayerProfilePage() {
               <div>
                 <div className="history-title">{entry.competitionName}</div>
                 <div className="muted-text">{entry.fixtureName}</div>
+                <div className="muted-text">{entry.playedAt}</div>
               </div>
 
               <div className="history-stats">

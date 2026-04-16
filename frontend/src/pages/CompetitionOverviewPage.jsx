@@ -1,6 +1,6 @@
 import PageHeader from '../components/common/PageHeader';
 import StatCard from '../components/common/StatCard';
-import { getCompetitionOverview } from '../data/realData';
+import { getCompetitionOverview } from '../services/competitionData';
 
 export default function CompetitionOverviewPage() {
   const data = getCompetitionOverview();
