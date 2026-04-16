@@ -1,9 +1,9 @@
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/tables/DataTable';
-import { standingsRows } from '../data/mockCompetitionData';
+import { getCompetitionStandings } from '../data/realData';
 
 const columns = [
-  { key: 'position', label: '#' , render: (_, index) => index + 1 },
+  { key: 'position', label: '#', render: (_, index) => index + 1 },
   { key: 'teamName', label: 'Team' },
   { key: 'played', label: 'P' },
   { key: 'won', label: 'W' },
@@ -16,13 +16,15 @@ const columns = [
 ];
 
 export default function StandingsPage() {
+  const data = getCompetitionStandings();
+
   return (
     <div className="page-stack">
       <PageHeader
         title="Standings"
-        subtitle="Competition table"
+        subtitle={`${data.competition.name} • ${data.competition.season}`}
       />
-      <DataTable columns={columns} rows={standingsRows} />
+      <DataTable columns={columns} rows={data.standings} />
     </div>
   );
 }
