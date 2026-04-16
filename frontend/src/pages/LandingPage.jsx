@@ -148,10 +148,10 @@ export default function LandingPage() {
 
       <section className="panel landing-cta">
         <div>
-          <h3 className="panel-title">Players, captains, and admins</h3>
-          <p className="page-subtitle">
-            Login access and dashboards will connect here next as the pilot grows.
-          </p>
+        <h3 className="panel-title">Players, captains, and admins</h3>
+<p className="page-subtitle">
+  Login for existing users or submit an access request to be linked to an official player record.
+</p>
         </div>
 
         <div className="landing-actions">
@@ -159,8 +159,8 @@ export default function LandingPage() {
             Login
           </Link>
           <Link to="/register" className="secondary-btn">
-            Register
-          </Link>
+  Request Access
+</Link>
         </div>
       </section>
     </div>

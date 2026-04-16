@@ -4,21 +4,62 @@ export default function RegisterPage() {
   return (
     <div className="page-stack">
       <PageHeader
-        title="Register"
-        subtitle="Create access for player, captain, or admin workflows."
+        title="Request Access"
+        subtitle="Submit your details so your account can be linked to an official player registry record."
       />
 
       <section className="panel auth-panel">
+        <div className="muted-text" style={{ marginBottom: '16px' }}>
+          This does not directly create an official player record. It submits an access
+          request that can later be matched to the association registry.
+        </div>
+
         <form className="auth-form">
           <div className="form-row">
-            <label className="form-label" htmlFor="fullName">
-              Full Name
+            <label className="form-label" htmlFor="firstNames">
+              First Names
             </label>
             <input
-              id="fullName"
+              id="firstNames"
               className="form-input"
               type="text"
-              placeholder="Enter your full name"
+              placeholder="Enter your first names"
+            />
+          </div>
+
+          <div className="form-row">
+            <label className="form-label" htmlFor="surname">
+              Surname
+            </label>
+            <input
+              id="surname"
+              className="form-input"
+              type="text"
+              placeholder="Enter your surname"
+            />
+          </div>
+
+          <div className="form-row">
+            <label className="form-label" htmlFor="idNumber">
+              ID Number
+            </label>
+            <input
+              id="idNumber"
+              className="form-input"
+              type="text"
+              placeholder="Enter your ID number"
+            />
+          </div>
+
+          <div className="form-row">
+            <label className="form-label" htmlFor="membershipNumber">
+              DSA / Membership Number
+            </label>
+            <input
+              id="membershipNumber"
+              className="form-input"
+              type="text"
+              placeholder="Enter your membership number if available"
             />
           </div>
 
@@ -35,14 +76,14 @@ export default function RegisterPage() {
           </div>
 
           <div className="form-row">
-            <label className="form-label" htmlFor="phone">
-              Phone Number
+            <label className="form-label" htmlFor="cellNumber">
+              Cell Number
             </label>
             <input
-              id="phone"
+              id="cellNumber"
               className="form-input"
               type="text"
-              placeholder="Enter your phone number"
+              placeholder="Enter your cell number"
             />
           </div>
 
@@ -83,7 +124,7 @@ export default function RegisterPage() {
           </div>
 
           <button type="button" className="primary-btn auth-submit-btn">
-            Register
+            Submit Access Request
           </button>
         </form>
       </section>
