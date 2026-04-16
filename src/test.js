@@ -1,4 +1,3 @@
-import { registerPlayer, createEmptyRegistry } from './playerRegistry.js';
 import { createCompetition } from './dataModel.js';
 import { createMatch } from './engine.js';
 import { processTurn } from './rules.js';
@@ -8,41 +7,9 @@ import {
   recordMatchSummaryForPlayers
 } from './playerHistory.js';
 import {
-  createPlayerAggregate,
-  addMatchSummaryToPlayerAggregate
-} from './statsAggregator.js';
-import {
-  buildAdminPlayerProfile,
-  buildPrivatePlayerProfile,
-  buildPublicPlayerProfile,
-  buildCompetitionSpecificProfile,
-  printPlayerProfile
-} from './playerProfile.js';
-
-// --------------------------------------------
-// Setup registry + player
-// --------------------------------------------
-const registry = createEmptyRegistry();
-
-const registerResult = registerPlayer(registry, {
-  fullName: 'Jason Isaacs',
-  dsaNumber: 'DSA12345',
-  idNumber: '9001015009087',
-  dateOfBirth: '1990-01-01',
-  race: 'ExampleRace',
-  gender: 'Male',
-  registrationStatus: 'active',
-  associationName: 'Observatory Darts Association',
-  provinceName: 'Western Cape',
-  phone: '0820000000',
-  email: 'jason@example.com',
-  addressLine1: '1 Main Road',
-  addressLine2: 'Observatory',
-  city: 'Cape Town',
-  postalCode: '7925'
-});
-
-const playerId = registerResult.player.playerId;
+  buildHeadToHead,
+  printHeadToHead
+} from './headToHead.js';
 
 // --------------------------------------------
 // Competitions
@@ -66,19 +33,20 @@ const odaSingles = createCompetition({
 });
 
 // --------------------------------------------
-// History + aggregates
+// History store
 // --------------------------------------------
 const historyStore = createPlayerHistoryStore();
-const jasonAggregate = createPlayerAggregate(playerId, 'Jason');
 
 const playerIdMap = {
-  Jason: playerId,
-  B1: 'player_b1',
-  Mike: 'player_mike'
+  Jason: 'player_jason',
+  Mike: 'player_mike',
+  B1: 'player_b1'
 };
 
-// Match 1
-let match1 = createMatch('Jason', 'B1', 40);
+// --------------------------------------------
+// Match 1: Jason beats Mike in league
+// --------------------------------------------
+let match1 = createMatch('Jason', 'Mike', 40);
 processTurn(match1, {
   points: 40,
   dartsUsed: 1,
@@ -99,21 +67,41 @@ recordMatchSummaryForPlayers(
   summary1
 );
 
-addMatchSummaryToPlayerAggregate(
-  jasonAggregate,
-  odaLeague.competitionId,
-  odaLeague.name,
-  summary1
+// --------------------------------------------
+// Match 2: Mike beats Jason in league
+// --------------------------------------------
+let match2 = createMatch('Jason', 'Mike', 40);
+processTurn(match2, { points: 0 });
+processTurn(match2, {
+  points: 40,
+  dartsUsed: 2,
+  finishedOnDouble: true
+});
+const summary2 = buildMatchSummary(match2);
+
+recordMatchSummaryForPlayers(
+  historyStore,
+  {
+    playerIdMap,
+    competitionId: odaLeague.competitionId,
+    competitionName: odaLeague.name,
+    matchType: 'singles',
+    fixtureId: 'fixture_002',
+    fixtureName: 'Observatory A vs Observatory C'
+  },
+  summary2
 );
 
-// Match 2
-let match2 = createMatch('Jason', 'Mike', 81);
-processTurn(match2, {
+// --------------------------------------------
+// Match 3: Jason beats Mike in singles comp
+// --------------------------------------------
+let match3 = createMatch('Jason', 'Mike', 81);
+processTurn(match3, {
   points: 81,
   dartsUsed: 3,
   finishedOnDouble: true
 });
-const summary2 = buildMatchSummary(match2);
+const summary3 = buildMatchSummary(match3);
 
 recordMatchSummaryForPlayers(
   historyStore,
@@ -125,52 +113,43 @@ recordMatchSummaryForPlayers(
     fixtureId: null,
     fixtureName: 'Singles Round 1'
   },
-  summary2
-);
-
-addMatchSummaryToPlayerAggregate(
-  jasonAggregate,
-  odaSingles.competitionId,
-  odaSingles.name,
-  summary2
+  summary3
 );
 
 // --------------------------------------------
-// Build profiles
+// Unrelated match: Jason vs B1
 // --------------------------------------------
-const adminProfile = buildAdminPlayerProfile({
-  registry,
-  historyStore,
-  aggregate: jasonAggregate,
-  playerId
+let match4 = createMatch('Jason', 'B1', 40);
+processTurn(match4, {
+  points: 40,
+  dartsUsed: 1,
+  finishedOnDouble: true
 });
+const summary4 = buildMatchSummary(match4);
 
-const privateProfile = buildPrivatePlayerProfile({
-  registry,
+recordMatchSummaryForPlayers(
   historyStore,
-  aggregate: jasonAggregate,
-  playerId
-});
+  {
+    playerIdMap,
+    competitionId: odaLeague.competitionId,
+    competitionName: odaLeague.name,
+    matchType: 'singles',
+    fixtureId: 'fixture_003',
+    fixtureName: 'Observatory A vs Observatory D'
+  },
+  summary4
+);
 
-const publicProfile = buildPublicPlayerProfile({
-  registry,
+// --------------------------------------------
+// Build head-to-head
+// --------------------------------------------
+const jasonVsMike = buildHeadToHead(
   historyStore,
-  aggregate: jasonAggregate,
-  playerId,
-  displayName: 'Jason Isaacs'
-});
+  'player_jason',
+  'player_mike'
+);
 
-const leagueProfile = buildCompetitionSpecificProfile({
-  registry,
-  historyStore,
-  aggregate: jasonAggregate,
-  playerId,
-  competitionId: odaLeague.competitionId,
-  displayName: 'Jason Isaacs',
-  visibility: 'public'
-});
+printHeadToHead('JASON VS MIKE', jasonVsMike);
 
-printPlayerProfile('ADMIN PROFILE', adminProfile.profile);
-printPlayerProfile('PRIVATE PROFILE', privateProfile.profile);
-printPlayerProfile('PUBLIC PROFILE', publicProfile.profile);
-printPlayerProfile('PUBLIC LEAGUE PROFILE', leagueProfile.profile);
+console.log('\n===== RAW HEAD TO HEAD =====');
+console.log(JSON.stringify(jasonVsMike, null, 2));
