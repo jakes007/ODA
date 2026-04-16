@@ -88,3 +88,39 @@ export function getCompetitionStandings() {
     ]
   };
 }
+
+export function getCompetitionRankings() {
+  return {
+    competition: {
+      name: 'ODA League',
+      season: '2026',
+      status: 'active'
+    },
+    rankings: [
+      {
+        playerId: 'player_peter',
+        displayName: 'Peter',
+        matchesPlayed: 2,
+        matchesWon: 2,
+        threeDartAverage: 60,
+        highestCheckout: 40
+      },
+      {
+        playerId: 'player_jason',
+        displayName: 'Jason',
+        matchesPlayed: 3,
+        matchesWon: 2,
+        threeDartAverage: 51.86,
+        highestCheckout: 81
+      },
+      {
+        playerId: 'player_mike',
+        displayName: 'Mike',
+        matchesPlayed: 3,
+        matchesWon: 1,
+        threeDartAverage: 33.33,
+        highestCheckout: 40
+      }
+    ]
+  };
+}
