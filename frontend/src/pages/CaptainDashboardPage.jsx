@@ -28,8 +28,11 @@ export default function CaptainDashboardPage() {
   }
 
   const totalFixtures = data.fixtures.length;
-  const readyForLineup = data.fixtures.filter(
-    (fixture) => fixture.status === 'ready_for_lineup'
+  const readyForLineups = data.fixtures.filter(
+    (fixture) => fixture.status === 'ready_for_lineups'
+  ).length;
+  const waitingForOpponent = data.fixtures.filter(
+    (fixture) => fixture.status === 'waiting_for_opponent'
   ).length;
   const readyToPlay = data.fixtures.filter(
     (fixture) => fixture.status === 'ready_to_play'
@@ -48,8 +51,10 @@ export default function CaptainDashboardPage() {
       <div className="stats-grid">
         <StatCard label="My Team" value={data.team.teamName} />
         <StatCard label="Fixtures" value={totalFixtures} />
-        <StatCard label="Ready For Lineup" value={readyForLineup} />
+        <StatCard label="Ready For Lineups" value={readyForLineups} />
+        <StatCard label="Waiting" value={waitingForOpponent} />
         <StatCard label="Ready To Play" value={readyToPlay} />
+        <StatCard label="Completed" value={completed} />
       </div>
 
       <section className="panel">
@@ -77,6 +82,9 @@ export default function CaptainDashboardPage() {
                 <div className="history-title">{fixture.fixtureName}</div>
                 <div className="muted-text">Opponent: {fixture.opponentName}</div>
                 <div className="muted-text">Status: {formatStatus(fixture.status)}</div>
+                <div className="muted-text">
+                  Lineups: {fixture.lineupsRevealed ? 'Revealed' : 'Hidden until both submit'}
+                </div>
               </div>
 
               <div className="captain-fixture-side">
@@ -98,23 +106,23 @@ export default function CaptainDashboardPage() {
         <h3 className="panel-title">What comes next</h3>
         <div className="feature-list">
           <div className="feature-item">
-            <div className="feature-title">Lineup Submission</div>
+            <div className="feature-title">Private Lineup Submission</div>
             <div className="muted-text">
-              Captains will set the team order and submit lineups before play.
+              Each captain submits privately. Opposing lineups are hidden until both sides submit.
             </div>
           </div>
 
           <div className="feature-item">
             <div className="feature-title">Match Start Control</div>
             <div className="muted-text">
-              Captains will launch fixture-driven live scoring for ready fixtures.
+              A fixture can only move to live play after both captains have submitted.
             </div>
           </div>
 
           <div className="feature-item">
-            <div className="feature-title">Substitution Workflow</div>
+            <div className="feature-title">Multi-Board Live Control</div>
             <div className="muted-text">
-              Captains will manage future-game substitutions within allowed rules.
+              The next phase will support multiple active games and dedicated scoring routes.
             </div>
           </div>
         </div>
@@ -133,7 +141,8 @@ function getCaptainFixtureRoute(fixture) {
 
 function formatStatus(status) {
   const labels = {
-    ready_for_lineup: 'Ready For Lineup',
+    ready_for_lineups: 'Ready For Lineups',
+    waiting_for_opponent: 'Waiting For Opponent',
     ready_to_play: 'Ready To Play',
     active: 'Active',
     completed: 'Completed'

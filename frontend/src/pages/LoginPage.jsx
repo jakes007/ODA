@@ -23,12 +23,7 @@ export default function LoginPage() {
     }
 
     const role = result.user.role;
-    const from = location.state?.from;
-
-    if (from) {
-      navigate(from, { replace: true });
-      return;
-    }
+    
 
     if (role === 'admin') {
       navigate('/admin', { replace: true });
@@ -57,6 +52,8 @@ export default function LoginPage() {
           player@oda.com / 123456
           <br />
           captain@oda.com / 123456
+          <br />
+          captain2@oda.com / 123456
           <br />
           admin@oda.com / 123456
         </div>
