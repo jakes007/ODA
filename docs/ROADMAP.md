@@ -2,60 +2,60 @@
 
 ## COMPLETED
 
-- Scoring engine
-- Rules system
-- Match summaries
-- Multi-leg matches
-- Fixture system
-- Lineup system
-- Validation system
-- Substitution system
-- Match execution (all formats)
-- Stats aggregation
-- Player registry system
-- Player match history system
-
----
+- scoring engine
+- rules system
+- match summaries
+- multi-leg matches
+- fixture generation
+- lineup builder
+- lineup validation
+- substitution system
+- match execution
+- stats aggregation
+- player registry
+- player match history
+- competition tables
 
 ## NEXT
 
-### 1. Competition Tables
-- League standings
-- Player rankings
-- Team rankings
+### 1. Player Profiles
+Combine:
+- registry
+- history
+- aggregates
+- competition-specific stats
 
-### 2. Player Profiles (UI Ready)
-- Combine:
-  - registry
-  - history
-  - stats
-- Display full player dashboard
+### 2. Head-to-Head System
+- player vs player records
+- win/loss comparisons
+- filtered rivalry history
 
-### 3. Head-to-Head Stats
-- Player vs player history
-- Win/loss breakdowns
-
----
+### 3. Competition Views
+- full league pages
+- player rankings pages
+- team standings pages
 
 ## LATER
 
 ### Admin System
-- Full management dashboard
+- player management UI
+- competition creation UI
+- fixture builder tools
 
 ### Backend
-- Firebase
-- Authentication
-- Roles
+- Firebase persistence
+- authentication
+- roles and permissions
+- real-time updates
 
 ### Frontend
-- Admin UI
-- Player UI
-- Public UI
-
----
+- admin dashboard
+- player profile pages
+- scoring interface
+- public competition pages
 
 ## CURRENT POSITION
 
-Backend System Fully Built
+Backend Core + Tables Complete
 
-Next Step → Competition Tables & Player Profiles
+Next Step → Player Profiles
