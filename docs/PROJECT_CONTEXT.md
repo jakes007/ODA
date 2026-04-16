@@ -11,6 +11,7 @@ The system must support:
 - lineups and substitutions
 - match stats and summaries
 - fixture generation from templates
+- real match execution from fixture games
 
 ## Core Architecture
 
@@ -114,6 +115,11 @@ Supports:
 - doubles pairing by order
 - team games using full lineup
 
+Also validates:
+- no duplicate players
+- all lineup players must exist in squad
+- enough players must exist for the fixture format
+
 ### Substitution Model
 Substitutions only affect future unplayed games.
 
@@ -122,6 +128,19 @@ Important rule:
 - original assignment is preserved
 - active assignment can change for future games
 - substitution events are logged
+
+### Match Execution Layer
+`matchExecutor.js`
+Supports:
+- starting a fixture game
+- creating a live match
+- playing turns through the rules engine
+- finalizing the match
+- building the summary
+- writing winner + summary back into the fixture
+
+Current V1 limitation:
+- execution layer supports singles fixture games only
 
 ## Stats Model
 
@@ -147,6 +166,7 @@ Important rule:
 5. Substitutions only affect future unplayed assignments.
 6. Database structure must stay separate from DSA export format.
 7. Logic stays outside UI to avoid bloated code.
+8. Fixture games should execute through the same scoring engine, not through duplicate logic.
 
 ## Current Working Modules
 - `dataModel.js`
@@ -157,3 +177,4 @@ Important rule:
 - `fixture.js`
 - `fixtureGenerator.js`
 - `lineupBuilder.js`
+- `matchExecutor.js`

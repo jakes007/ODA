@@ -42,40 +42,40 @@
   - singles
   - doubles
   - team games
+- Validation against squad
+- Duplicate prevention
+- Invalid lineup prevention
+
+### Match Execution
+- Start singles fixture game from generated fixture
+- Create live match
+- Process turns
+- Finalize game
+- Write summary + result back into fixture
 
 ## Next
 
-### 1. Lineup Validation Rules
-Add validation for:
-- player must exist in squad
-- no duplicate players
-- enough players for each format
-- invalid lineup prevention
+### 1. Expand Match Execution Beyond Singles
+Add support for:
+- doubles fixture games
+- team fixture games
+- multi-leg fixture games
 
-### 2. Match Execution Integration
-Connect:
-- fixture game
-- match engine
-- summary output
-- fixture result recording
-
-Goal:
-A fixture game should be playable from the generated fixture structure.
-
-### 3. Captain / Admin Override Rules
+### 2. Captain / Admin Override Rules
 Support:
 - manual reordering
 - manual reassignment
 - controlled overrides
 - lineup edits before game start
 
-## Later
-
-### Player Statistics
-- aggregate per competition
-- aggregate overall
-- player history
+### 3. Player / Competition Stats Aggregation
+Build:
+- player history per competition
+- overall player history
 - leaderboards
+- team stats
+
+## Later
 
 ### Registry Workflow
 - edit request approval flow
