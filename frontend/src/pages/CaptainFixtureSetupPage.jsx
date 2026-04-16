@@ -1,16 +1,18 @@
 import { useMemo, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
 import EmptyState from '../components/common/EmptyState';
 import { useAuth } from '../context/AuthContext';
 import {
   getCaptainFixtureSetupData,
   submitCaptainLineup,
-  validateCaptainLineup
+  validateCaptainLineup,
+  startCaptainFixtureLiveScoring
 } from '../services/captainData';
 
 export default function CaptainFixtureSetupPage() {
   const { fixtureId } = useParams();
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
 
   const fixture = currentUser?.playerId
@@ -32,6 +34,12 @@ export default function CaptainFixtureSetupPage() {
   if (!fixture) {
     return <EmptyState message="Fixture setup data not found." />;
   }
+
+  const canEditLineup =
+    fixture.status !== 'completed' &&
+    fixture.status !== 'active';
+
+  const canStartMatch = fixture.status === 'ready_to_play';
 
   function handleLineupChange(index, nextPlayerId) {
     const nextLineup = [...lineup];
@@ -57,6 +65,20 @@ export default function CaptainFixtureSetupPage() {
 
     setErrors([]);
     setSuccessMessage(result.message);
+  }
+
+  function handleStartMatch() {
+    const result = startCaptainFixtureLiveScoring(currentUser.playerId, fixtureId);
+
+    if (!result.success) {
+      setErrors(result.errors ?? [result.message]);
+      setSuccessMessage('');
+      return;
+    }
+
+    setErrors([]);
+    setSuccessMessage(result.message);
+    navigate(`/captain/fixture/${fixtureId}/live`);
   }
 
   return (
@@ -117,7 +139,7 @@ export default function CaptainFixtureSetupPage() {
                 className="form-input"
                 value={selectedPlayerId}
                 onChange={(event) => handleLineupChange(index, event.target.value)}
-                disabled={fixture.status === 'completed'}
+                disabled={!canEditLineup}
               >
                 {fixture.squad.map((player) => (
                   <option key={player.playerId} value={player.playerId}>
@@ -145,7 +167,7 @@ export default function CaptainFixtureSetupPage() {
           <button
             type="submit"
             className="primary-btn auth-submit-btn"
-            disabled={fixture.status === 'completed'}
+            disabled={!canEditLineup}
           >
             Submit Lineup
           </button>
@@ -164,6 +186,56 @@ export default function CaptainFixtureSetupPage() {
               <div className="muted-text">{player.playerId}</div>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="panel">
+        <h3 className="panel-title">Launch Live Scoring</h3>
+
+        <div className="feature-list">
+          <div className="feature-item">
+            <div className="feature-title">Current State</div>
+            <div className="muted-text">
+              {fixture.status === 'ready_to_play'
+                ? 'This fixture can now be started.'
+                : fixture.status === 'active'
+                  ? 'This fixture is already live.'
+                  : fixture.status === 'completed'
+                    ? 'This fixture is already completed.'
+                    : 'Submit a valid lineup before starting the match.'}
+            </div>
+          </div>
+
+          <div className="feature-item">
+            <div className="feature-title">Live Session</div>
+            <div className="muted-text">
+              {fixture.liveSession
+                ? `Started at ${new Date(fixture.liveSession.startedAt).toLocaleString()}`
+                : 'No live session has been created yet.'}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          {canStartMatch ? (
+            <button
+              type="button"
+              className="primary-btn"
+              onClick={handleStartMatch}
+            >
+              Start Match
+            </button>
+          ) : null}
+
+          {fixture.status === 'active' ? (
+            <button
+              type="button"
+              className="primary-btn"
+              onClick={() => navigate(`/captain/fixture/${fixtureId}/live`)}
+            >
+              Resume Live Match
+            </button>
+          ) : null}
         </div>
       </section>
 
@@ -187,7 +259,7 @@ export default function CaptainFixtureSetupPage() {
           <div className="feature-item">
             <div className="feature-title">Next Step</div>
             <div className="muted-text">
-              The next phase will allow captains to launch fixture-driven live scoring.
+              Captains can now launch a live fixture session from this page.
             </div>
           </div>
         </div>
@@ -200,6 +272,7 @@ function formatStatus(status) {
   const labels = {
     ready_for_lineup: 'Ready For Lineup',
     ready_to_play: 'Ready To Play',
+    active: 'Active',
     completed: 'Completed'
   };
 

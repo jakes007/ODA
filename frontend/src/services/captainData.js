@@ -33,6 +33,7 @@ const captainFixtureStore = {
           'player_adam'
         ],
         submittedLineup: null,
+        liveSession: null,
         notes:
           'Captain sets the playing order here before the fixture is marked ready to play.',
         scoreText: '-'
@@ -74,6 +75,7 @@ const captainFixtureStore = {
           'player_peter',
           'player_adam'
         ],
+        liveSession: null,
         notes: 'This fixture is already ready to play.',
         scoreText: '-'
       },
@@ -114,6 +116,7 @@ const captainFixtureStore = {
           'player_peter',
           'player_adam'
         ],
+        liveSession: null,
         notes: 'This fixture has already been completed.',
         scoreText: '4 - 3'
       }
@@ -154,6 +157,10 @@ export function getCaptainDashboardData(playerId) {
 }
 
 export function getCaptainFixtureSetupData(playerId, fixtureId) {
+  return captainFixtureStore[playerId]?.fixtures?.[fixtureId] ?? null;
+}
+
+export function getCaptainLiveScoringData(playerId, fixtureId) {
   return captainFixtureStore[playerId]?.fixtures?.[fixtureId] ?? null;
 }
 
@@ -219,6 +226,13 @@ export function submitCaptainLineup(playerId, fixtureId, lineup) {
     };
   }
 
+  if (fixture.status === 'active') {
+    return {
+      success: false,
+      message: 'An active fixture lineup cannot be changed'
+    };
+  }
+
   const validation = validateCaptainLineup(fixture, lineup);
 
   if (!validation.valid) {
@@ -232,6 +246,7 @@ export function submitCaptainLineup(playerId, fixtureId, lineup) {
   fixture.currentLineup = [...lineup];
   fixture.submittedLineup = [...lineup];
   fixture.status = 'ready_to_play';
+  fixture.liveSession = null;
 
   return {
     success: true,
@@ -240,10 +255,72 @@ export function submitCaptainLineup(playerId, fixtureId, lineup) {
   };
 }
 
+export function startCaptainFixtureLiveScoring(playerId, fixtureId) {
+  const fixture = getCaptainFixtureSetupData(playerId, fixtureId);
+
+  if (!fixture) {
+    return {
+      success: false,
+      message: 'Fixture setup data not found'
+    };
+  }
+
+  if (fixture.status === 'completed') {
+    return {
+      success: false,
+      message: 'Completed fixtures cannot be started again'
+    };
+  }
+
+  if (fixture.status === 'active') {
+    return {
+      success: true,
+      message: 'Fixture is already active',
+      fixture
+    };
+  }
+
+  if (fixture.status !== 'ready_to_play') {
+    return {
+      success: false,
+      message: 'Fixture must be ready to play before live scoring can start'
+    };
+  }
+
+  const validation = validateCaptainLineup(
+    fixture,
+    fixture.submittedLineup ?? fixture.currentLineup ?? []
+  );
+
+  if (!validation.valid) {
+    return {
+      success: false,
+      message: 'Cannot start match because lineup is not valid',
+      errors: validation.errors
+    };
+  }
+
+  fixture.status = 'active';
+  fixture.liveSession = {
+    startedAt: new Date().toISOString(),
+    startedByCaptainId: playerId,
+    currentGameIndex: 0,
+    status: 'active',
+    games: []
+  };
+
+  return {
+    success: true,
+    message: 'Fixture is now active and live scoring has started',
+    fixture
+  };
+}
+
 function getCaptainActionLabel(status) {
   const labels = {
     ready_for_lineup: 'Set Lineup',
     ready_to_play: 'Start Match',
+    active: 'Resume Live Match',
     completed: 'View Result'
   };
 

@@ -82,18 +82,12 @@ export default function CaptainDashboardPage() {
               <div className="captain-fixture-side">
                 <div className="fixture-score">{fixture.scoreText}</div>
 
-                {fixture.status === 'ready_for_lineup' ? (
-                  <Link
-                    to={`/captain/fixture/${fixture.fixtureId}/setup`}
-                    className="secondary-btn captain-action-btn"
-                  >
-                    {fixture.captainAction}
-                  </Link>
-                ) : (
-                  <button type="button" className="secondary-btn captain-action-btn">
-                    {fixture.captainAction}
-                  </button>
-                )}
+                <Link
+                  to={getCaptainFixtureRoute(fixture)}
+                  className="secondary-btn captain-action-btn"
+                >
+                  {fixture.captainAction}
+                </Link>
               </div>
             </div>
           ))}
@@ -129,10 +123,19 @@ export default function CaptainDashboardPage() {
   );
 }
 
+function getCaptainFixtureRoute(fixture) {
+  if (fixture.status === 'active') {
+    return `/captain/fixture/${fixture.fixtureId}/live`;
+  }
+
+  return `/captain/fixture/${fixture.fixtureId}/setup`;
+}
+
 function formatStatus(status) {
   const labels = {
     ready_for_lineup: 'Ready For Lineup',
     ready_to_play: 'Ready To Play',
+    active: 'Active',
     completed: 'Completed'
   };
 
