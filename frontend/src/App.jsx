@@ -14,6 +14,7 @@ import RegisterPage from './pages/RegisterPage';
 import PlayerDashboardPage from './pages/PlayerDashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import CaptainDashboardPage from './pages/CaptainDashboardPage';
+import CaptainFixtureSetupPage from './pages/CaptainFixtureSetupPage';
 
 export default function App() {
   return (
@@ -47,6 +48,17 @@ export default function App() {
             <ProtectedRoute>
               <RoleRoute allowedRoles={['captain']}>
                 <CaptainDashboardPage />
+              </RoleRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/captain/fixture/:fixtureId/setup"
+          element={
+            <ProtectedRoute>
+              <RoleRoute allowedRoles={['captain']}>
+                <CaptainFixtureSetupPage />
               </RoleRoute>
             </ProtectedRoute>
           }

@@ -26,7 +26,9 @@ a {
   text-decoration: none;
 }
 
-button {
+button,
+select,
+input {
   font: inherit;
 }
 
@@ -433,6 +435,19 @@ button {
 
 .form-error {
   color: #b91c1c;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.form-error-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-success {
+  margin-top: 16px;
+  color: #166534;
   font-size: 14px;
   font-weight: 600;
 }

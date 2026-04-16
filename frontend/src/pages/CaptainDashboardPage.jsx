@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
 import StatCard from '../components/common/StatCard';
 import { useAuth } from '../context/AuthContext';
@@ -47,16 +48,16 @@ export default function CaptainDashboardPage() {
       <div className="stats-grid">
         <StatCard label="My Team" value={data.team.teamName} />
         <StatCard label="Fixtures" value={totalFixtures} />
+        <StatCard label="Ready For Lineup" value={readyForLineup} />
         <StatCard label="Ready To Play" value={readyToPlay} />
-        <StatCard label="Completed" value={completed} />
       </div>
 
       <section className="panel">
         <h3 className="panel-title">Captain Actions</h3>
         <div className="landing-actions">
-          <button type="button" className="primary-btn">
-            Manage Lineup
-          </button>
+          <Link to="/captain/fixture/fixture_001/setup" className="primary-btn">
+            Open Fixture Setup
+          </Link>
           <button type="button" className="secondary-btn">
             Open Fixtures
           </button>
@@ -80,9 +81,19 @@ export default function CaptainDashboardPage() {
 
               <div className="captain-fixture-side">
                 <div className="fixture-score">{fixture.scoreText}</div>
-                <button type="button" className="secondary-btn captain-action-btn">
-                  {fixture.captainAction}
-                </button>
+
+                {fixture.status === 'ready_for_lineup' ? (
+                  <Link
+                    to={`/captain/fixture/${fixture.fixtureId}/setup`}
+                    className="secondary-btn captain-action-btn"
+                  >
+                    {fixture.captainAction}
+                  </Link>
+                ) : (
+                  <button type="button" className="secondary-btn captain-action-btn">
+                    {fixture.captainAction}
+                  </button>
+                )}
               </div>
             </div>
           ))}
