@@ -1,17 +1,51 @@
-import { createCompetition, createTeam } from './dataModel.js';
-import { createPlayerAggregate } from './statsAggregator.js';
+import { registerPlayer, createEmptyRegistry } from './playerRegistry.js';
+import { createCompetition } from './dataModel.js';
+import { createMatch } from './engine.js';
+import { processTurn } from './rules.js';
+import { buildMatchSummary } from './matchSummary.js';
 import {
-  createCompetitionTableStore,
-  recordFixtureResultForStandings,
-  recordPlayerAggregateForRanking,
-  getSortedTeamStandings,
-  getSortedPlayerRankings,
-  printTeamStandings,
-  printPlayerRankings
-} from './competitionTables.js';
+  createPlayerHistoryStore,
+  recordMatchSummaryForPlayers
+} from './playerHistory.js';
+import {
+  createPlayerAggregate,
+  addMatchSummaryToPlayerAggregate
+} from './statsAggregator.js';
+import {
+  buildAdminPlayerProfile,
+  buildPrivatePlayerProfile,
+  buildPublicPlayerProfile,
+  buildCompetitionSpecificProfile,
+  printPlayerProfile
+} from './playerProfile.js';
 
 // --------------------------------------------
-// Competition
+// Setup registry + player
+// --------------------------------------------
+const registry = createEmptyRegistry();
+
+const registerResult = registerPlayer(registry, {
+  fullName: 'Jason Isaacs',
+  dsaNumber: 'DSA12345',
+  idNumber: '9001015009087',
+  dateOfBirth: '1990-01-01',
+  race: 'ExampleRace',
+  gender: 'Male',
+  registrationStatus: 'active',
+  associationName: 'Observatory Darts Association',
+  provinceName: 'Western Cape',
+  phone: '0820000000',
+  email: 'jason@example.com',
+  addressLine1: '1 Main Road',
+  addressLine2: 'Observatory',
+  city: 'Cape Town',
+  postalCode: '7925'
+});
+
+const playerId = registerResult.player.playerId;
+
+// --------------------------------------------
+// Competitions
 // --------------------------------------------
 const odaLeague = createCompetition({
   name: 'ODA League',
@@ -22,125 +56,121 @@ const odaLeague = createCompetition({
   provinceName: 'Western Cape'
 });
 
-// --------------------------------------------
-// Teams
-// --------------------------------------------
-const observatoryA = createTeam({
-  name: 'Observatory A',
+const odaSingles = createCompetition({
+  name: 'ODA Singles League',
+  type: 'singles',
+  season: '2026',
+  status: 'active',
   associationName: 'Observatory Darts Association',
-  competitionId: odaLeague.competitionId
-});
-
-const observatoryB = createTeam({
-  name: 'Observatory B',
-  associationName: 'Observatory Darts Association',
-  competitionId: odaLeague.competitionId
-});
-
-const observatoryC = createTeam({
-  name: 'Observatory C',
-  associationName: 'Observatory Darts Association',
-  competitionId: odaLeague.competitionId
+  provinceName: 'Western Cape'
 });
 
 // --------------------------------------------
-// Team standings store
+// History + aggregates
 // --------------------------------------------
-const tableStore = createCompetitionTableStore();
+const historyStore = createPlayerHistoryStore();
+const jasonAggregate = createPlayerAggregate(playerId, 'Jason');
 
-// Fixture 1: A beats B 4-3
-recordFixtureResultForStandings(tableStore, {
-  teamA: { teamId: observatoryA.teamId, name: observatoryA.name },
-  teamB: { teamId: observatoryB.teamId, name: observatoryB.name },
-  score: { teamA: 4, teamB: 3 }
-});
-
-// Fixture 2: C draws with A 3-3
-recordFixtureResultForStandings(tableStore, {
-  teamA: { teamId: observatoryC.teamId, name: observatoryC.name },
-  teamB: { teamId: observatoryA.teamId, name: observatoryA.name },
-  score: { teamA: 3, teamB: 3 }
-});
-
-// Fixture 3: B beats C 5-2
-recordFixtureResultForStandings(tableStore, {
-  teamA: { teamId: observatoryB.teamId, name: observatoryB.name },
-  teamB: { teamId: observatoryC.teamId, name: observatoryC.name },
-  score: { teamA: 5, teamB: 2 }
-});
-
-const standings = getSortedTeamStandings(tableStore);
-printTeamStandings('ODA LEAGUE TABLE', standings);
-
-// --------------------------------------------
-// Player rankings
-// --------------------------------------------
-const jasonAggregate = createPlayerAggregate('player_jason', 'Jason');
-jasonAggregate.competitions[odaLeague.competitionId] = {
-  competitionId: odaLeague.competitionId,
-  competitionName: odaLeague.name,
-  stats: {
-    matchesPlayed: 3,
-    matchesWon: 2,
-    matchesLost: 1,
-    matchesDrawn: 0,
-    dartsUsed: 7,
-    throws: 3,
-    totalScored: 121,
-    count100Plus: 0,
-    count140Plus: 0,
-    count180s: 0,
-    highestCheckout: 81,
-    threeDartAverage: 51.86
-  }
+const playerIdMap = {
+  Jason: playerId,
+  B1: 'player_b1',
+  Mike: 'player_mike'
 };
 
-const mikeAggregate = createPlayerAggregate('player_mike', 'Mike');
-mikeAggregate.competitions[odaLeague.competitionId] = {
+// Match 1
+let match1 = createMatch('Jason', 'B1', 40);
+processTurn(match1, {
+  points: 40,
+  dartsUsed: 1,
+  finishedOnDouble: true
+});
+const summary1 = buildMatchSummary(match1);
+
+recordMatchSummaryForPlayers(
+  historyStore,
+  {
+    playerIdMap,
+    competitionId: odaLeague.competitionId,
+    competitionName: odaLeague.name,
+    matchType: 'singles',
+    fixtureId: 'fixture_001',
+    fixtureName: 'Observatory A vs Observatory B'
+  },
+  summary1
+);
+
+addMatchSummaryToPlayerAggregate(
+  jasonAggregate,
+  odaLeague.competitionId,
+  odaLeague.name,
+  summary1
+);
+
+// Match 2
+let match2 = createMatch('Jason', 'Mike', 81);
+processTurn(match2, {
+  points: 81,
+  dartsUsed: 3,
+  finishedOnDouble: true
+});
+const summary2 = buildMatchSummary(match2);
+
+recordMatchSummaryForPlayers(
+  historyStore,
+  {
+    playerIdMap,
+    competitionId: odaSingles.competitionId,
+    competitionName: odaSingles.name,
+    matchType: 'singles',
+    fixtureId: null,
+    fixtureName: 'Singles Round 1'
+  },
+  summary2
+);
+
+addMatchSummaryToPlayerAggregate(
+  jasonAggregate,
+  odaSingles.competitionId,
+  odaSingles.name,
+  summary2
+);
+
+// --------------------------------------------
+// Build profiles
+// --------------------------------------------
+const adminProfile = buildAdminPlayerProfile({
+  registry,
+  historyStore,
+  aggregate: jasonAggregate,
+  playerId
+});
+
+const privateProfile = buildPrivatePlayerProfile({
+  registry,
+  historyStore,
+  aggregate: jasonAggregate,
+  playerId
+});
+
+const publicProfile = buildPublicPlayerProfile({
+  registry,
+  historyStore,
+  aggregate: jasonAggregate,
+  playerId,
+  displayName: 'Jason Isaacs'
+});
+
+const leagueProfile = buildCompetitionSpecificProfile({
+  registry,
+  historyStore,
+  aggregate: jasonAggregate,
+  playerId,
   competitionId: odaLeague.competitionId,
-  competitionName: odaLeague.name,
-  stats: {
-    matchesPlayed: 3,
-    matchesWon: 1,
-    matchesLost: 2,
-    matchesDrawn: 0,
-    dartsUsed: 9,
-    throws: 3,
-    totalScored: 100,
-    count100Plus: 1,
-    count140Plus: 0,
-    count180s: 0,
-    highestCheckout: 40,
-    threeDartAverage: 33.33
-  }
-};
+  displayName: 'Jason Isaacs',
+  visibility: 'public'
+});
 
-const peterAggregate = createPlayerAggregate('player_peter', 'Peter');
-peterAggregate.competitions[odaLeague.competitionId] = {
-  competitionId: odaLeague.competitionId,
-  competitionName: odaLeague.name,
-  stats: {
-    matchesPlayed: 2,
-    matchesWon: 2,
-    matchesLost: 0,
-    matchesDrawn: 0,
-    dartsUsed: 4,
-    throws: 2,
-    totalScored: 80,
-    count100Plus: 0,
-    count140Plus: 0,
-    count180s: 0,
-    highestCheckout: 40,
-    threeDartAverage: 60
-  }
-};
-
-recordPlayerAggregateForRanking(tableStore, jasonAggregate, odaLeague.competitionId);
-recordPlayerAggregateForRanking(tableStore, mikeAggregate, odaLeague.competitionId);
-recordPlayerAggregateForRanking(tableStore, peterAggregate, odaLeague.competitionId);
-
-const rankings = getSortedPlayerRankings(tableStore);
-printPlayerRankings('ODA LEAGUE PLAYER RANKINGS', rankings);
-
-console.log('\n===== RAW TABLE STORE =====');
-console.log(JSON.stringify(tableStore, null, 2));
+printPlayerProfile('ADMIN PROFILE', adminProfile.profile);
+printPlayerProfile('PRIVATE PROFILE', privateProfile.profile);
+printPlayerProfile('PUBLIC PROFILE', publicProfile.profile);
+printPlayerProfile('PUBLIC LEAGUE PROFILE', leagueProfile.profile);
