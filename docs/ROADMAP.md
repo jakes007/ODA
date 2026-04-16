@@ -15,26 +15,24 @@
 - player history
 - competition tables
 - player profiles
-
----
+- head-to-head system
 
 ## NEXT
 
-### 1. Head-to-Head System
-- player vs player stats
-- win/loss comparisons
-- rivalry tracking
+### 1. Competition Pages / View Models
+- standings page data
+- rankings page data
+- fixture results page data
 
-### 2. Competition Pages (UI Ready)
-- standings view
-- player rankings view
-- team results view
+### 2. Profile UI Layer
+- frontend-ready player profile shapes
+- tabs / sections structure
+- optimize profile queries
 
-### 3. Profile UI Layer
-- build frontend-ready structures
-- optimize API shape
-
----
+### 3. Admin View Models
+- dashboard summaries
+- competition overview cards
+- fixture management views
 
 ## LATER
 
@@ -49,10 +47,8 @@
 - match scoring UI
 - public competition pages
 
----
-
 ## CURRENT POSITION
 
-Backend System Fully Complete
+Backend Platform Core Complete
 
-Next Step → Head-to-Head + UI Layer
+Next Step → Competition Page View Models

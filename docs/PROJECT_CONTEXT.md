@@ -5,11 +5,10 @@ A complete darts management platform supporting:
 - competitions
 - fixtures
 - scoring
-- player management
+- player registry
 - stats and rankings
 - player profiles
-
----
+- head-to-head comparisons
 
 ## Core Systems
 
@@ -53,13 +52,15 @@ A complete darts management platform supporting:
   - stats
   - competition views
 
----
+### Head-to-Head
+- compares two players across recorded history
+- tracks wins/losses/draws
+- stores rivalry match list
+- excludes unrelated matches
 
 ## Data Flow
 
-Player → Match → Summary → History → Aggregates → Tables → Profile
-
----
+Player → Match → Summary → History → Aggregates → Tables → Profiles → Head-to-Head
 
 ## Key Rules
 
@@ -71,14 +72,13 @@ Player → Match → Summary → History → Aggregates → Tables → Profile
 6. History records all participants
 7. Logic remains outside UI
 
----
-
 ## Current Modules
 
 - dataModel.js
 - playerRegistry.js
 - playerHistory.js
 - playerProfile.js
+- headToHead.js
 - engine.js
 - rules.js
 - matchSummary.js
