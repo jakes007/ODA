@@ -56,40 +56,8 @@ export default function CaptainMatchupScoringPage() {
     );
   }
 
-  if (matchup.status === 'completed') {
-    return (
-      <div className="page-stack">
-        <PageHeader
-          title="Matchup Scoring"
-          subtitle={`${matchup.label} • Completed`}
-        />
 
-        <section className="panel">
-          <div className="feature-list">
-            <div className="feature-item">
-              <div className="feature-title">Winner</div>
-              <div className="muted-text">{matchup.result?.winnerTeamName ?? 'Recorded'}</div>
-            </div>
-
-            <div className="feature-item">
-              <div className="feature-title">Result</div>
-              <div className="muted-text">
-                {matchup.result?.winnerSide === 'home' ? 'Home win' : 'Away win'}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ marginTop: '1rem' }}>
-            <Link to={`/captain/fixture/${fixtureId}/live`} className="text-link">
-              Back to Live Hub
-            </Link>
-          </div>
-        </section>
-      </div>
-    );
-  }
-
-  if (matchup.status !== 'in_progress' || !matchup.liveState) {
+  if ((matchup.status !== 'in_progress' && matchup.status !== 'completed') || !matchup.liveState) {
     return (
       <div className="page-stack">
         <PageHeader
@@ -127,7 +95,11 @@ export default function CaptainMatchupScoringPage() {
     setShowFinishDarts(false);
     setFinishDartOptions([]);
     setErrorMessage('');
-    setSuccessMessage(`Editing turn ${actualIndex + 1}`);
+    setSuccessMessage(
+      matchup.status === 'completed'
+        ? `Editing turn ${actualIndex + 1} from a completed matchup`
+        : `Editing turn ${actualIndex + 1}`
+    );
   }
 
   function handleSubmitTurn(event) {
@@ -201,9 +173,9 @@ export default function CaptainMatchupScoringPage() {
 
   return (
     <div className="page-stack">
-      <PageHeader
+            <PageHeader
         title="Matchup Scoring"
-        subtitle={`${matchup.label} • Block ${matchup.blockNumber}`}
+        subtitle={`${matchup.label} • Block ${matchup.blockNumber} • ${matchup.status === 'completed' ? 'Completed' : 'In Progress'}`}
       />
 
       <section className="panel">
@@ -230,9 +202,18 @@ export default function CaptainMatchupScoringPage() {
             <div className="muted-text">{matchup.formatLabel}</div>
           </div>
 
-          <div className="feature-item">
+                    <div className="feature-item">
             <div className="feature-title">Turn</div>
-            <div className="muted-text">{currentTurnLabel}</div>
+            <div className="muted-text">
+              {matchup.status === 'completed' ? 'Completed matchup' : currentTurnLabel}
+            </div>
+          </div>
+
+          <div className="feature-item">
+            <div className="feature-title">Status</div>
+            <div className="muted-text">
+              {matchup.status === 'completed' ? 'Completed but still editable' : 'In Progress'}
+            </div>
           </div>
         </div>
       </section>
@@ -278,7 +259,16 @@ export default function CaptainMatchupScoringPage() {
       </section>
 
       <section className="panel">
-        <h3 className="panel-title">Enter Turn Score</h3>
+        <h3 className="panel-title">
+          {matchup.status === 'completed' ? 'Edit Match History' : 'Enter Turn Score'}
+        </h3>
+
+        {matchup.status === 'completed' && editingTurnIndex === null ? (
+          <div className="muted-text" style={{ marginBottom: '1rem' }}>
+            This matchup is completed, but you may still edit any previous turn. If the correction
+            changes the finish, the matchup will automatically reopen.
+          </div>
+        ) : null}
 
         <form className="auth-form" onSubmit={handleSubmitTurn}>
           <div className="form-row">
@@ -291,16 +281,25 @@ export default function CaptainMatchupScoringPage() {
               type="number"
               min="0"
               max="180"
-              placeholder="Enter a score from 0 to 180"
+              placeholder={
+                matchup.status === 'completed' && editingTurnIndex === null
+                  ? 'Choose a turn below to edit'
+                  : 'Enter a score from 0 to 180'
+              }
               value={turnScore}
               onChange={(event) => setTurnScore(event.target.value)}
+              disabled={matchup.status === 'completed' && editingTurnIndex === null}
             />
           </div>
 
           {errorMessage ? <div className="form-error">{errorMessage}</div> : null}
           {successMessage ? <div className="form-success">{successMessage}</div> : null}
 
-          <button type="submit" className="primary-btn auth-submit-btn">
+          <button
+            type="submit"
+            className="primary-btn auth-submit-btn"
+            disabled={matchup.status === 'completed' && editingTurnIndex === null}
+          >
             {editingTurnIndex === null ? 'Submit Turn' : 'Save Edited Turn'}
           </button>
 

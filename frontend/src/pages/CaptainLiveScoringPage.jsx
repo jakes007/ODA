@@ -313,10 +313,18 @@ export default function CaptainLiveScoringPage() {
                   <div className="muted-text">Status: Completed</div>
                 </div>
 
-                <div className="captain-fixture-side">
-                  <div className="fixture-score">
+                <div className="captain-fixture-side" style={{ minWidth: '220px' }}>
+                  <div className="fixture-score" style={{ marginBottom: '0.5rem' }}>
                     {matchup.result?.winnerSide === 'home' ? 'H' : 'A'}
                   </div>
+
+                  <button
+                    type="button"
+                    className="secondary-btn captain-action-btn"
+                    onClick={() => openMatchupScorer(matchup.matchupId)}
+                  >
+                    Edit Matchup
+                  </button>
                 </div>
               </div>
             ))}
