@@ -6,7 +6,8 @@ import { useAuth } from '../context/AuthContext';
 import {
   getCaptainMatchupScoringData,
   submitCaptainMatchupTurn,
-  updateCaptainMatchupTurn
+  updateCaptainMatchupTurn,
+  setCaptainMatchupStartingSide
 } from '../services/captainData';
 
 export default function CaptainMatchupScoringPage() {
@@ -87,6 +88,25 @@ export default function CaptainMatchupScoringPage() {
 
   function refreshPage() {
     setRefreshKey((value) => value + 1);
+  }
+
+  function handleSetStartingSide(startingSide) {
+    const result = setCaptainMatchupStartingSide(
+      currentUser.playerId,
+      fixtureId,
+      matchupId,
+      startingSide
+    );
+
+    if (!result.success) {
+      setErrorMessage(result.message);
+      setSuccessMessage('');
+      return;
+    }
+
+    setErrorMessage('');
+    setSuccessMessage(result.message);
+    refreshPage();
   }
 
   function handleEditTurn(turn, actualIndex) {
@@ -202,10 +222,19 @@ export default function CaptainMatchupScoringPage() {
             <div className="muted-text">{matchup.formatLabel}</div>
           </div>
 
-                    <div className="feature-item">
+          <div className="feature-item">
             <div className="feature-title">Turn</div>
             <div className="muted-text">
               {matchup.status === 'completed' ? 'Completed matchup' : currentTurnLabel}
+            </div>
+          </div>
+
+          <div className="feature-item">
+            <div className="feature-title">Throws First</div>
+            <div className="muted-text">
+              {(matchup.liveState?.startingSide ?? 'home') === 'home'
+                ? homePlayerName
+                : awayPlayerName}
             </div>
           </div>
 
@@ -216,6 +245,54 @@ export default function CaptainMatchupScoringPage() {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="panel">
+        <h3 className="panel-title">Starting Turn Control</h3>
+
+        <div className="feature-list">
+          <div className="feature-item">
+            <div className="feature-title">Current Starter</div>
+            <div className="muted-text">
+              {(matchup.liveState?.startingSide ?? 'home') === 'home'
+                ? `${homePlayerName} (Home)`
+                : `${awayPlayerName} (Away)`}
+            </div>
+          </div>
+
+          <div className="feature-item">
+            <div className="feature-title">Change Rule</div>
+            <div className="muted-text">
+              Starting side can only be changed before the first turn is entered.
+            </div>
+          </div>
+        </div>
+
+        {matchup.liveState?.turns?.length === 0 && matchup.status !== 'completed' ? (
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1rem' }}>
+            <button
+              type="button"
+              className="secondary-btn"
+              onClick={() => handleSetStartingSide('home')}
+            >
+              Home Throws First
+            </button>
+
+            <button
+              type="button"
+              className="secondary-btn"
+              onClick={() => handleSetStartingSide('away')}
+            >
+              Away Throws First
+            </button>
+          </div>
+        ) : (
+          <div className="muted-text" style={{ marginTop: '1rem' }}>
+            {matchup.status === 'completed'
+              ? 'Starter is locked because the matchup has already been played.'
+              : 'Starter is locked because scoring has already begun.'}
+          </div>
+        )}
       </section>
 
       <section className="panel">

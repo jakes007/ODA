@@ -331,10 +331,10 @@ function getPossibleFinishDarts(scoreLeft) {
   return options;
 }
 
-function buildLiveStateFromTurns(turns) {
+function buildLiveStateFromTurns(turns, startingSide = 'home') {
   let homeScoreLeft = 501;
   let awayScoreLeft = 501;
-  let currentTurnSide = 'home';
+  let currentTurnSide = startingSide;
   let winnerSide = null;
   let completed = false;
 
@@ -400,6 +400,7 @@ function buildLiveStateFromTurns(turns) {
     startingScore: 501,
     homeScoreLeft,
     awayScoreLeft,
+    startingSide,
     currentTurnSide,
     turns: rebuiltTurns,
     pendingFinish: null,
@@ -690,6 +691,7 @@ function buildInitialSinglesLiveState() {
     startingScore: 501,
     homeScoreLeft: 501,
     awayScoreLeft: 501,
+    startingSide: 'home',
     currentTurnSide: 'home',
     turns: [],
     pendingFinish: null,
@@ -702,6 +704,7 @@ function cloneLiveState(liveState) {
 
   return {
     ...liveState,
+    startingSide: liveState.startingSide ?? 'home',
     pendingFinish: liveState.pendingFinish ? { ...liveState.pendingFinish } : null,
     turns: liveState.turns.map((turn) => ({ ...turn }))
   };
@@ -1326,7 +1329,10 @@ export function submitCaptainMatchupTurn(
     }
   ];
 
-  matchup.liveState = buildLiveStateFromTurns(nextTurns);
+  matchup.liveState = buildLiveStateFromTurns(
+    nextTurns,
+    matchup.liveState.startingSide ?? 'home'
+  );
 
   if (matchup.liveState.winnerSide) {
     finalizeMatchupWin(rawFixture, matchup, matchup.liveState.winnerSide);
@@ -1432,7 +1438,10 @@ export function updateCaptainMatchupTurn(
     index === turnIndex ? updatedTurn : turn
   );
 
-  matchup.liveState = buildLiveStateFromTurns(nextTurns);
+  matchup.liveState = buildLiveStateFromTurns(
+    nextTurns,
+    matchup.liveState.startingSide ?? 'home'
+  );
 
   if (matchup.liveState.winnerSide) {
     finalizeMatchupWin(rawFixture, matchup, matchup.liveState.winnerSide);
@@ -1552,6 +1561,74 @@ export function applyCaptainSubstitution(
     success: true,
     message: `${incomingPlayer.displayName} has replaced ${outgoingPlayer.displayName} for ${updatedMatchupCount} future matchup${updatedMatchupCount > 1 ? 's' : ''}`,
     fixture: cloneFixtureForViewer(playerId, rawFixture)
+  };
+}
+
+export function setCaptainMatchupStartingSide(
+  playerId,
+  fixtureId,
+  matchupId,
+  startingSide
+) {
+  const rawFixture = getRawFixtureById(fixtureId);
+
+  if (!rawFixture) {
+    return {
+      success: false,
+      message: 'Fixture setup data not found'
+    };
+  }
+
+  const captainSide = getCaptainSide(playerId, rawFixture);
+  if (!captainSide) {
+    return {
+      success: false,
+      message: 'You are not assigned to this fixture'
+    };
+  }
+
+  if (!rawFixture.liveSession) {
+    return {
+      success: false,
+      message: 'Fixture live session has not been started yet'
+    };
+  }
+
+  const matchup = getMatchupFromFixture(rawFixture, matchupId);
+
+  if (!matchup || !matchup.liveState) {
+    return {
+      success: false,
+      message: 'Matchup live state not found'
+    };
+  }
+
+  if (!['home', 'away'].includes(startingSide)) {
+    return {
+      success: false,
+      message: 'Starting side is invalid'
+    };
+  }
+
+  if (matchup.liveState.turns.length > 0) {
+    return {
+      success: false,
+      message: 'Starting side can only be changed before the first turn is entered'
+    };
+  }
+
+  matchup.liveState.startingSide = startingSide;
+  matchup.liveState.currentTurnSide = startingSide;
+
+  return {
+    success: true,
+    message: `${startingSide === 'home' ? 'Home' : 'Away'} will throw first`,
+    fixture: cloneFixtureForViewer(playerId, rawFixture),
+    matchup: {
+      ...matchup,
+      result: matchup.result ? { ...matchup.result } : null,
+      liveState: cloneLiveState(matchup.liveState)
+    }
   };
 }
 
