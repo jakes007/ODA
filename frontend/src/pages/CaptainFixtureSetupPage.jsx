@@ -398,33 +398,6 @@ export default function CaptainFixtureSetupPage() {
           ) : null}
         </div>
       </section>
-
-      <section className="panel">
-        <h3 className="panel-title">Captain Workflow Rules</h3>
-        <div className="feature-list">
-          <div className="feature-item">
-            <div className="feature-title">Hidden Submission</div>
-            <div className="muted-text">
-              Captains submit privately. Opposing lineups stay hidden until both sides submit.
-            </div>
-          </div>
-
-          <div className="feature-item">
-            <div className="feature-title">Pre-Start Change Control</div>
-            <div className="muted-text">
-              A captain may re-submit before match start. If a revealed lineup changes, both sides
-              must re-confirm before play can start.
-            </div>
-          </div>
-
-          <div className="feature-item">
-            <div className="feature-title">Start Gate</div>
-            <div className="muted-text">
-              A match can only start once both captain lineups are submitted and revealed.
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

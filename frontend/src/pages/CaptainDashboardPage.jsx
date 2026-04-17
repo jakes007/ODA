@@ -101,32 +101,6 @@ export default function CaptainDashboardPage() {
           ))}
         </div>
       </section>
-
-      <section className="panel">
-        <h3 className="panel-title">What comes next</h3>
-        <div className="feature-list">
-          <div className="feature-item">
-            <div className="feature-title">Private Lineup Submission</div>
-            <div className="muted-text">
-              Each captain submits privately. Opposing lineups are hidden until both sides submit.
-            </div>
-          </div>
-
-          <div className="feature-item">
-            <div className="feature-title">Match Start Control</div>
-            <div className="muted-text">
-              A fixture can only move to live play after both captains have submitted.
-            </div>
-          </div>
-
-          <div className="feature-item">
-            <div className="feature-title">Multi-Board Live Control</div>
-            <div className="muted-text">
-              The next phase will support multiple active games and dedicated scoring routes.
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

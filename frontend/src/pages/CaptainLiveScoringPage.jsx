@@ -469,36 +469,7 @@ export default function CaptainLiveScoringPage() {
           </div>
         )}
       </section>
-
-      <section className="panel">
-        <h3 className="panel-title">What this milestone does</h3>
-        <div className="feature-list">
-          <div className="feature-item">
-            <div className="feature-title">Dedicated Scorer Route</div>
-            <div className="muted-text">
-              Active matchups now open into a dedicated scoring page instead of using demo winner
-              buttons.
-            </div>
-          </div>
-
-          <div className="feature-item">
-            <div className="feature-title">Live Match Control</div>
-            <div className="muted-text">
-              The live hub still shows the whole fixture while the scorer handles one matchup at a
-              time.
-            </div>
-          </div>
-
-          <div className="feature-item">
-            <div className="feature-title">Next Step</div>
-            <div className="muted-text">
-              After the singles scorer is stable, the next phase is substitutions and one-player-short
-              handling.
-            </div>
-          </div>
         </div>
-      </section>
-    </div>
   );
 }
 

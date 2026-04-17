@@ -331,10 +331,17 @@ function getPossibleFinishDarts(scoreLeft) {
   return options;
 }
 
-function buildLiveStateFromTurns(turns, startingSide = 'home') {
+function buildLiveStateFromTurns(
+  turns,
+  startingSide = 'home',
+  format = 'singles'
+) {
   let homeScoreLeft = 501;
   let awayScoreLeft = 501;
+
   let currentTurnSide = startingSide;
+  let currentPlayerIndex = 0;
+
   let winnerSide = null;
   let completed = false;
 
@@ -344,16 +351,16 @@ function buildLiveStateFromTurns(turns, startingSide = 'home') {
     const side = originalTurn.side;
     const score = Number(originalTurn.score);
     const dartsUsed = originalTurn.dartsUsed ?? 3;
-    const scoreKey = side === 'home' ? 'homeScoreLeft' : 'awayScoreLeft';
-    const currentScoreLeft = side === 'home' ? homeScoreLeft : awayScoreLeft;
+
+    const currentScoreLeft =
+      side === 'home' ? homeScoreLeft : awayScoreLeft;
+
     const proposedScoreLeft = currentScoreLeft - score;
 
     let bust = false;
     let resultingScore = currentScoreLeft;
 
-    if (completed) {
-      break;
-    }
+    if (completed) break;
 
     if (!Number.isInteger(score) || score < 0 || score > 180 || isImpossibleThreeDartScore(score)) {
       bust = true;
@@ -367,11 +374,8 @@ function buildLiveStateFromTurns(turns, startingSide = 'home') {
       } else {
         resultingScore = 0;
 
-        if (side === 'home') {
-          homeScoreLeft = 0;
-        } else {
-          awayScoreLeft = 0;
-        }
+        if (side === 'home') homeScoreLeft = 0;
+        else awayScoreLeft = 0;
 
         winnerSide = side;
         completed = true;
@@ -379,11 +383,8 @@ function buildLiveStateFromTurns(turns, startingSide = 'home') {
     } else {
       resultingScore = proposedScoreLeft;
 
-      if (side === 'home') {
-        homeScoreLeft = proposedScoreLeft;
-      } else {
-        awayScoreLeft = proposedScoreLeft;
-      }
+      if (side === 'home') homeScoreLeft = proposedScoreLeft;
+      else awayScoreLeft = proposedScoreLeft;
     }
 
     rebuiltTurns.push({
@@ -393,7 +394,14 @@ function buildLiveStateFromTurns(turns, startingSide = 'home') {
       resultingScore
     });
 
-    currentTurnSide = side === 'home' ? 'away' : 'home';
+    const nextTurn = getNextTurnState(
+      currentTurnSide,
+      currentPlayerIndex,
+      format
+    );
+
+    currentTurnSide = nextTurn.side;
+    currentPlayerIndex = nextTurn.index;
   }
 
   return {
@@ -402,6 +410,8 @@ function buildLiveStateFromTurns(turns, startingSide = 'home') {
     awayScoreLeft,
     startingSide,
     currentTurnSide,
+    currentPlayerIndex,
+    format,
     turns: rebuiltTurns,
     pendingFinish: null,
     winnerSide
@@ -618,6 +628,7 @@ function buildSixteenPointSinglesMatchups(fixture) {
         blockNumber: blockIndex + 1,
         blockOrder: pairingIndex + 1,
         type: 'singles',
+        format: 'singles',
         formatLabel: '501 Singles',
         homeSlots: [pairing.homeSlot],
         awaySlots: [pairing.awaySlot],
@@ -693,10 +704,55 @@ function buildInitialSinglesLiveState() {
     awayScoreLeft: 501,
     startingSide: 'home',
     currentTurnSide: 'home',
+    currentPlayerIndex: 0,
+    format: 'singles',
     turns: [],
     pendingFinish: null,
     winnerSide: null
   };
+}
+
+function buildInitialDoublesLiveState() {
+  return {
+    startingScore: 501,
+    homeScoreLeft: 501,
+    awayScoreLeft: 501,
+    startingSide: 'home',
+    currentTurnSide: 'home',
+    currentPlayerIndex: 0,
+    format: 'doubles',
+    turns: [],
+    pendingFinish: null,
+    winnerSide: null
+  };
+}
+
+function getNextTurnState(currentSide, currentIndex, format) {
+  if (format === 'singles') {
+    return {
+      side: currentSide === 'home' ? 'away' : 'home',
+      index: 0
+    };
+  }
+
+  if (format === 'doubles') {
+    const order = [
+      { side: 'home', index: 0 },
+      { side: 'away', index: 0 },
+      { side: 'home', index: 1 },
+      { side: 'away', index: 1 }
+    ];
+
+    const currentPosition = order.findIndex(
+      (o) => o.side === currentSide && o.index === currentIndex
+    );
+
+    const next = order[(currentPosition + 1) % order.length];
+
+    return next;
+  }
+
+  return { side: 'home', index: 0 };
 }
 
 function cloneLiveState(liveState) {
@@ -1331,7 +1387,8 @@ export function submitCaptainMatchupTurn(
 
   matchup.liveState = buildLiveStateFromTurns(
     nextTurns,
-    matchup.liveState.startingSide ?? 'home'
+    matchup.liveState.startingSide ?? 'home',
+    matchup.liveState.format ?? 'singles'
   );
 
   if (matchup.liveState.winnerSide) {
@@ -1440,7 +1497,8 @@ export function updateCaptainMatchupTurn(
 
   matchup.liveState = buildLiveStateFromTurns(
     nextTurns,
-    matchup.liveState.startingSide ?? 'home'
+    matchup.liveState.startingSide ?? 'home',
+    matchup.liveState.format ?? 'singles'
   );
 
   if (matchup.liveState.winnerSide) {

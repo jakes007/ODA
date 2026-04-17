@@ -81,10 +81,20 @@ export default function CaptainMatchupScoringPage() {
     );
   }
 
-  const homePlayerName = matchup.homePlayers[0]?.displayName ?? 'Home Player';
-  const awayPlayerName = matchup.awayPlayers[0]?.displayName ?? 'Away Player';
-  const currentTurnLabel =
-    matchup.liveState.currentTurnSide === 'home' ? homePlayerName : awayPlayerName;
+  const homePlayerNames =
+  matchup.homePlayers?.map((player) => player.displayName) ?? [];
+const awayPlayerNames =
+  matchup.awayPlayers?.map((player) => player.displayName) ?? [];
+
+const homePlayerName = homePlayerNames[0] ?? 'Home Player';
+const awayPlayerName = awayPlayerNames[0] ?? 'Away Player';
+
+const currentTurnPlayerName =
+  matchup.liveState?.currentTurnSide === 'home'
+    ? homePlayerNames[matchup.liveState?.currentPlayerIndex ?? 0] ?? homePlayerName
+    : awayPlayerNames[matchup.liveState?.currentPlayerIndex ?? 0] ?? awayPlayerName;
+
+const currentTurnLabel = currentTurnPlayerName;
 
   function refreshPage() {
     setRefreshKey((value) => value + 1);
@@ -195,7 +205,7 @@ export default function CaptainMatchupScoringPage() {
     <div className="page-stack">
             <PageHeader
         title="Matchup Scoring"
-        subtitle={`${matchup.label} • Block ${matchup.blockNumber} • ${matchup.status === 'completed' ? 'Completed' : 'In Progress'}`}
+        subtitle={`${buildMatchupDisplayLabel(matchup)} • Block ${matchup.blockNumber} • ${matchup.status === 'completed' ? 'Completed' : 'In Progress'}`}
       />
 
       <section className="panel">
@@ -223,7 +233,7 @@ export default function CaptainMatchupScoringPage() {
           </div>
 
           <div className="feature-item">
-            <div className="feature-title">Turn</div>
+            <div className="feature-title">Current Throw</div>
             <div className="muted-text">
               {matchup.status === 'completed' ? 'Completed matchup' : currentTurnLabel}
             </div>
@@ -233,8 +243,8 @@ export default function CaptainMatchupScoringPage() {
             <div className="feature-title">Throws First</div>
             <div className="muted-text">
               {(matchup.liveState?.startingSide ?? 'home') === 'home'
-                ? homePlayerName
-                : awayPlayerName}
+                ? homePlayerNames[0] ?? homePlayerName
+                : awayPlayerNames[0] ?? awayPlayerName}
             </div>
           </div>
 
@@ -312,7 +322,9 @@ export default function CaptainMatchupScoringPage() {
               padding: '1rem'
             }}
           >
-            <div style={{ fontWeight: 700, marginBottom: '0.5rem' }}>{homePlayerName}</div>
+            <div style={{ fontWeight: 700, marginBottom: '0.5rem' }}>
+              {buildSideDisplayLabel(matchup.homePlayers, 'Home Player')}
+            </div>
             <div className="muted-text">Score Left</div>
             <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.5rem' }}>
               {matchup.liveState.homeScoreLeft}
@@ -326,7 +338,9 @@ export default function CaptainMatchupScoringPage() {
               padding: '1rem'
             }}
           >
-            <div style={{ fontWeight: 700, marginBottom: '0.5rem' }}>{awayPlayerName}</div>
+             <div style={{ fontWeight: 700, marginBottom: '0.5rem' }}>
+              {buildSideDisplayLabel(matchup.awayPlayers, 'Away Player')}
+            </div>
             <div className="muted-text">Score Left</div>
             <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.5rem' }}>
               {matchup.liveState.awayScoreLeft}
@@ -422,8 +436,9 @@ export default function CaptainMatchupScoringPage() {
                   }}
                 >
                   <div>
-                    <div className="feature-title">
-                      Turn {index + 1} • {turn.side === 'home' ? homePlayerName : awayPlayerName}
+                  <div className="feature-title">
+                      Turn {index + 1} •{' '}
+                      {getTurnPlayerLabel(turn, matchup, homePlayerName, awayPlayerName)}
                     </div>
                     <div className="muted-text">
                       Scored {turn.score}
@@ -475,4 +490,31 @@ export default function CaptainMatchupScoringPage() {
       </section>
     </div>
   );
+}
+
+function buildSideDisplayLabel(players, fallbackLabel) {
+  if (!players || players.length === 0) {
+    return fallbackLabel;
+  }
+
+  return players.map((player) => player.displayName).join(' + ');
+}
+
+function buildMatchupDisplayLabel(matchup) {
+  return `${buildSideDisplayLabel(matchup.homePlayers, 'Home')} vs ${buildSideDisplayLabel(
+    matchup.awayPlayers,
+    'Away'
+  )}`;
+}
+
+function getTurnPlayerLabel(turn, matchup, fallbackHome, fallbackAway) {
+  const sidePlayers = turn.side === 'home' ? matchup.homePlayers : matchup.awayPlayers;
+  const fallback = turn.side === 'home' ? fallbackHome : fallbackAway;
+
+  if (!sidePlayers || sidePlayers.length === 0) {
+    return fallback;
+  }
+
+  const index = turn.playerIndex ?? 0;
+  return sidePlayers[index]?.displayName ?? fallback;
 }
