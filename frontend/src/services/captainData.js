@@ -291,6 +291,46 @@ const IMPOSSIBLE_THREE_DART_SCORES = new Set([
   179
 ]);
 
+const SINGLE_DART_DOUBLES = new Set([
+  2, 4, 6, 8, 10, 12, 14, 16, 18, 20,
+  22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 50
+]);
+
+function canFinishInOneDart(scoreLeft) {
+  return SINGLE_DART_DOUBLES.has(scoreLeft);
+}
+
+function canFinishInTwoDarts(scoreLeft) {
+  for (let firstDart = 0; firstDart <= 60; firstDart += 1) {
+    if (firstDart > 0 && isImpossibleThreeDartScore(firstDart)) {
+      continue;
+    }
+
+    const remaining = scoreLeft - firstDart;
+    if (remaining > 0 && canFinishInOneDart(remaining)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function getPossibleFinishDarts(scoreLeft) {
+  const options = [];
+
+  if (canFinishInOneDart(scoreLeft)) {
+    options.push(1);
+  }
+
+  if (canFinishInTwoDarts(scoreLeft)) {
+    options.push(2);
+  }
+
+  options.push(3);
+
+  return options;
+}
+
 function isImpossibleThreeDartScore(score) {
   return IMPOSSIBLE_THREE_DART_SCORES.has(score);
 }
@@ -1073,15 +1113,19 @@ export function submitCaptainMatchupTurn(
     bust = true;
     message = 'Bust recorded';
   } else if (proposedScoreLeft === 0) {
-    if (![1, 2, 3].includes(winningDartsUsed)) {
+    const possibleFinishDarts = getPossibleFinishDarts(currentScoreLeft);
+
+    if (!possibleFinishDarts.includes(winningDartsUsed)) {
       matchup.liveState.pendingFinish = {
         side: currentTurnSide,
-        score: numericScore
+        score: numericScore,
+        possibleDartsUsed: possibleFinishDarts
       };
 
       return {
         success: true,
         requiresFinishDarts: true,
+        possibleDartsUsed: possibleFinishDarts,
         message: 'Select darts used to finish the leg',
         fixture: cloneFixtureForViewer(playerId, rawFixture),
         matchup: {

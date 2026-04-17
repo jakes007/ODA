@@ -16,6 +16,7 @@ export default function CaptainMatchupScoringPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [turnScore, setTurnScore] = useState('');
   const [showFinishDarts, setShowFinishDarts] = useState(false);
+  const [finishDartOptions, setFinishDartOptions] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -132,6 +133,7 @@ export default function CaptainMatchupScoringPage() {
       setErrorMessage(result.message);
       setSuccessMessage('');
       setShowFinishDarts(false);
+      setFinishDartOptions([]);
       return;
     }
 
@@ -139,6 +141,7 @@ export default function CaptainMatchupScoringPage() {
       setErrorMessage('');
       setSuccessMessage(result.message);
       setShowFinishDarts(true);
+      setFinishDartOptions(result.possibleDartsUsed ?? []);
       return;
     }
 
@@ -146,6 +149,7 @@ export default function CaptainMatchupScoringPage() {
     setSuccessMessage(result.message);
     setTurnScore('');
     setShowFinishDarts(false);
+    setFinishDartOptions([]);
 
     if (result.matchup?.status === 'completed' || result.fixture?.status === 'completed') {
       navigate(`/captain/fixture/${fixtureId}/live`);
@@ -174,6 +178,7 @@ export default function CaptainMatchupScoringPage() {
     setSuccessMessage(result.message);
     setTurnScore('');
     setShowFinishDarts(false);
+    setFinishDartOptions([]);
     navigate(`/captain/fixture/${fixtureId}/live`);
   }
 
@@ -285,33 +290,20 @@ export default function CaptainMatchupScoringPage() {
           {showFinishDarts ? (
             <div style={{ marginTop: '1rem' }}>
               <div className="muted-text" style={{ marginBottom: '0.5rem' }}>
-                This score finishes the leg. Select darts used:
+                This score finishes the leg. Select valid darts used:
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  className="secondary-btn"
-                  onClick={() => handleFinishWithDarts(1)}
-                >
-                  1 Dart
-                </button>
-
-                <button
-                  type="button"
-                  className="secondary-btn"
-                  onClick={() => handleFinishWithDarts(2)}
-                >
-                  2 Darts
-                </button>
-
-                <button
-                  type="button"
-                  className="secondary-btn"
-                  onClick={() => handleFinishWithDarts(3)}
-                >
-                  3 Darts
-                </button>
+                {finishDartOptions.map((dartsUsed) => (
+                  <button
+                    key={dartsUsed}
+                    type="button"
+                    className="secondary-btn"
+                    onClick={() => handleFinishWithDarts(dartsUsed)}
+                  >
+                    {dartsUsed} Dart{dartsUsed > 1 ? 's' : ''}
+                  </button>
+                ))}
               </div>
             </div>
           ) : null}
