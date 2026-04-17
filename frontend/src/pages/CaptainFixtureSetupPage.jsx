@@ -47,6 +47,13 @@ export default function CaptainFixtureSetupPage() {
       });
   }, [fixture, lineup]);
 
+  const benchPlayers = useMemo(() => {
+    if (!fixture) return [];
+
+    const lineupIds = new Set(lineup.filter(Boolean));
+    return fixture.myTeam.squad.filter((player) => !lineupIds.has(player.playerId));
+  }, [fixture, lineup]);
+
   if (!fixture) {
     return <EmptyState message="Fixture setup data not found." />;
   }
@@ -246,6 +253,23 @@ export default function CaptainFixtureSetupPage() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="panel">
+        <h3 className="panel-title">Available Bench Players</h3>
+
+        {benchPlayers.length === 0 ? (
+          <div className="muted-text">No bench players are currently available.</div>
+        ) : (
+          <div className="feature-list">
+            {benchPlayers.map((player) => (
+              <div key={player.playerId} className="feature-item">
+                <div className="feature-title">{player.displayName}</div>
+                <div className="muted-text">{player.playerId}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="panel">

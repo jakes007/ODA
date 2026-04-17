@@ -518,6 +518,61 @@ function getPlayerFromSubmittedLineup(sideData, slotNumber) {
   return sideData.squad.find((player) => player.playerId === playerId) ?? null;
 }
 
+function getPlayerFromSquad(sideData, playerId) {
+  if (!playerId) return null;
+  return sideData.squad.find((player) => player.playerId === playerId) ?? null;
+}
+
+function getBenchPlayersForSide(sideData) {
+  const currentLineupIds = new Set(sideData.currentLineup.filter(Boolean));
+  return sideData.squad.filter((player) => !currentLineupIds.has(player.playerId));
+}
+
+function updateWaitingMatchupsForSubstitution(
+  fixture,
+  captainSide,
+  outgoingPlayerId,
+  incomingPlayer
+) {
+  const playerKey = captainSide === 'home' ? 'homePlayers' : 'awayPlayers';
+  let updatedMatchups = 0;
+
+  fixture.liveSession.games.forEach((game) => {
+    if (game.status !== 'waiting') {
+      return;
+    }
+
+    const sidePlayers = game[playerKey] ?? [];
+    const hasOutgoingPlayer = sidePlayers.some(
+      (player) => player.playerId === outgoingPlayerId
+    );
+
+    if (!hasOutgoingPlayer) {
+      return;
+    }
+
+    game[playerKey] = sidePlayers.map((player) =>
+      player.playerId === outgoingPlayerId
+        ? {
+            ...incomingPlayer,
+            displayName: `${incomingPlayer.displayName} (SUB)`,
+            isSubstitute: true,
+            substituteForPlayerId: outgoingPlayerId
+          }
+        : player
+    );
+
+    game.label = buildSinglesLabel(
+      game.homePlayers?.[0] ?? null,
+      game.awayPlayers?.[0] ?? null
+    );
+
+    updatedMatchups += 1;
+  });
+
+  return updatedMatchups;
+}
+
 function buildSinglesLabel(homePlayer, awayPlayer) {
   return `${homePlayer?.displayName ?? 'Missing Player'} vs ${awayPlayer?.displayName ?? 'Missing Player'}`;
 }
@@ -956,6 +1011,7 @@ export function submitCaptainLineup(playerId, fixtureId, lineup) {
   sideStore.submittedLineup = [...lineup];
   sideStore.submitted = true;
   sideStore.submittedAt = new Date().toISOString();
+  sideStore.substitutions = [];
 
   if (wasRevealed) {
     const opponentSide = rawFixture.sides[opponentSideKey];
@@ -1393,6 +1449,109 @@ export function updateCaptainMatchupTurn(
       result: matchup.result ? { ...matchup.result } : null,
       liveState: cloneLiveState(matchup.liveState)
     }
+  };
+}
+
+export function applyCaptainSubstitution(
+  playerId,
+  fixtureId,
+  outgoingPlayerId,
+  incomingPlayerId
+) {
+  const rawFixture = getRawFixtureById(fixtureId);
+
+  if (!rawFixture) {
+    return {
+      success: false,
+      message: 'Fixture setup data not found'
+    };
+  }
+
+  const captainSide = getCaptainSide(playerId, rawFixture);
+  if (!captainSide) {
+    return {
+      success: false,
+      message: 'You are not assigned to this fixture'
+    };
+  }
+
+  syncFixtureStatus(rawFixture);
+
+  if (rawFixture.status !== 'active' || !rawFixture.liveSession) {
+    return {
+      success: false,
+      message: 'Substitutions are only available once the fixture is live'
+    };
+  }
+
+  const sideStore = rawFixture.sides[captainSide];
+  const currentLineupIds = sideStore.currentLineup.filter(Boolean);
+  const outgoingPlayer = getPlayerFromSquad(sideStore, outgoingPlayerId);
+  const incomingPlayer = getPlayerFromSquad(sideStore, incomingPlayerId);
+
+  if (!outgoingPlayer) {
+    return {
+      success: false,
+      message: 'Outgoing player was not found in your squad'
+    };
+  }
+
+  if (!incomingPlayer) {
+    return {
+      success: false,
+      message: 'Incoming substitute was not found in your squad'
+    };
+  }
+
+  if (!currentLineupIds.includes(outgoingPlayerId)) {
+    return {
+      success: false,
+      message: 'Outgoing player is not currently in your active lineup'
+    };
+  }
+
+  if (currentLineupIds.includes(incomingPlayerId)) {
+    return {
+      success: false,
+      message: 'Incoming player is already in your active lineup'
+    };
+  }
+
+  const updatedMatchupCount = updateWaitingMatchupsForSubstitution(
+    rawFixture,
+    captainSide,
+    outgoingPlayerId,
+    incomingPlayer
+  );
+
+  if (updatedMatchupCount === 0) {
+    return {
+      success: false,
+      message: 'There are no future waiting matchups left for that player'
+    };
+  }
+
+  sideStore.currentLineup = sideStore.currentLineup.map((playerId) =>
+    playerId === outgoingPlayerId ? incomingPlayerId : playerId
+  );
+
+  if (!sideStore.substitutions) {
+    sideStore.substitutions = [];
+  }
+
+  sideStore.substitutions.push({
+    outgoingPlayerId,
+    outgoingPlayerName: outgoingPlayer.displayName,
+    incomingPlayerId,
+    incomingPlayerName: incomingPlayer.displayName,
+    appliedAt: new Date().toISOString(),
+    updatedMatchupCount
+  });
+
+  return {
+    success: true,
+    message: `${incomingPlayer.displayName} has replaced ${outgoingPlayer.displayName} for ${updatedMatchupCount} future matchup${updatedMatchupCount > 1 ? 's' : ''}`,
+    fixture: cloneFixtureForViewer(playerId, rawFixture)
   };
 }
 

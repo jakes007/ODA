@@ -5,7 +5,8 @@ import EmptyState from '../components/common/EmptyState';
 import { useAuth } from '../context/AuthContext';
 import {
   getCaptainLiveScoringData,
-  startCaptainFixtureMatchup
+  startCaptainFixtureMatchup,
+  applyCaptainSubstitution
 } from '../services/captainData';
 
 export default function CaptainLiveScoringPage() {
@@ -15,6 +16,8 @@ export default function CaptainLiveScoringPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [errors, setErrors] = useState([]);
   const [successMessage, setSuccessMessage] = useState('');
+  const [outgoingPlayerId, setOutgoingPlayerId] = useState('');
+  const [incomingPlayerId, setIncomingPlayerId] = useState('');
 
   const fixture = useMemo(() => {
     if (!currentUser?.playerId) return null;
@@ -61,6 +64,26 @@ export default function CaptainLiveScoringPage() {
   const waitingMatchups = matchups.filter((game) => game.status === 'waiting');
   const completedMatchups = matchups.filter((game) => game.status === 'completed');
 
+  const myCurrentLineupIds = fixture.myTeam.currentLineup.filter(Boolean);
+  const myBenchPlayers = fixture.myTeam.squad.filter(
+    (player) => !myCurrentLineupIds.includes(player.playerId)
+  );
+
+  const eligibleOutgoingPlayerIds = new Set(
+    waitingMatchups.flatMap((matchup) => {
+      const sidePlayers =
+        fixture.captainSide === 'home' ? matchup.homePlayers : matchup.awayPlayers;
+
+      return (sidePlayers ?? []).map((player) => player.playerId).filter(Boolean);
+    })
+  );
+
+  const eligibleOutgoingPlayers = fixture.myTeam.squad.filter(
+    (player) =>
+      myCurrentLineupIds.includes(player.playerId) &&
+      eligibleOutgoingPlayerIds.has(player.playerId)
+  );
+
   const matchupsByBlock = groupMatchupsByBlock(matchups);
 
   function refreshPage() {
@@ -83,6 +106,27 @@ export default function CaptainLiveScoringPage() {
 
   function openMatchupScorer(matchupId) {
     navigate(`/captain/fixture/${fixtureId}/matchup/${matchupId}`);
+  }
+
+  function handleApplySubstitution() {
+    const result = applyCaptainSubstitution(
+      currentUser.playerId,
+      fixtureId,
+      outgoingPlayerId,
+      incomingPlayerId
+    );
+
+    if (!result.success) {
+      setErrors([result.message]);
+      setSuccessMessage('');
+      return;
+    }
+
+    setErrors([]);
+    setSuccessMessage(result.message);
+    setOutgoingPlayerId('');
+    setIncomingPlayerId('');
+    refreshPage();
   }
 
   return (
@@ -157,6 +201,100 @@ export default function CaptainLiveScoringPage() {
         {successMessage ? (
           <div className="form-success" style={{ marginTop: '1rem' }}>
             {successMessage}
+          </div>
+        ) : null}
+      </section>
+
+      <section className="panel">
+        <h3 className="panel-title">Substitution Control</h3>
+
+        <div className="feature-list">
+          <div className="feature-item">
+            <div className="feature-title">Rule</div>
+            <div className="muted-text">
+              Substitutions update future waiting matchups only. Completed and in-progress matchups
+              stay unchanged.
+            </div>
+          </div>
+
+          <div className="feature-item">
+            <div className="feature-title">Available Outgoing Players</div>
+            <div className="muted-text">
+              {eligibleOutgoingPlayers.length > 0
+                ? `${eligibleOutgoingPlayers.length} player(s) still have waiting matchups`
+                : 'No active lineup players have waiting matchups left'}
+            </div>
+          </div>
+
+          <div className="feature-item">
+            <div className="feature-title">Bench Players</div>
+            <div className="muted-text">
+              {myBenchPlayers.length > 0
+                ? `${myBenchPlayers.length} bench player(s) available`
+                : 'No bench players available'}
+            </div>
+          </div>
+        </div>
+
+        {fixture.status === 'active' ? (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '1rem',
+              marginTop: '1rem'
+            }}
+          >
+            <div>
+              <label className="form-label" htmlFor="outgoing-player">
+                Outgoing Player
+              </label>
+              <select
+                id="outgoing-player"
+                className="form-input"
+                value={outgoingPlayerId}
+                onChange={(event) => setOutgoingPlayerId(event.target.value)}
+              >
+                <option value="">Select outgoing player</option>
+                {eligibleOutgoingPlayers.map((player) => (
+                  <option key={player.playerId} value={player.playerId}>
+                    {player.displayName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="form-label" htmlFor="incoming-player">
+                Incoming Substitute
+              </label>
+              <select
+                id="incoming-player"
+                className="form-input"
+                value={incomingPlayerId}
+                onChange={(event) => setIncomingPlayerId(event.target.value)}
+              >
+                <option value="">Select bench player</option>
+                {myBenchPlayers.map((player) => (
+                  <option key={player.playerId} value={player.playerId}>
+                    {player.displayName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        ) : null}
+
+        {fixture.status === 'active' ? (
+          <div style={{ marginTop: '1rem' }}>
+            <button
+              type="button"
+              className="secondary-btn captain-action-btn"
+              onClick={handleApplySubstitution}
+              disabled={!outgoingPlayerId || !incomingPlayerId}
+            >
+              Apply Substitution
+            </button>
           </div>
         ) : null}
       </section>
