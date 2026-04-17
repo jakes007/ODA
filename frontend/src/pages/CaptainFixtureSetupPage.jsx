@@ -28,8 +28,23 @@ export default function CaptainFixtureSetupPage() {
     if (!fixture) return [];
 
     return lineup
-      .map((playerId) => fixture.myTeam.squad.find((player) => player.playerId === playerId))
-      .filter(Boolean);
+      .map((playerId, index) => {
+        if (!playerId) {
+          return {
+            empty: true,
+            slotNumber: index + 1
+          };
+        }
+
+        const player = fixture.myTeam.squad.find((squadPlayer) => squadPlayer.playerId === playerId);
+
+        return player
+          ? { ...player, slotNumber: index + 1 }
+          : {
+              empty: true,
+              slotNumber: index + 1
+            };
+      });
   }, [fixture, lineup]);
 
   if (!fixture) {
@@ -166,6 +181,8 @@ export default function CaptainFixtureSetupPage() {
                 onChange={(event) => handleLineupChange(index, event.target.value)}
                 disabled={!canEditLineup}
               >
+                <option value="">Select Player</option>
+
                 {fixture.myTeam.squad.map((player) => (
                   <option key={player.playerId} value={player.playerId}>
                     {player.displayName}
@@ -216,11 +233,16 @@ export default function CaptainFixtureSetupPage() {
 
         <div className="feature-list">
           {lineupPlayers.map((player, index) => (
-            <div key={player.playerId} className="feature-item">
+            <div
+              key={player.empty ? `empty-slot-${player.slotNumber}` : player.playerId}
+              className="feature-item"
+            >
               <div className="feature-title">
-                {index + 1}. {player.displayName}
+                {index + 1}. {player.empty ? 'Empty Slot' : player.displayName}
               </div>
-              <div className="muted-text">{player.playerId}</div>
+              <div className="muted-text">
+                {player.empty ? 'No player selected for this position' : player.playerId}
+              </div>
             </div>
           ))}
         </div>

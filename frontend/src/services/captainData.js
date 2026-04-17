@@ -519,7 +519,7 @@ function getPlayerFromSubmittedLineup(sideData, slotNumber) {
 }
 
 function buildSinglesLabel(homePlayer, awayPlayer) {
-  return `${homePlayer?.displayName ?? 'Home ?'} vs ${awayPlayer?.displayName ?? 'Away ?'}`;
+  return `${homePlayer?.displayName ?? 'Missing Player'} vs ${awayPlayer?.displayName ?? 'Missing Player'}`;
 }
 
 function buildSixteenPointSinglesMatchups(fixture) {
@@ -530,6 +530,31 @@ function buildSixteenPointSinglesMatchups(fixture) {
     block.forEach((pairing, pairingIndex) => {
       const homePlayer = getPlayerFromSubmittedLineup(fixture.sides.home, pairing.homeSlot);
       const awayPlayer = getPlayerFromSubmittedLineup(fixture.sides.away, pairing.awaySlot);
+
+      let isAutoAward = false;
+      let autoAwardWinnerSide = null;
+      let result = null;
+      let status = 'waiting';
+
+      if (!homePlayer && awayPlayer) {
+        isAutoAward = true;
+        autoAwardWinnerSide = 'away';
+        status = 'completed';
+        result = {
+          winnerSide: 'away',
+          winnerTeamName: fixture.awayTeam.teamName,
+          autoAward: true
+        };
+      } else if (!awayPlayer && homePlayer) {
+        isAutoAward = true;
+        autoAwardWinnerSide = 'home';
+        status = 'completed';
+        result = {
+          winnerSide: 'home',
+          winnerTeamName: fixture.homeTeam.teamName,
+          autoAward: true
+        };
+      }
 
       matchups.push({
         matchupId: `matchup_${matchupCounter}`,
@@ -543,9 +568,11 @@ function buildSixteenPointSinglesMatchups(fixture) {
         homePlayers: homePlayer ? [homePlayer] : [],
         awayPlayers: awayPlayer ? [awayPlayer] : [],
         label: buildSinglesLabel(homePlayer, awayPlayer),
-        status: 'waiting',
+        status,
         boardNumber: null,
-        result: null,
+        isAutoAward,
+        autoAwardWinnerSide,
+        result,
         liveState: null
       });
 
@@ -845,22 +872,29 @@ export function validateCaptainLineup(fixture, lineup) {
   }
 
   if (lineup.length !== fixture.requiredLineupSize) {
-    errors.push(`Lineup must contain exactly ${fixture.requiredLineupSize} players`);
+    errors.push(`Lineup must contain exactly ${fixture.requiredLineupSize} lineup slots`);
   }
 
-  for (const playerId of lineup) {
-    if (!playerId) {
-      errors.push('Every lineup slot must have a selected player');
-      continue;
-    }
+  const selectedPlayerIds = lineup.filter(Boolean);
 
+  if (selectedPlayerIds.length < fixture.requiredLineupSize - 1) {
+    errors.push(
+      `Your team may only play one player short. Select at least ${fixture.requiredLineupSize - 1} players`
+    );
+  }
+
+  if (selectedPlayerIds.length > fixture.requiredLineupSize) {
+    errors.push(`Too many players have been selected`);
+  }
+
+  for (const playerId of selectedPlayerIds) {
     if (!squadIds.has(playerId)) {
       errors.push(`Selected player ${playerId} is not in your squad`);
     }
   }
 
-  const uniquePlayerIds = new Set(lineup.filter(Boolean));
-  if (uniquePlayerIds.size !== lineup.filter(Boolean).length) {
+  const uniquePlayerIds = new Set(selectedPlayerIds);
+  if (uniquePlayerIds.size !== selectedPlayerIds.length) {
     errors.push('A player cannot appear more than once in the lineup');
   }
 
