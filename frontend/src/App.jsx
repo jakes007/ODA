@@ -16,6 +16,7 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import CaptainDashboardPage from './pages/CaptainDashboardPage';
 import CaptainFixtureSetupPage from './pages/CaptainFixtureSetupPage';
 import CaptainLiveScoringPage from './pages/CaptainLiveScoringPage';
+import CaptainMatchupScoringPage from './pages/CaptainMatchupScoringPage';
 
 export default function App() {
   return (
@@ -71,6 +72,17 @@ export default function App() {
             <ProtectedRoute>
               <RoleRoute allowedRoles={['captain']}>
                 <CaptainLiveScoringPage />
+              </RoleRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/captain/fixture/:fixtureId/matchup/:matchupId"
+          element={
+            <ProtectedRoute>
+              <RoleRoute allowedRoles={['captain']}>
+                <CaptainMatchupScoringPage />
               </RoleRoute>
             </ProtectedRoute>
           }

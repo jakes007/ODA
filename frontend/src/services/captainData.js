@@ -279,6 +279,22 @@ const sixteenPointSinglesBlocks = [
   ]
 ];
 
+const IMPOSSIBLE_THREE_DART_SCORES = new Set([
+  163,
+  166,
+  169,
+  172,
+  173,
+  175,
+  176,
+  178,
+  179
+]);
+
+function isImpossibleThreeDartScore(score) {
+  return IMPOSSIBLE_THREE_DART_SCORES.has(score);
+}
+
 function getCaptainProfile(playerId) {
   return captainProfiles[playerId] ?? null;
 }
@@ -387,7 +403,7 @@ function getPlayerFromSubmittedLineup(sideData, slotNumber) {
 }
 
 function buildSinglesLabel(homePlayer, awayPlayer) {
-  return `${homePlayer?.displayName ?? `Home ${'?'}`} vs ${awayPlayer?.displayName ?? `Away ${'?'}`}`;
+  return `${homePlayer?.displayName ?? 'Home ?'} vs ${awayPlayer?.displayName ?? 'Away ?'}`;
 }
 
 function buildSixteenPointSinglesMatchups(fixture) {
@@ -413,7 +429,8 @@ function buildSixteenPointSinglesMatchups(fixture) {
         label: buildSinglesLabel(homePlayer, awayPlayer),
         status: 'waiting',
         boardNumber: null,
-        result: null
+        result: null,
+        liveState: null
       });
 
       matchupCounter += 1;
@@ -470,6 +487,28 @@ function getNextAvailableBoardNumber(fixture) {
   return boardNumber;
 }
 
+function buildInitialSinglesLiveState() {
+  return {
+    startingScore: 501,
+    homeScoreLeft: 501,
+    awayScoreLeft: 501,
+    currentTurnSide: 'home',
+    turns: [],
+    pendingFinish: null,
+    winnerSide: null
+  };
+}
+
+function cloneLiveState(liveState) {
+  if (!liveState) return null;
+
+  return {
+    ...liveState,
+    pendingFinish: liveState.pendingFinish ? { ...liveState.pendingFinish } : null,
+    turns: liveState.turns.map((turn) => ({ ...turn }))
+  };
+}
+
 function cloneFixtureForViewer(playerId, fixture) {
   const captainSide = getCaptainSide(playerId, fixture);
   const viewerSide = fixture.sides[captainSide];
@@ -498,7 +537,8 @@ function cloneFixtureForViewer(playerId, fixture) {
             awayPlayers: [...game.awayPlayers],
             homeSlots: [...game.homeSlots],
             awaySlots: [...game.awaySlots],
-            result: game.result ? { ...game.result } : null
+            result: game.result ? { ...game.result } : null,
+            liveState: cloneLiveState(game.liveState)
           }))
         }
       : null,
@@ -523,6 +563,37 @@ function cloneFixtureForViewer(playerId, fixture) {
       submittedAt: opponentSide.submittedAt
     }
   };
+}
+
+function getMatchupFromFixture(fixture, matchupId) {
+  return fixture.liveSession?.games?.find((game) => game.matchupId === matchupId) ?? null;
+}
+
+function finalizeMatchupWin(fixture, matchup, winnerSide) {
+  matchup.status = 'completed';
+  matchup.result = {
+    winnerSide,
+    winnerTeamName:
+      winnerSide === 'home' ? fixture.homeTeam.teamName : fixture.awayTeam.teamName
+  };
+  matchup.boardNumber = null;
+
+  if (matchup.liveState) {
+    matchup.liveState.winnerSide = winnerSide;
+  }
+
+  fixture.liveSession.activeBoardCount = fixture.liveSession.games.filter(
+    (game) => game.status === 'in_progress'
+  ).length;
+
+  recalculateFixtureScoreText(fixture);
+
+  const allCompleted = fixture.liveSession.games.every((game) => game.status === 'completed');
+
+  if (allCompleted) {
+    fixture.status = 'completed';
+    fixture.liveSession.status = 'completed';
+  }
 }
 
 export function getCaptainDashboardData(playerId) {
@@ -590,6 +661,36 @@ export function getCaptainLiveScoringData(playerId, fixtureId) {
 
   syncFixtureStatus(fixture);
   return cloneFixtureForViewer(playerId, fixture);
+}
+
+export function getCaptainMatchupScoringData(playerId, fixtureId, matchupId) {
+  const fixture = getRawFixtureById(fixtureId);
+  if (!fixture) return null;
+
+  const side = getCaptainSide(playerId, fixture);
+  if (!side) return null;
+
+  syncFixtureStatus(fixture);
+
+  if (!fixture.liveSession) {
+    return null;
+  }
+
+  const matchup = getMatchupFromFixture(fixture, matchupId);
+  if (!matchup) return null;
+
+  return {
+    fixture: cloneFixtureForViewer(playerId, fixture),
+    matchup: {
+      ...matchup,
+      homePlayers: [...matchup.homePlayers],
+      awayPlayers: [...matchup.awayPlayers],
+      homeSlots: [...matchup.homeSlots],
+      awaySlots: [...matchup.awaySlots],
+      result: matchup.result ? { ...matchup.result } : null,
+      liveState: cloneLiveState(matchup.liveState)
+    }
+  };
 }
 
 export function validateCaptainLineup(fixture, lineup) {
@@ -874,6 +975,7 @@ export function startCaptainFixtureMatchup(playerId, fixtureId, matchupId) {
 
   matchup.status = 'in_progress';
   matchup.boardNumber = getNextAvailableBoardNumber(rawFixture);
+  matchup.liveState = buildInitialSinglesLiveState();
 
   rawFixture.liveSession.activeBoardCount = rawFixture.liveSession.games.filter(
     (game) => game.status === 'in_progress'
@@ -883,6 +985,161 @@ export function startCaptainFixtureMatchup(playerId, fixtureId, matchupId) {
     success: true,
     message: `${matchup.label} is now active on Board ${matchup.boardNumber}`,
     fixture: cloneFixtureForViewer(playerId, rawFixture)
+  };
+}
+
+export function submitCaptainMatchupTurn(
+  playerId,
+  fixtureId,
+  matchupId,
+  score,
+  options = {}
+) {
+  const rawFixture = getRawFixtureById(fixtureId);
+
+  if (!rawFixture) {
+    return {
+      success: false,
+      message: 'Fixture setup data not found'
+    };
+  }
+
+  const captainSide = getCaptainSide(playerId, rawFixture);
+  if (!captainSide) {
+    return {
+      success: false,
+      message: 'You are not assigned to this fixture'
+    };
+  }
+
+  syncFixtureStatus(rawFixture);
+
+  if (rawFixture.status !== 'active' || !rawFixture.liveSession) {
+    return {
+      success: false,
+      message: 'Fixture live session has not been started yet'
+    };
+  }
+
+  const matchup = getMatchupFromFixture(rawFixture, matchupId);
+
+  if (!matchup) {
+    return {
+      success: false,
+      message: 'Matchup not found'
+    };
+  }
+
+  if (matchup.type !== 'singles') {
+    return {
+      success: false,
+      message: 'This scorer currently supports singles only'
+    };
+  }
+
+  if (matchup.status !== 'in_progress' || !matchup.liveState) {
+    return {
+      success: false,
+      message: 'This matchup is not currently in progress'
+    };
+  }
+
+  const numericScore = Number(score);
+
+  if (!Number.isInteger(numericScore) || numericScore < 0 || numericScore > 180) {
+    return {
+      success: false,
+      message: 'Turn score must be a whole number between 0 and 180'
+    };
+  }
+
+  if (isImpossibleThreeDartScore(numericScore)) {
+    return {
+      success: false,
+      message: `${numericScore} is not a possible score with 3 darts`
+    };
+  }
+
+  const currentTurnSide = matchup.liveState.currentTurnSide;
+  const scoreKey = currentTurnSide === 'home' ? 'homeScoreLeft' : 'awayScoreLeft';
+  const currentScoreLeft = matchup.liveState[scoreKey];
+  const proposedScoreLeft = currentScoreLeft - numericScore;
+  const winningDartsUsed = options.dartsUsed ? Number(options.dartsUsed) : null;
+
+  let bust = false;
+  let message = 'Turn recorded';
+
+  if (proposedScoreLeft < 0 || proposedScoreLeft === 1) {
+    bust = true;
+    message = 'Bust recorded';
+  } else if (proposedScoreLeft === 0) {
+    if (![1, 2, 3].includes(winningDartsUsed)) {
+      matchup.liveState.pendingFinish = {
+        side: currentTurnSide,
+        score: numericScore
+      };
+
+      return {
+        success: true,
+        requiresFinishDarts: true,
+        message: 'Select darts used to finish the leg',
+        fixture: cloneFixtureForViewer(playerId, rawFixture),
+        matchup: {
+          ...matchup,
+          result: matchup.result ? { ...matchup.result } : null,
+          liveState: cloneLiveState(matchup.liveState)
+        }
+      };
+    }
+
+    matchup.liveState.pendingFinish = null;
+    matchup.liveState[scoreKey] = 0;
+    matchup.liveState.turns.push({
+      side: currentTurnSide,
+      score: numericScore,
+      bust: false,
+      dartsUsed: winningDartsUsed,
+      resultingScore: 0,
+      createdAt: new Date().toISOString()
+    });
+
+    finalizeMatchupWin(rawFixture, matchup, currentTurnSide);
+
+    return {
+      success: true,
+      message: `${matchup.label} has been completed`,
+      fixture: cloneFixtureForViewer(playerId, rawFixture),
+      matchup: {
+        ...matchup,
+        result: matchup.result ? { ...matchup.result } : null,
+        liveState: cloneLiveState(matchup.liveState)
+      }
+    };
+  } else {
+    matchup.liveState.pendingFinish = null;
+    matchup.liveState[scoreKey] = proposedScoreLeft;
+  }
+
+  matchup.liveState.turns.push({
+    side: currentTurnSide,
+    score: numericScore,
+    bust,
+    dartsUsed: 3,
+    resultingScore: bust ? currentScoreLeft : matchup.liveState[scoreKey],
+    createdAt: new Date().toISOString()
+  });
+
+  matchup.liveState.currentTurnSide = currentTurnSide === 'home' ? 'away' : 'home';
+
+  return {
+    success: true,
+    message,
+    fixture: cloneFixtureForViewer(playerId, rawFixture),
+    matchup: {
+      ...matchup,
+      result: matchup.result ? { ...matchup.result } : null,
+      liveState: cloneLiveState(matchup.liveState)
+    }
   };
 }
 
@@ -936,19 +1193,7 @@ export function completeCaptainFixtureMatchupDemo(playerId, fixtureId, matchupId
     };
   }
 
-  matchup.status = 'completed';
-  matchup.result = {
-    winnerSide,
-    winnerTeamName:
-      winnerSide === 'home' ? rawFixture.homeTeam.teamName : rawFixture.awayTeam.teamName
-  };
-  matchup.boardNumber = null;
-
-  rawFixture.liveSession.activeBoardCount = rawFixture.liveSession.games.filter(
-    (game) => game.status === 'in_progress'
-  ).length;
-
-  recalculateFixtureScoreText(rawFixture);
+  finalizeMatchupWin(rawFixture, matchup, winnerSide);
 
   return {
     success: true,

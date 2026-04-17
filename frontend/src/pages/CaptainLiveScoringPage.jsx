@@ -1,16 +1,16 @@
 import { useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
 import EmptyState from '../components/common/EmptyState';
 import { useAuth } from '../context/AuthContext';
 import {
   getCaptainLiveScoringData,
-  startCaptainFixtureMatchup,
-  completeCaptainFixtureMatchupDemo
+  startCaptainFixtureMatchup
 } from '../services/captainData';
 
 export default function CaptainLiveScoringPage() {
   const { fixtureId } = useParams();
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [errors, setErrors] = useState([]);
@@ -81,23 +81,8 @@ export default function CaptainLiveScoringPage() {
     refreshPage();
   }
 
-  function handleCompleteMatchup(matchupId, winnerSide) {
-    const result = completeCaptainFixtureMatchupDemo(
-      currentUser.playerId,
-      fixtureId,
-      matchupId,
-      winnerSide
-    );
-
-    if (!result.success) {
-      setErrors([result.message]);
-      setSuccessMessage('');
-      return;
-    }
-
-    setErrors([]);
-    setSuccessMessage(result.message);
-    refreshPage();
+  function openMatchupScorer(matchupId) {
+    navigate(`/captain/fixture/${fixtureId}/matchup/${matchupId}`);
   }
 
   return (
@@ -212,8 +197,14 @@ export default function CaptainLiveScoringPage() {
                       border: '1px solid rgba(255,255,255,0.1)',
                       borderRadius: '10px',
                       padding: '0.75rem',
-                      background: getMatchupTileBackground(matchup.status)
+                      background: getMatchupTileBackground(matchup.status),
+                      cursor: matchup.status === 'in_progress' ? 'pointer' : 'default'
                     }}
+                    onClick={
+                      matchup.status === 'in_progress'
+                        ? () => openMatchupScorer(matchup.matchupId)
+                        : undefined
+                    }
                   >
                     <div style={{ fontWeight: 600, marginBottom: '0.35rem' }}>
                       {matchup.label}
@@ -247,25 +238,20 @@ export default function CaptainLiveScoringPage() {
                   <div className="muted-text">Block {matchup.blockNumber}</div>
                   <div className="muted-text">{matchup.formatLabel}</div>
                   <div className="muted-text">Board {matchup.boardNumber}</div>
+                  <div className="muted-text">
+                    Home Left: {matchup.liveState?.homeScoreLeft ?? '-'} • Away Left:{' '}
+                    {matchup.liveState?.awayScoreLeft ?? '-'}
+                  </div>
                   <div className="muted-text">Status: In Progress</div>
                 </div>
 
-                <div className="captain-fixture-side" style={{ minWidth: '220px' }}>
+                <div className="captain-fixture-side">
                   <button
                     type="button"
                     className="secondary-btn captain-action-btn"
-                    onClick={() => handleCompleteMatchup(matchup.matchupId, 'home')}
+                    onClick={() => openMatchupScorer(matchup.matchupId)}
                   >
-                    Mark Home Win
-                  </button>
-
-                  <button
-                    type="button"
-                    className="secondary-btn captain-action-btn"
-                    style={{ marginTop: '0.5rem' }}
-                    onClick={() => handleCompleteMatchup(matchup.matchupId, 'away')}
-                  >
-                    Mark Away Win
+                    Open Scorer
                   </button>
                 </div>
               </div>
@@ -342,26 +328,26 @@ export default function CaptainLiveScoringPage() {
         <h3 className="panel-title">What this milestone does</h3>
         <div className="feature-list">
           <div className="feature-item">
-            <div className="feature-title">Block Overview</div>
+            <div className="feature-title">Dedicated Scorer Route</div>
             <div className="muted-text">
-              The live page now shows the full fixture blocks so captains can see progress at a
-              glance.
+              Active matchups now open into a dedicated scoring page instead of using demo winner
+              buttons.
             </div>
           </div>
 
           <div className="feature-item">
-            <div className="feature-title">Real Matchup Labels</div>
+            <div className="feature-title">Live Match Control</div>
             <div className="muted-text">
-              The block tiles and live hub both show player name vs player name instead of generic
-              game numbers.
+              The live hub still shows the whole fixture while the scorer handles one matchup at a
+              time.
             </div>
           </div>
 
           <div className="feature-item">
             <div className="feature-title">Next Step</div>
             <div className="muted-text">
-              The next milestone will replace the demo complete buttons with a dedicated turn-by-turn
-              scoring page for each live matchup.
+              After the singles scorer is stable, the next phase is substitutions and one-player-short
+              handling.
             </div>
           </div>
         </div>
