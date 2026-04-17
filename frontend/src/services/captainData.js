@@ -121,11 +121,11 @@ const sharedFixtureStore = {
     scoreText: '-',
     notes:
       'Each captain submits their lineup privately. Both lineups are only revealed once both sides have submitted.',
-    format: {
-      formatId: 'oda_16_point_singles',
-      name: 'ODA 16 Point Singles',
-      type: 'singles_16_point'
-    },
+      format: {
+        formatId: 'oda_standard_doubles',
+        name: 'ODA Standard Doubles',
+        type: 'doubles_standard'
+      },
     liveSession: null,
     lineupsRevealed: false,
     sides: {
@@ -389,6 +389,7 @@ function buildLiveStateFromTurns(
 
     rebuiltTurns.push({
       ...originalTurn,
+      playerIndex: originalTurn.playerIndex ?? currentPlayerIndex,
       bust,
       dartsUsed,
       resultingScore
@@ -588,6 +589,20 @@ function buildSinglesLabel(homePlayer, awayPlayer) {
   return `${homePlayer?.displayName ?? 'Missing Player'} vs ${awayPlayer?.displayName ?? 'Missing Player'}`;
 }
 
+function buildDoublesLabel(homePlayers, awayPlayers) {
+  const homeLabel =
+    homePlayers && homePlayers.length > 0
+      ? homePlayers.map((player) => player.displayName).join(' + ')
+      : 'Missing Pair';
+
+  const awayLabel =
+    awayPlayers && awayPlayers.length > 0
+      ? awayPlayers.map((player) => player.displayName).join(' + ')
+      : 'Missing Pair';
+
+  return `${homeLabel} vs ${awayLabel}`;
+}
+
 function buildSixteenPointSinglesMatchups(fixture) {
   const matchups = [];
   let matchupCounter = 1;
@@ -650,9 +665,73 @@ function buildSixteenPointSinglesMatchups(fixture) {
   return matchups;
 }
 
+function buildStandardDoublesMatchups(fixture) {
+  const matchups = [];
+
+  const homePlayer1 = getPlayerFromSubmittedLineup(fixture.sides.home, 1);
+  const homePlayer2 = getPlayerFromSubmittedLineup(fixture.sides.home, 2);
+  const awayPlayer1 = getPlayerFromSubmittedLineup(fixture.sides.away, 1);
+  const awayPlayer2 = getPlayerFromSubmittedLineup(fixture.sides.away, 2);
+
+  const homePlayers = [homePlayer1, homePlayer2].filter(Boolean);
+  const awayPlayers = [awayPlayer1, awayPlayer2].filter(Boolean);
+
+  let isAutoAward = false;
+  let autoAwardWinnerSide = null;
+  let result = null;
+  let status = 'waiting';
+
+  if (homePlayers.length < 2 && awayPlayers.length === 2) {
+    isAutoAward = true;
+    autoAwardWinnerSide = 'away';
+    status = 'completed';
+    result = {
+      winnerSide: 'away',
+      winnerTeamName: fixture.awayTeam.teamName,
+      autoAward: true
+    };
+  } else if (awayPlayers.length < 2 && homePlayers.length === 2) {
+    isAutoAward = true;
+    autoAwardWinnerSide = 'home';
+    status = 'completed';
+    result = {
+      winnerSide: 'home',
+      winnerTeamName: fixture.homeTeam.teamName,
+      autoAward: true
+    };
+  }
+
+  matchups.push({
+    matchupId: 'matchup_doubles_1',
+    order: 1,
+    blockNumber: 1,
+    blockOrder: 1,
+    type: 'doubles',
+    format: 'doubles',
+    formatLabel: '501 Doubles',
+    homeSlots: [1, 2],
+    awaySlots: [1, 2],
+    homePlayers,
+    awayPlayers,
+    label: buildDoublesLabel(homePlayers, awayPlayers),
+    status,
+    boardNumber: null,
+    isAutoAward,
+    autoAwardWinnerSide,
+    result,
+    liveState: null
+  });
+
+  return matchups;
+}
+
 function buildLiveMatchupsForFixture(fixture) {
   if (fixture.format?.type === 'singles_16_point') {
     return buildSixteenPointSinglesMatchups(fixture);
+  }
+
+  if (fixture.format?.type === 'doubles_standard') {
+    return buildStandardDoublesMatchups(fixture);
   }
 
   return [];
@@ -1257,7 +1336,10 @@ export function startCaptainFixtureMatchup(playerId, fixtureId, matchupId) {
 
   matchup.status = 'in_progress';
   matchup.boardNumber = getNextAvailableBoardNumber(rawFixture);
-  matchup.liveState = buildInitialSinglesLiveState();
+  matchup.liveState =
+    matchup.type === 'doubles'
+      ? buildInitialDoublesLiveState()
+      : buildInitialSinglesLiveState();
 
   rawFixture.liveSession.activeBoardCount = rawFixture.liveSession.games.filter(
     (game) => game.status === 'in_progress'
@@ -1379,6 +1461,7 @@ export function submitCaptainMatchupTurn(
     ...matchup.liveState.turns,
     {
       side: currentTurnSide,
+      playerIndex: matchup.liveState.currentPlayerIndex ?? 0,
       score: numericScore,
       dartsUsed: proposedScoreLeft === 0 ? winningDartsUsed : 3,
       createdAt: new Date().toISOString()
@@ -1487,6 +1570,7 @@ export function updateCaptainMatchupTurn(
   const existingTurn = matchup.liveState.turns[turnIndex];
   const updatedTurn = {
     ...existingTurn,
+    playerIndex: existingTurn.playerIndex ?? 0,
     score: numericScore,
     dartsUsed: options.dartsUsed ?? existingTurn.dartsUsed ?? 3
   };
