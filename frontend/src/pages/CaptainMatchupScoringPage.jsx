@@ -5,7 +5,8 @@ import EmptyState from '../components/common/EmptyState';
 import { useAuth } from '../context/AuthContext';
 import {
   getCaptainMatchupScoringData,
-  submitCaptainMatchupTurn
+  submitCaptainMatchupTurn,
+  updateCaptainMatchupTurn
 } from '../services/captainData';
 
 export default function CaptainMatchupScoringPage() {
@@ -17,6 +18,7 @@ export default function CaptainMatchupScoringPage() {
   const [turnScore, setTurnScore] = useState('');
   const [showFinishDarts, setShowFinishDarts] = useState(false);
   const [finishDartOptions, setFinishDartOptions] = useState([]);
+  const [editingTurnIndex, setEditingTurnIndex] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -119,15 +121,33 @@ export default function CaptainMatchupScoringPage() {
     setRefreshKey((value) => value + 1);
   }
 
+  function handleEditTurn(turn, actualIndex) {
+    setTurnScore(String(turn.score));
+    setEditingTurnIndex(actualIndex);
+    setShowFinishDarts(false);
+    setFinishDartOptions([]);
+    setErrorMessage('');
+    setSuccessMessage(`Editing turn ${actualIndex + 1}`);
+  }
+
   function handleSubmitTurn(event) {
     event.preventDefault();
 
-    const result = submitCaptainMatchupTurn(
-      currentUser.playerId,
-      fixtureId,
-      matchupId,
-      turnScore
-    );
+    const result =
+      editingTurnIndex === null
+        ? submitCaptainMatchupTurn(
+            currentUser.playerId,
+            fixtureId,
+            matchupId,
+            turnScore
+          )
+        : updateCaptainMatchupTurn(
+            currentUser.playerId,
+            fixtureId,
+            matchupId,
+            editingTurnIndex,
+            turnScore
+          );
 
     if (!result.success) {
       setErrorMessage(result.message);
@@ -137,7 +157,7 @@ export default function CaptainMatchupScoringPage() {
       return;
     }
 
-    if (result.requiresFinishDarts) {
+    if (editingTurnIndex === null && result.requiresFinishDarts) {
       setErrorMessage('');
       setSuccessMessage(result.message);
       setShowFinishDarts(true);
@@ -150,11 +170,7 @@ export default function CaptainMatchupScoringPage() {
     setTurnScore('');
     setShowFinishDarts(false);
     setFinishDartOptions([]);
-
-    if (result.matchup?.status === 'completed' || result.fixture?.status === 'completed') {
-      navigate(`/captain/fixture/${fixtureId}/live`);
-      return;
-    }
+    setEditingTurnIndex(null);
 
     refreshPage();
   }
@@ -179,6 +195,7 @@ export default function CaptainMatchupScoringPage() {
     setTurnScore('');
     setShowFinishDarts(false);
     setFinishDartOptions([]);
+    setEditingTurnIndex(null);
     navigate(`/captain/fixture/${fixtureId}/live`);
   }
 
@@ -284,7 +301,7 @@ export default function CaptainMatchupScoringPage() {
           {successMessage ? <div className="form-success">{successMessage}</div> : null}
 
           <button type="submit" className="primary-btn auth-submit-btn">
-            Submit Turn
+            {editingTurnIndex === null ? 'Submit Turn' : 'Save Edited Turn'}
           </button>
 
           {showFinishDarts ? (
@@ -317,17 +334,37 @@ export default function CaptainMatchupScoringPage() {
           <div className="muted-text">No turns have been recorded yet.</div>
         ) : (
           <div className="feature-list">
-            {[...matchup.liveState.turns].reverse().map((turn, index) => (
+            {matchup.liveState.turns.map((turn, index) => (
               <div key={`${turn.createdAt}-${index}`} className="feature-item">
-                <div className="feature-title">
-                  {turn.side === 'home' ? homePlayerName : awayPlayerName}
-                </div>
-                <div className="muted-text">
-                  Scored {turn.score}
-                  {turn.bust ? ' • Bust' : ''}
-                  {turn.dartsUsed ? ` • ${turn.dartsUsed} dart finish/use` : ''}
-                  {' • '}
-                  Left {turn.resultingScore}
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: '1rem',
+                    alignItems: 'center',
+                    flexWrap: 'wrap'
+                  }}
+                >
+                  <div>
+                    <div className="feature-title">
+                      Turn {index + 1} • {turn.side === 'home' ? homePlayerName : awayPlayerName}
+                    </div>
+                    <div className="muted-text">
+                      Scored {turn.score}
+                      {turn.bust ? ' • Bust' : ''}
+                      {turn.dartsUsed ? ` • ${turn.dartsUsed} dart finish/use` : ''}
+                      {' • '}
+                      Left {turn.resultingScore}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="secondary-btn"
+                    onClick={() => handleEditTurn(turn, index)}
+                  >
+                    Edit Turn
+                  </button>
                 </div>
               </div>
             ))}

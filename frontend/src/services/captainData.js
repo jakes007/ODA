@@ -331,6 +331,82 @@ function getPossibleFinishDarts(scoreLeft) {
   return options;
 }
 
+function buildLiveStateFromTurns(turns) {
+  let homeScoreLeft = 501;
+  let awayScoreLeft = 501;
+  let currentTurnSide = 'home';
+  let winnerSide = null;
+  let completed = false;
+
+  const rebuiltTurns = [];
+
+  for (const originalTurn of turns) {
+    const side = originalTurn.side;
+    const score = Number(originalTurn.score);
+    const dartsUsed = originalTurn.dartsUsed ?? 3;
+    const scoreKey = side === 'home' ? 'homeScoreLeft' : 'awayScoreLeft';
+    const currentScoreLeft = side === 'home' ? homeScoreLeft : awayScoreLeft;
+    const proposedScoreLeft = currentScoreLeft - score;
+
+    let bust = false;
+    let resultingScore = currentScoreLeft;
+
+    if (completed) {
+      break;
+    }
+
+    if (!Number.isInteger(score) || score < 0 || score > 180 || isImpossibleThreeDartScore(score)) {
+      bust = true;
+    } else if (proposedScoreLeft < 0 || proposedScoreLeft === 1) {
+      bust = true;
+    } else if (proposedScoreLeft === 0) {
+      const possibleFinishDarts = getPossibleFinishDarts(currentScoreLeft);
+
+      if (!possibleFinishDarts.includes(dartsUsed)) {
+        bust = true;
+      } else {
+        resultingScore = 0;
+
+        if (side === 'home') {
+          homeScoreLeft = 0;
+        } else {
+          awayScoreLeft = 0;
+        }
+
+        winnerSide = side;
+        completed = true;
+      }
+    } else {
+      resultingScore = proposedScoreLeft;
+
+      if (side === 'home') {
+        homeScoreLeft = proposedScoreLeft;
+      } else {
+        awayScoreLeft = proposedScoreLeft;
+      }
+    }
+
+    rebuiltTurns.push({
+      ...originalTurn,
+      bust,
+      dartsUsed,
+      resultingScore
+    });
+
+    currentTurnSide = side === 'home' ? 'away' : 'home';
+  }
+
+  return {
+    startingScore: 501,
+    homeScoreLeft,
+    awayScoreLeft,
+    currentTurnSide,
+    turns: rebuiltTurns,
+    pendingFinish: null,
+    winnerSide
+  };
+}
+
 function isImpossibleThreeDartScore(score) {
   return IMPOSSIBLE_THREE_DART_SCORES.has(score);
 }
@@ -634,6 +710,23 @@ function finalizeMatchupWin(fixture, matchup, winnerSide) {
     fixture.status = 'completed';
     fixture.liveSession.status = 'completed';
   }
+}
+
+function reopenMatchupAfterEdit(fixture, matchup) {
+  matchup.status = 'in_progress';
+  matchup.result = null;
+
+  if (!matchup.boardNumber) {
+    matchup.boardNumber = getNextAvailableBoardNumber(fixture);
+  }
+
+  fixture.status = 'active';
+  fixture.liveSession.status = 'active';
+  fixture.liveSession.activeBoardCount = fixture.liveSession.games.filter(
+    (game) => game.status === 'in_progress'
+  ).length;
+
+  recalculateFixtureScoreText(fixture);
 }
 
 export function getCaptainDashboardData(playerId) {
@@ -1106,13 +1199,9 @@ export function submitCaptainMatchupTurn(
   const proposedScoreLeft = currentScoreLeft - numericScore;
   const winningDartsUsed = options.dartsUsed ? Number(options.dartsUsed) : null;
 
-  let bust = false;
   let message = 'Turn recorded';
 
-  if (proposedScoreLeft < 0 || proposedScoreLeft === 1) {
-    bust = true;
-    message = 'Bust recorded';
-  } else if (proposedScoreLeft === 0) {
+  if (proposedScoreLeft === 0) {
     const possibleFinishDarts = getPossibleFinishDarts(currentScoreLeft);
 
     if (!possibleFinishDarts.includes(winningDartsUsed)) {
@@ -1135,19 +1224,22 @@ export function submitCaptainMatchupTurn(
         }
       };
     }
+  }
 
-    matchup.liveState.pendingFinish = null;
-    matchup.liveState[scoreKey] = 0;
-    matchup.liveState.turns.push({
+  const nextTurns = [
+    ...matchup.liveState.turns,
+    {
       side: currentTurnSide,
       score: numericScore,
-      bust: false,
-      dartsUsed: winningDartsUsed,
-      resultingScore: 0,
+      dartsUsed: proposedScoreLeft === 0 ? winningDartsUsed : 3,
       createdAt: new Date().toISOString()
-    });
+    }
+  ];
 
-    finalizeMatchupWin(rawFixture, matchup, currentTurnSide);
+  matchup.liveState = buildLiveStateFromTurns(nextTurns);
+
+  if (matchup.liveState.winnerSide) {
+    finalizeMatchupWin(rawFixture, matchup, matchup.liveState.winnerSide);
 
     return {
       success: true,
@@ -1159,25 +1251,108 @@ export function submitCaptainMatchupTurn(
         liveState: cloneLiveState(matchup.liveState)
       }
     };
-  } else {
-    matchup.liveState.pendingFinish = null;
-    matchup.liveState[scoreKey] = proposedScoreLeft;
   }
 
-  matchup.liveState.turns.push({
-    side: currentTurnSide,
-    score: numericScore,
-    bust,
-    dartsUsed: 3,
-    resultingScore: bust ? currentScoreLeft : matchup.liveState[scoreKey],
-    createdAt: new Date().toISOString()
-  });
-
-  matchup.liveState.currentTurnSide = currentTurnSide === 'home' ? 'away' : 'home';
+  matchup.liveState.pendingFinish = null;
 
   return {
     success: true,
     message,
+    fixture: cloneFixtureForViewer(playerId, rawFixture),
+    matchup: {
+      ...matchup,
+      result: matchup.result ? { ...matchup.result } : null,
+      liveState: cloneLiveState(matchup.liveState)
+    }
+  };
+}
+
+export function updateCaptainMatchupTurn(
+  playerId,
+  fixtureId,
+  matchupId,
+  turnIndex,
+  score,
+  options = {}
+) {
+  const rawFixture = getRawFixtureById(fixtureId);
+
+  if (!rawFixture) {
+    return {
+      success: false,
+      message: 'Fixture setup data not found'
+    };
+  }
+
+  const captainSide = getCaptainSide(playerId, rawFixture);
+  if (!captainSide) {
+    return {
+      success: false,
+      message: 'You are not assigned to this fixture'
+    };
+  }
+
+  if (!rawFixture.liveSession) {
+    return {
+      success: false,
+      message: 'Fixture live session has not been started yet'
+    };
+  }
+
+  const matchup = getMatchupFromFixture(rawFixture, matchupId);
+
+  if (!matchup || !matchup.liveState) {
+    return {
+      success: false,
+      message: 'Matchup live state not found'
+    };
+  }
+
+  const numericScore = Number(score);
+
+  if (!Number.isInteger(numericScore) || numericScore < 0 || numericScore > 180) {
+    return {
+      success: false,
+      message: 'Turn score must be a whole number between 0 and 180'
+    };
+  }
+
+  if (isImpossibleThreeDartScore(numericScore)) {
+    return {
+      success: false,
+      message: `${numericScore} is not a possible score with 3 darts`
+    };
+  }
+
+  if (!Number.isInteger(turnIndex) || turnIndex < 0 || turnIndex >= matchup.liveState.turns.length) {
+    return {
+      success: false,
+      message: 'Turn index is invalid'
+    };
+  }
+
+  const existingTurn = matchup.liveState.turns[turnIndex];
+  const updatedTurn = {
+    ...existingTurn,
+    score: numericScore,
+    dartsUsed: options.dartsUsed ?? existingTurn.dartsUsed ?? 3
+  };
+
+  const nextTurns = matchup.liveState.turns.map((turn, index) =>
+    index === turnIndex ? updatedTurn : turn
+  );
+
+  matchup.liveState = buildLiveStateFromTurns(nextTurns);
+
+  if (matchup.liveState.winnerSide) {
+    finalizeMatchupWin(rawFixture, matchup, matchup.liveState.winnerSide);
+  } else {
+    reopenMatchupAfterEdit(rawFixture, matchup);
+  }
+
+  return {
+    success: true,
+    message: 'Turn updated successfully',
     fixture: cloneFixtureForViewer(playerId, rawFixture),
     matchup: {
       ...matchup,
