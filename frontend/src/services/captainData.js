@@ -50,9 +50,9 @@ const sharedFixtureStore = {
     notes:
       'Each captain submits their lineup privately. Both lineups are only revealed once both sides have submitted.',
       format: {
-        formatId: 'oda_standard_doubles',
-        name: 'ODA Standard Doubles',
-        type: 'doubles_standard'
+        formatId: 'oda_standard_team_leg',
+        name: 'ODA Standard Team Leg',
+        type: 'team_leg_standard'
       },
     liveSession: null,
     lineupsRevealed: false,
@@ -476,6 +476,20 @@ function buildDoublesLabel(homePlayers, awayPlayers) {
   return `${homeLabel} vs ${awayLabel}`;
 }
 
+function buildTeamLegLabel(homePlayers, awayPlayers) {
+  const homeLabel =
+    homePlayers && homePlayers.length > 0
+      ? homePlayers.map((player) => player.displayName).join(' + ')
+      : 'Missing Team';
+
+  const awayLabel =
+    awayPlayers && awayPlayers.length > 0
+      ? awayPlayers.map((player) => player.displayName).join(' + ')
+      : 'Missing Team';
+
+  return `${homeLabel} vs ${awayLabel}`;
+}
+
 function updateWaitingMatchupsForSubstitution(
   fixture,
   captainSide,
@@ -645,6 +659,67 @@ function buildStandardDoublesMatchups(fixture) {
   return matchups;
 }
 
+function buildStandardTeamLegMatchups(fixture) {
+  const matchups = [];
+
+  const homePlayers = [1, 2, 3, 4]
+    .map((slotNumber) => getPlayerFromSubmittedLineup(fixture.sides.home, slotNumber))
+    .filter(Boolean);
+
+  const awayPlayers = [1, 2, 3, 4]
+    .map((slotNumber) => getPlayerFromSubmittedLineup(fixture.sides.away, slotNumber))
+    .filter(Boolean);
+
+  let isAutoAward = false;
+  let autoAwardWinnerSide = null;
+  let result = null;
+  let status = 'waiting';
+
+  if (homePlayers.length < 4 && awayPlayers.length === 4) {
+    isAutoAward = true;
+    autoAwardWinnerSide = 'away';
+    status = 'completed';
+    result = {
+      winnerSide: 'away',
+      winnerTeamName: fixture.awayTeam.teamName,
+      autoAward: true
+    };
+  } else if (awayPlayers.length < 4 && homePlayers.length === 4) {
+    isAutoAward = true;
+    autoAwardWinnerSide = 'home';
+    status = 'completed';
+    result = {
+      winnerSide: 'home',
+      winnerTeamName: fixture.homeTeam.teamName,
+      autoAward: true
+    };
+  }
+
+  matchups.push({
+    matchupId: 'matchup_team_leg_1',
+    order: 1,
+    blockNumber: 1,
+    blockOrder: 1,
+    type: 'team_leg',
+    format: 'team_leg',
+    formatLabel: '1001 Team Leg',
+    startingScore: 1001,
+    homeSlots: [1, 2, 3, 4],
+    awaySlots: [1, 2, 3, 4],
+    homePlayers,
+    awayPlayers,
+    label: buildTeamLegLabel(homePlayers, awayPlayers),
+    status,
+    boardNumber: null,
+    isAutoAward,
+    autoAwardWinnerSide,
+    result,
+    liveState: null
+  });
+
+  return matchups;
+}
+
 function buildLiveMatchupsForFixture(fixture) {
   if (fixture.format?.type === 'singles_16_point') {
     return buildSixteenPointSinglesMatchups(fixture);
@@ -652,6 +727,10 @@ function buildLiveMatchupsForFixture(fixture) {
 
   if (fixture.format?.type === 'doubles_standard') {
     return buildStandardDoublesMatchups(fixture);
+  }
+
+  if (fixture.format?.type === 'team_leg_standard') {
+    return buildStandardTeamLegMatchups(fixture);
   }
 
   return [];
@@ -686,6 +765,30 @@ function getNextTurnState(currentSide, currentPlayerIndex, format) {
       { side: 'away', index: 0 },
       { side: 'home', index: 1 },
       { side: 'away', index: 1 }
+    ];
+
+    const currentOrderIndex = order.findIndex(
+      (entry) =>
+        entry.side === currentSide &&
+        entry.index === currentPlayerIndex
+    );
+
+    const nextOrderIndex =
+      currentOrderIndex === -1 ? 0 : (currentOrderIndex + 1) % order.length;
+
+    return order[nextOrderIndex];
+  }
+
+  if (format === 'team_leg') {
+    const order = [
+      { side: 'home', index: 0 },
+      { side: 'away', index: 0 },
+      { side: 'home', index: 1 },
+      { side: 'away', index: 1 },
+      { side: 'home', index: 2 },
+      { side: 'away', index: 2 },
+      { side: 'home', index: 3 },
+      { side: 'away', index: 3 }
     ];
 
     const currentOrderIndex = order.findIndex(
@@ -747,6 +850,21 @@ function buildInitialDoublesLiveState(startingScore = 501) {
     currentTurnSide: 'home',
     currentPlayerIndex: 0,
     format: 'doubles',
+    turns: [],
+    pendingFinish: null,
+    winnerSide: null
+  };
+}
+
+function buildInitialTeamLegLiveState(startingScore = 1001) {
+  return {
+    startingScore,
+    homeScoreLeft: startingScore,
+    awayScoreLeft: startingScore,
+    startingSide: 'home',
+    currentTurnSide: 'home',
+    currentPlayerIndex: 0,
+    format: 'team_leg',
     turns: [],
     pendingFinish: null,
     winnerSide: null
@@ -1358,10 +1476,14 @@ export function startCaptainFixtureMatchup(playerId, fixtureId, matchupId) {
 
   matchup.status = 'in_progress';
   matchup.boardNumber = getNextAvailableBoardNumber(rawFixture);
-  matchup.liveState =
-    matchup.type === 'doubles'
-      ? buildInitialDoublesLiveState(matchup.startingScore ?? 501)
-      : buildInitialSinglesLiveState(matchup.startingScore ?? 501);
+
+  if (matchup.type === 'doubles') {
+    matchup.liveState = buildInitialDoublesLiveState(matchup.startingScore ?? 501);
+  } else if (matchup.type === 'team_leg') {
+    matchup.liveState = buildInitialTeamLegLiveState(matchup.startingScore ?? 1001);
+  } else {
+    matchup.liveState = buildInitialSinglesLiveState(matchup.startingScore ?? 501);
+  }
 
   rawFixture.liveSession.activeBoardCount = rawFixture.liveSession.games.filter(
     (game) => game.status === 'in_progress'
@@ -1416,10 +1538,10 @@ export function submitCaptainMatchupTurn(
     };
   }
 
-  if (!['singles', 'doubles'].includes(matchup.type)) {
+  if (!['singles', 'doubles', 'team_leg'].includes(matchup.type)) {
     return {
       success: false,
-      message: 'This scorer currently supports singles and doubles only'
+      message: 'This scorer currently supports singles, doubles, and team legs only'
     };
   }
 
