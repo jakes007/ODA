@@ -34,30 +34,6 @@ export default function CaptainMatchupScoringPage() {
 
   const { fixture, matchup } = data;
 
-  if (matchup.type !== 'singles') {
-    return (
-      <div className="page-stack">
-        <PageHeader
-          title="Matchup Scoring"
-          subtitle="This scorer currently supports singles only."
-        />
-
-        <section className="panel">
-          <div className="muted-text">
-            Doubles and team-game scoring will be added in a later milestone.
-          </div>
-
-          <div style={{ marginTop: '1rem' }}>
-            <Link to={`/captain/fixture/${fixtureId}/live`} className="text-link">
-              Back to Live Hub
-            </Link>
-          </div>
-        </section>
-      </div>
-    );
-  }
-
-
   if ((matchup.status !== 'in_progress' && matchup.status !== 'completed') || !matchup.liveState) {
     return (
       <div className="page-stack">
@@ -81,20 +57,18 @@ export default function CaptainMatchupScoringPage() {
     );
   }
 
-  const homePlayerNames =
-  matchup.homePlayers?.map((player) => player.displayName) ?? [];
-const awayPlayerNames =
-  matchup.awayPlayers?.map((player) => player.displayName) ?? [];
+  const homePlayerNames = matchup.homePlayers?.map((player) => player.displayName) ?? [];
+  const awayPlayerNames = matchup.awayPlayers?.map((player) => player.displayName) ?? [];
 
-const homePlayerName = homePlayerNames[0] ?? 'Home Player';
-const awayPlayerName = awayPlayerNames[0] ?? 'Away Player';
+  const homePlayerName = homePlayerNames[0] ?? 'Home Player';
+  const awayPlayerName = awayPlayerNames[0] ?? 'Away Player';
 
-const currentTurnPlayerName =
-  matchup.liveState?.currentTurnSide === 'home'
-    ? homePlayerNames[matchup.liveState?.currentPlayerIndex ?? 0] ?? homePlayerName
-    : awayPlayerNames[matchup.liveState?.currentPlayerIndex ?? 0] ?? awayPlayerName;
+  const currentTurnPlayerName =
+    matchup.liveState?.currentTurnSide === 'home'
+      ? homePlayerNames[matchup.liveState?.currentPlayerIndex ?? 0] ?? homePlayerName
+      : awayPlayerNames[matchup.liveState?.currentPlayerIndex ?? 0] ?? awayPlayerName;
 
-const currentTurnLabel = currentTurnPlayerName;
+  const currentTurnLabel = currentTurnPlayerName;
 
   function refreshPage() {
     setRefreshKey((value) => value + 1);
@@ -203,7 +177,7 @@ const currentTurnLabel = currentTurnPlayerName;
 
   return (
     <div className="page-stack">
-            <PageHeader
+      <PageHeader
         title="Matchup Scoring"
         subtitle={`${buildMatchupDisplayLabel(matchup)} • Block ${matchup.blockNumber} • ${matchup.status === 'completed' ? 'Completed' : 'In Progress'}`}
       />
@@ -265,8 +239,8 @@ const currentTurnLabel = currentTurnPlayerName;
             <div className="feature-title">Current Starter</div>
             <div className="muted-text">
               {(matchup.liveState?.startingSide ?? 'home') === 'home'
-                ? `${homePlayerName} (Home)`
-                : `${awayPlayerName} (Away)`}
+                ? `${homePlayerNames[0] ?? homePlayerName} (Home)`
+                : `${awayPlayerNames[0] ?? awayPlayerName} (Away)`}
             </div>
           </div>
 
@@ -338,7 +312,7 @@ const currentTurnLabel = currentTurnPlayerName;
               padding: '1rem'
             }}
           >
-             <div style={{ fontWeight: 700, marginBottom: '0.5rem' }}>
+            <div style={{ fontWeight: 700, marginBottom: '0.5rem' }}>
               {buildSideDisplayLabel(matchup.awayPlayers, 'Away Player')}
             </div>
             <div className="muted-text">Score Left</div>
@@ -436,7 +410,7 @@ const currentTurnLabel = currentTurnPlayerName;
                   }}
                 >
                   <div>
-                  <div className="feature-title">
+                    <div className="feature-title">
                       Turn {index + 1} •{' '}
                       {getTurnPlayerLabel(turn, matchup, homePlayerName, awayPlayerName)}
                     </div>
@@ -467,9 +441,9 @@ const currentTurnLabel = currentTurnPlayerName;
         <h3 className="panel-title">Scoring Rules in this milestone</h3>
         <div className="feature-list">
           <div className="feature-item">
-            <div className="feature-title">Singles Only</div>
+            <div className="feature-title">Supported Match Types</div>
             <div className="muted-text">
-              This first scorer handles 501 singles only so the live flow stays stable.
+              This scorer now supports 501 singles and standard 501 doubles rotation.
             </div>
           </div>
 
@@ -481,9 +455,9 @@ const currentTurnLabel = currentTurnPlayerName;
           </div>
 
           <div className="feature-item">
-            <div className="feature-title">Double Out</div>
+            <div className="feature-title">Finish Entry</div>
             <div className="muted-text">
-              Checking out to zero requires confirming that the finish was on a double.
+              When a score reaches zero, only the valid darts-used finish options are shown.
             </div>
           </div>
         </div>

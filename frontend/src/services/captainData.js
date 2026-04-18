@@ -49,11 +49,11 @@ const sharedFixtureStore = {
     scoreText: '-',
     notes:
       'Each captain submits their lineup privately. Both lineups are only revealed once both sides have submitted.',
-    format: {
-      formatId: 'oda_16_point_singles',
-      name: 'ODA 16 Point Singles',
-      type: 'singles_16_point'
-    },
+      format: {
+        formatId: 'oda_standard_doubles',
+        name: 'ODA Standard Doubles',
+        type: 'doubles_standard'
+      },
     liveSession: null,
     lineupsRevealed: false,
     sides: {
@@ -74,7 +74,8 @@ const sharedFixtureStore = {
         ],
         submittedLineup: null,
         submitted: false,
-        submittedAt: null
+        submittedAt: null,
+        substitutions: []
       },
       away: {
         teamName: 'Observatory B',
@@ -93,7 +94,8 @@ const sharedFixtureStore = {
         ],
         submittedLineup: null,
         submitted: false,
-        submittedAt: null
+        submittedAt: null,
+        substitutions: []
       }
     }
   },
@@ -122,9 +124,9 @@ const sharedFixtureStore = {
     notes:
       'Each captain submits their lineup privately. Both lineups are only revealed once both sides have submitted.',
       format: {
-        formatId: 'oda_standard_doubles',
-        name: 'ODA Standard Doubles',
-        type: 'doubles_standard'
+        formatId: 'oda_16_point_singles',
+        name: 'ODA 16 Point Singles',
+        type: 'singles_16_point'
       },
     liveSession: null,
     lineupsRevealed: false,
@@ -146,7 +148,8 @@ const sharedFixtureStore = {
         ],
         submittedLineup: null,
         submitted: false,
-        submittedAt: null
+        submittedAt: null,
+        substitutions: []
       },
       away: {
         teamName: 'Observatory A',
@@ -165,7 +168,8 @@ const sharedFixtureStore = {
         ],
         submittedLineup: null,
         submitted: false,
-        submittedAt: null
+        submittedAt: null,
+        substitutions: []
       }
     }
   },
@@ -222,7 +226,8 @@ const sharedFixtureStore = {
           'player_adam'
         ],
         submitted: true,
-        submittedAt: '2026-04-10T18:00:00.000Z'
+        submittedAt: '2026-04-10T18:00:00.000Z',
+        substitutions: []
       },
       away: {
         teamName: 'Observatory D',
@@ -246,7 +251,8 @@ const sharedFixtureStore = {
           'player_d4'
         ],
         submitted: true,
-        submittedAt: '2026-04-10T18:03:00.000Z'
+        submittedAt: '2026-04-10T18:03:00.000Z',
+        substitutions: []
       }
     }
   }
@@ -329,94 +335,6 @@ function getPossibleFinishDarts(scoreLeft) {
   options.push(3);
 
   return options;
-}
-
-function buildLiveStateFromTurns(
-  turns,
-  startingSide = 'home',
-  format = 'singles'
-) {
-  let homeScoreLeft = 501;
-  let awayScoreLeft = 501;
-
-  let currentTurnSide = startingSide;
-  let currentPlayerIndex = 0;
-
-  let winnerSide = null;
-  let completed = false;
-
-  const rebuiltTurns = [];
-
-  for (const originalTurn of turns) {
-    const side = originalTurn.side;
-    const score = Number(originalTurn.score);
-    const dartsUsed = originalTurn.dartsUsed ?? 3;
-
-    const currentScoreLeft =
-      side === 'home' ? homeScoreLeft : awayScoreLeft;
-
-    const proposedScoreLeft = currentScoreLeft - score;
-
-    let bust = false;
-    let resultingScore = currentScoreLeft;
-
-    if (completed) break;
-
-    if (!Number.isInteger(score) || score < 0 || score > 180 || isImpossibleThreeDartScore(score)) {
-      bust = true;
-    } else if (proposedScoreLeft < 0 || proposedScoreLeft === 1) {
-      bust = true;
-    } else if (proposedScoreLeft === 0) {
-      const possibleFinishDarts = getPossibleFinishDarts(currentScoreLeft);
-
-      if (!possibleFinishDarts.includes(dartsUsed)) {
-        bust = true;
-      } else {
-        resultingScore = 0;
-
-        if (side === 'home') homeScoreLeft = 0;
-        else awayScoreLeft = 0;
-
-        winnerSide = side;
-        completed = true;
-      }
-    } else {
-      resultingScore = proposedScoreLeft;
-
-      if (side === 'home') homeScoreLeft = proposedScoreLeft;
-      else awayScoreLeft = proposedScoreLeft;
-    }
-
-    rebuiltTurns.push({
-      ...originalTurn,
-      playerIndex: originalTurn.playerIndex ?? currentPlayerIndex,
-      bust,
-      dartsUsed,
-      resultingScore
-    });
-
-    const nextTurn = getNextTurnState(
-      currentTurnSide,
-      currentPlayerIndex,
-      format
-    );
-
-    currentTurnSide = nextTurn.side;
-    currentPlayerIndex = nextTurn.index;
-  }
-
-  return {
-    startingScore: 501,
-    homeScoreLeft,
-    awayScoreLeft,
-    startingSide,
-    currentTurnSide,
-    currentPlayerIndex,
-    format,
-    turns: rebuiltTurns,
-    pendingFinish: null,
-    winnerSide
-  };
 }
 
 function isImpossibleThreeDartScore(score) {
@@ -540,6 +458,24 @@ function getBenchPlayersForSide(sideData) {
   return sideData.squad.filter((player) => !currentLineupIds.has(player.playerId));
 }
 
+function buildSinglesLabel(homePlayer, awayPlayer) {
+  return `${homePlayer?.displayName ?? 'Missing Player'} vs ${awayPlayer?.displayName ?? 'Missing Player'}`;
+}
+
+function buildDoublesLabel(homePlayers, awayPlayers) {
+  const homeLabel =
+    homePlayers && homePlayers.length > 0
+      ? homePlayers.map((player) => player.displayName).join(' + ')
+      : 'Missing Pair';
+
+  const awayLabel =
+    awayPlayers && awayPlayers.length > 0
+      ? awayPlayers.map((player) => player.displayName).join(' + ')
+      : 'Missing Pair';
+
+  return `${homeLabel} vs ${awayLabel}`;
+}
+
 function updateWaitingMatchupsForSubstitution(
   fixture,
   captainSide,
@@ -574,33 +510,15 @@ function updateWaitingMatchupsForSubstitution(
         : player
     );
 
-    game.label = buildSinglesLabel(
-      game.homePlayers?.[0] ?? null,
-      game.awayPlayers?.[0] ?? null
-    );
+    game.label =
+      game.type === 'doubles'
+        ? buildDoublesLabel(game.homePlayers ?? [], game.awayPlayers ?? [])
+        : buildSinglesLabel(game.homePlayers?.[0] ?? null, game.awayPlayers?.[0] ?? null);
 
     updatedMatchups += 1;
   });
 
   return updatedMatchups;
-}
-
-function buildSinglesLabel(homePlayer, awayPlayer) {
-  return `${homePlayer?.displayName ?? 'Missing Player'} vs ${awayPlayer?.displayName ?? 'Missing Player'}`;
-}
-
-function buildDoublesLabel(homePlayers, awayPlayers) {
-  const homeLabel =
-    homePlayers && homePlayers.length > 0
-      ? homePlayers.map((player) => player.displayName).join(' + ')
-      : 'Missing Pair';
-
-  const awayLabel =
-    awayPlayers && awayPlayers.length > 0
-      ? awayPlayers.map((player) => player.displayName).join(' + ')
-      : 'Missing Pair';
-
-  return `${homeLabel} vs ${awayLabel}`;
 }
 
 function buildSixteenPointSinglesMatchups(fixture) {
@@ -759,6 +677,33 @@ function recalculateFixtureScoreText(fixture) {
   fixture.scoreText = `${homeWins} - ${awayWins}`;
 }
 
+function getNextTurnState(currentSide, currentPlayerIndex, format) {
+  if (format === 'doubles') {
+    const order = [
+      { side: 'home', index: 0 },
+      { side: 'away', index: 0 },
+      { side: 'home', index: 1 },
+      { side: 'away', index: 1 }
+    ];
+
+    const currentOrderIndex = order.findIndex(
+      (entry) =>
+        entry.side === currentSide &&
+        entry.index === currentPlayerIndex
+    );
+
+    const nextOrderIndex =
+      currentOrderIndex === -1 ? 0 : (currentOrderIndex + 1) % order.length;
+
+    return order[nextOrderIndex];
+  }
+
+  return {
+    side: currentSide === 'home' ? 'away' : 'home',
+    index: 0
+  };
+}
+
 function getNextAvailableBoardNumber(fixture) {
   if (!fixture.liveSession?.games) return 1;
 
@@ -806,32 +751,101 @@ function buildInitialDoublesLiveState() {
   };
 }
 
-function getNextTurnState(currentSide, currentIndex, format) {
-  if (format === 'singles') {
-    return {
-      side: currentSide === 'home' ? 'away' : 'home',
-      index: 0
-    };
-  }
+function buildLiveStateFromTurns(
+  turns,
+  startingSide = 'home',
+  format = 'singles'
+) {
+  let homeScoreLeft = 501;
+  let awayScoreLeft = 501;
+  let currentTurnSide = startingSide;
+  let currentPlayerIndex = 0;
+  let winnerSide = null;
+  let completed = false;
 
-  if (format === 'doubles') {
-    const order = [
-      { side: 'home', index: 0 },
-      { side: 'away', index: 0 },
-      { side: 'home', index: 1 },
-      { side: 'away', index: 1 }
-    ];
+  const rebuiltTurns = [];
 
-    const currentPosition = order.findIndex(
-      (o) => o.side === currentSide && o.index === currentIndex
+  for (const originalTurn of turns) {
+    const side = originalTurn.side;
+    const score = Number(originalTurn.score);
+    const dartsUsed = originalTurn.dartsUsed ?? 3;
+    const scoreKey = side === 'home' ? 'homeScoreLeft' : 'awayScoreLeft';
+    const currentScoreLeft = side === 'home' ? homeScoreLeft : awayScoreLeft;
+    const proposedScoreLeft = currentScoreLeft - score;
+
+    let bust = false;
+    let resultingScore = currentScoreLeft;
+
+    if (completed) {
+      break;
+    }
+
+    if (
+      !Number.isInteger(score) ||
+      score < 0 ||
+      score > 180 ||
+      isImpossibleThreeDartScore(score)
+    ) {
+      bust = true;
+    } else if (proposedScoreLeft < 0 || proposedScoreLeft === 1) {
+      bust = true;
+    } else if (proposedScoreLeft === 0) {
+      const possibleFinishDarts = getPossibleFinishDarts(currentScoreLeft);
+
+      if (!possibleFinishDarts.includes(dartsUsed)) {
+        bust = true;
+      } else {
+        resultingScore = 0;
+
+        if (side === 'home') {
+          homeScoreLeft = 0;
+        } else {
+          awayScoreLeft = 0;
+        }
+
+        winnerSide = side;
+        completed = true;
+      }
+    } else {
+      resultingScore = proposedScoreLeft;
+
+      if (side === 'home') {
+        homeScoreLeft = proposedScoreLeft;
+      } else {
+        awayScoreLeft = proposedScoreLeft;
+      }
+    }
+
+    rebuiltTurns.push({
+      ...originalTurn,
+      playerIndex: originalTurn.playerIndex ?? currentPlayerIndex,
+      bust,
+      dartsUsed,
+      resultingScore
+    });
+
+    const nextTurn = getNextTurnState(
+      currentTurnSide,
+      currentPlayerIndex,
+      format
     );
 
-    const next = order[(currentPosition + 1) % order.length];
-
-    return next;
+    currentTurnSide = nextTurn.side;
+    currentPlayerIndex = nextTurn.index;
   }
 
-  return { side: 'home', index: 0 };
+  return {
+    startingScore: 501,
+    homeScoreLeft,
+    awayScoreLeft,
+    startingSide,
+    currentTurnSide,
+    currentPlayerIndex,
+    format,
+    turns: rebuiltTurns,
+    pendingFinish: null,
+    winnerSide
+  };
 }
 
 function cloneLiveState(liveState) {
@@ -840,6 +854,8 @@ function cloneLiveState(liveState) {
   return {
     ...liveState,
     startingSide: liveState.startingSide ?? 'home',
+    currentPlayerIndex: liveState.currentPlayerIndex ?? 0,
+    format: liveState.format ?? 'singles',
     pendingFinish: liveState.pendingFinish ? { ...liveState.pendingFinish } : null,
     turns: liveState.turns.map((turn) => ({ ...turn }))
   };
@@ -887,7 +903,8 @@ function cloneFixtureForViewer(playerId, fixture) {
       currentLineup: [...viewerSide.currentLineup],
       submittedLineup: viewerSide.submittedLineup ? [...viewerSide.submittedLineup] : null,
       submitted: viewerSide.submitted,
-      submittedAt: viewerSide.submittedAt
+      submittedAt: viewerSide.submittedAt,
+      substitutions: [...(viewerSide.substitutions ?? [])]
     },
     opponentTeam: {
       teamName: opponentSide.teamName,
@@ -924,7 +941,9 @@ function finalizeMatchupWin(fixture, matchup, winnerSide) {
 
   recalculateFixtureScoreText(fixture);
 
-  const allCompleted = fixture.liveSession.games.every((game) => game.status === 'completed');
+  const allCompleted = fixture.liveSession.games.every(
+    (game) => game.status === 'completed'
+  );
 
   if (allCompleted) {
     fixture.status = 'completed';
@@ -1077,7 +1096,7 @@ export function validateCaptainLineup(fixture, lineup) {
   }
 
   if (selectedPlayerIds.length > fixture.requiredLineupSize) {
-    errors.push(`Too many players have been selected`);
+    errors.push('Too many players have been selected');
   }
 
   for (const playerId of selectedPlayerIds) {
@@ -1394,10 +1413,10 @@ export function submitCaptainMatchupTurn(
     };
   }
 
-  if (matchup.type !== 'singles') {
+  if (!['singles', 'doubles'].includes(matchup.type)) {
     return {
       success: false,
-      message: 'This scorer currently supports singles only'
+      message: 'This scorer currently supports singles and doubles only'
     };
   }
 
@@ -1471,7 +1490,7 @@ export function submitCaptainMatchupTurn(
   matchup.liveState = buildLiveStateFromTurns(
     nextTurns,
     matchup.liveState.startingSide ?? 'home',
-    matchup.liveState.format ?? 'singles'
+    matchup.liveState.format ?? matchup.type ?? 'singles'
   );
 
   if (matchup.liveState.winnerSide) {
@@ -1560,7 +1579,11 @@ export function updateCaptainMatchupTurn(
     };
   }
 
-  if (!Number.isInteger(turnIndex) || turnIndex < 0 || turnIndex >= matchup.liveState.turns.length) {
+  if (
+    !Number.isInteger(turnIndex) ||
+    turnIndex < 0 ||
+    turnIndex >= matchup.liveState.turns.length
+  ) {
     return {
       success: false,
       message: 'Turn index is invalid'
@@ -1582,7 +1605,7 @@ export function updateCaptainMatchupTurn(
   matchup.liveState = buildLiveStateFromTurns(
     nextTurns,
     matchup.liveState.startingSide ?? 'home',
-    matchup.liveState.format ?? 'singles'
+    matchup.liveState.format ?? matchup.type ?? 'singles'
   );
 
   if (matchup.liveState.winnerSide) {
@@ -1761,6 +1784,7 @@ export function setCaptainMatchupStartingSide(
 
   matchup.liveState.startingSide = startingSide;
   matchup.liveState.currentTurnSide = startingSide;
+  matchup.liveState.currentPlayerIndex = 0;
 
   return {
     success: true,
