@@ -563,6 +563,7 @@ function buildSixteenPointSinglesMatchups(fixture) {
         type: 'singles',
         format: 'singles',
         formatLabel: '501 Singles',
+        startingScore: 501,
         homeSlots: [pairing.homeSlot],
         awaySlots: [pairing.awaySlot],
         homePlayers: homePlayer ? [homePlayer] : [],
@@ -627,6 +628,7 @@ function buildStandardDoublesMatchups(fixture) {
     type: 'doubles',
     format: 'doubles',
     formatLabel: '501 Doubles',
+    startingScore: 501,
     homeSlots: [1, 2],
     awaySlots: [1, 2],
     homePlayers,
@@ -721,11 +723,11 @@ function getNextAvailableBoardNumber(fixture) {
   return boardNumber;
 }
 
-function buildInitialSinglesLiveState() {
+function buildInitialSinglesLiveState(startingScore = 501) {
   return {
-    startingScore: 501,
-    homeScoreLeft: 501,
-    awayScoreLeft: 501,
+    startingScore,
+    homeScoreLeft: startingScore,
+    awayScoreLeft: startingScore,
     startingSide: 'home',
     currentTurnSide: 'home',
     currentPlayerIndex: 0,
@@ -736,11 +738,11 @@ function buildInitialSinglesLiveState() {
   };
 }
 
-function buildInitialDoublesLiveState() {
+function buildInitialDoublesLiveState(startingScore = 501) {
   return {
-    startingScore: 501,
-    homeScoreLeft: 501,
-    awayScoreLeft: 501,
+    startingScore,
+    homeScoreLeft: startingScore,
+    awayScoreLeft: startingScore,
     startingSide: 'home',
     currentTurnSide: 'home',
     currentPlayerIndex: 0,
@@ -754,10 +756,11 @@ function buildInitialDoublesLiveState() {
 function buildLiveStateFromTurns(
   turns,
   startingSide = 'home',
-  format = 'singles'
+  format = 'singles',
+  startingScore = 501
 ) {
-  let homeScoreLeft = 501;
-  let awayScoreLeft = 501;
+  let homeScoreLeft = startingScore;
+  let awayScoreLeft = startingScore;
   let currentTurnSide = startingSide;
   let currentPlayerIndex = 0;
   let winnerSide = null;
@@ -835,7 +838,7 @@ function buildLiveStateFromTurns(
   }
 
   return {
-    startingScore: 501,
+    startingScore,
     homeScoreLeft,
     awayScoreLeft,
     startingSide,
@@ -1357,8 +1360,8 @@ export function startCaptainFixtureMatchup(playerId, fixtureId, matchupId) {
   matchup.boardNumber = getNextAvailableBoardNumber(rawFixture);
   matchup.liveState =
     matchup.type === 'doubles'
-      ? buildInitialDoublesLiveState()
-      : buildInitialSinglesLiveState();
+      ? buildInitialDoublesLiveState(matchup.startingScore ?? 501)
+      : buildInitialSinglesLiveState(matchup.startingScore ?? 501);
 
   rawFixture.liveSession.activeBoardCount = rawFixture.liveSession.games.filter(
     (game) => game.status === 'in_progress'
@@ -1490,7 +1493,8 @@ export function submitCaptainMatchupTurn(
   matchup.liveState = buildLiveStateFromTurns(
     nextTurns,
     matchup.liveState.startingSide ?? 'home',
-    matchup.liveState.format ?? matchup.type ?? 'singles'
+    matchup.liveState.format ?? matchup.type ?? 'singles',
+    matchup.liveState.startingScore ?? matchup.startingScore ?? 501
   );
 
   if (matchup.liveState.winnerSide) {
@@ -1605,7 +1609,8 @@ export function updateCaptainMatchupTurn(
   matchup.liveState = buildLiveStateFromTurns(
     nextTurns,
     matchup.liveState.startingSide ?? 'home',
-    matchup.liveState.format ?? matchup.type ?? 'singles'
+    matchup.liveState.format ?? matchup.type ?? 'singles',
+    matchup.liveState.startingScore ?? matchup.startingScore ?? 501
   );
 
   if (matchup.liveState.winnerSide) {
