@@ -50,9 +50,9 @@ const sharedFixtureStore = {
     notes:
       'Each captain submits their lineup privately. Both lineups are only revealed once both sides have submitted.',
       format: {
-        formatId: 'oda_standard_team_leg',
-        name: 'ODA Standard Team Leg',
-        type: 'team_leg_standard'
+        formatId: 'oda_mixed_match_template',
+        name: 'ODA Mixed Match Template',
+        type: 'oda_mixed_match_template'
       },
     liveSession: null,
     lineupsRevealed: false,
@@ -490,6 +490,78 @@ function buildTeamLegLabel(homePlayers, awayPlayers) {
   return `${homeLabel} vs ${awayLabel}`;
 }
 
+function buildMatchupLabelByType(type, homePlayers, awayPlayers) {
+  if (type === 'doubles') {
+    return buildDoublesLabel(homePlayers, awayPlayers);
+  }
+
+  if (type === 'team_leg') {
+    return buildTeamLegLabel(homePlayers, awayPlayers);
+  }
+
+  return buildSinglesLabel(homePlayers?.[0] ?? null, awayPlayers?.[0] ?? null);
+}
+
+function buildTemplateMatchup(fixture, templateItem, matchupId, order) {
+  const homePlayers = templateItem.homeSlots
+    .map((slotNumber) => getPlayerFromSubmittedLineup(fixture.sides.home, slotNumber))
+    .filter(Boolean);
+
+  const awayPlayers = templateItem.awaySlots
+    .map((slotNumber) => getPlayerFromSubmittedLineup(fixture.sides.away, slotNumber))
+    .filter(Boolean);
+
+  let isAutoAward = false;
+  let autoAwardWinnerSide = null;
+  let result = null;
+  let status = 'waiting';
+
+  const requiredHomePlayers = templateItem.homeSlots.length;
+  const requiredAwayPlayers = templateItem.awaySlots.length;
+
+  if (homePlayers.length < requiredHomePlayers && awayPlayers.length === requiredAwayPlayers) {
+    isAutoAward = true;
+    autoAwardWinnerSide = 'away';
+    status = 'completed';
+    result = {
+      winnerSide: 'away',
+      winnerTeamName: fixture.awayTeam.teamName,
+      autoAward: true
+    };
+  } else if (awayPlayers.length < requiredAwayPlayers && homePlayers.length === requiredHomePlayers) {
+    isAutoAward = true;
+    autoAwardWinnerSide = 'home';
+    status = 'completed';
+    result = {
+      winnerSide: 'home',
+      winnerTeamName: fixture.homeTeam.teamName,
+      autoAward: true
+    };
+  }
+
+  return {
+    matchupId,
+    order,
+    blockNumber: templateItem.blockNumber,
+    blockOrder: templateItem.blockOrder,
+    type: templateItem.type,
+    format: templateItem.type,
+    formatLabel: templateItem.formatLabel,
+    startingScore: templateItem.startingScore,
+    homeSlots: [...templateItem.homeSlots],
+    awaySlots: [...templateItem.awaySlots],
+    homePlayers,
+    awayPlayers,
+    label: buildMatchupLabelByType(templateItem.type, homePlayers, awayPlayers),
+    status,
+    boardNumber: null,
+    isAutoAward,
+    autoAwardWinnerSide,
+    result,
+    liveState: null
+  };
+}
+
 function updateWaitingMatchupsForSubstitution(
   fixture,
   captainSide,
@@ -720,6 +792,196 @@ function buildStandardTeamLegMatchups(fixture) {
   return matchups;
 }
 
+const odaMixedMatchTemplate = [
+  {
+    type: 'doubles',
+    formatLabel: '701 Doubles',
+    startingScore: 701,
+    blockNumber: 1,
+    blockOrder: 1,
+    homeSlots: [1, 2],
+    awaySlots: [1, 2]
+  },
+  {
+    type: 'doubles',
+    formatLabel: '701 Doubles',
+    startingScore: 701,
+    blockNumber: 1,
+    blockOrder: 2,
+    homeSlots: [3, 4],
+    awaySlots: [3, 4]
+  },
+
+  {
+    type: 'singles',
+    formatLabel: '501 Singles',
+    startingScore: 501,
+    blockNumber: 2,
+    blockOrder: 1,
+    homeSlots: [1],
+    awaySlots: [2]
+  },
+  {
+    type: 'singles',
+    formatLabel: '501 Singles',
+    startingScore: 501,
+    blockNumber: 2,
+    blockOrder: 2,
+    homeSlots: [2],
+    awaySlots: [1]
+  },
+  {
+    type: 'singles',
+    formatLabel: '501 Singles',
+    startingScore: 501,
+    blockNumber: 2,
+    blockOrder: 3,
+    homeSlots: [3],
+    awaySlots: [4]
+  },
+  {
+    type: 'singles',
+    formatLabel: '501 Singles',
+    startingScore: 501,
+    blockNumber: 2,
+    blockOrder: 4,
+    homeSlots: [4],
+    awaySlots: [3]
+  },
+
+  {
+    type: 'singles',
+    formatLabel: '501 Singles',
+    startingScore: 501,
+    blockNumber: 3,
+    blockOrder: 1,
+    homeSlots: [2],
+    awaySlots: [2]
+  },
+  {
+    type: 'singles',
+    formatLabel: '501 Singles',
+    startingScore: 501,
+    blockNumber: 3,
+    blockOrder: 2,
+    homeSlots: [1],
+    awaySlots: [4]
+  },
+  {
+    type: 'singles',
+    formatLabel: '501 Singles',
+    startingScore: 501,
+    blockNumber: 3,
+    blockOrder: 3,
+    homeSlots: [4],
+    awaySlots: [1]
+  },
+  {
+    type: 'singles',
+    formatLabel: '501 Singles',
+    startingScore: 501,
+    blockNumber: 3,
+    blockOrder: 4,
+    homeSlots: [3],
+    awaySlots: [3]
+  },
+
+  {
+    type: 'singles',
+    formatLabel: '501 Singles',
+    startingScore: 501,
+    blockNumber: 4,
+    blockOrder: 1,
+    homeSlots: [4],
+    awaySlots: [4]
+  },
+  {
+    type: 'singles',
+    formatLabel: '501 Singles',
+    startingScore: 501,
+    blockNumber: 4,
+    blockOrder: 2,
+    homeSlots: [1],
+    awaySlots: [1]
+  },
+  {
+    type: 'singles',
+    formatLabel: '501 Singles',
+    startingScore: 501,
+    blockNumber: 4,
+    blockOrder: 3,
+    homeSlots: [2],
+    awaySlots: [3]
+  },
+  {
+    type: 'singles',
+    formatLabel: '501 Singles',
+    startingScore: 501,
+    blockNumber: 4,
+    blockOrder: 4,
+    homeSlots: [3],
+    awaySlots: [2]
+  },
+
+  {
+    type: 'singles',
+    formatLabel: '501 Singles',
+    startingScore: 501,
+    blockNumber: 5,
+    blockOrder: 1,
+    homeSlots: [1],
+    awaySlots: [3]
+  },
+  {
+    type: 'singles',
+    formatLabel: '501 Singles',
+    startingScore: 501,
+    blockNumber: 5,
+    blockOrder: 2,
+    homeSlots: [2],
+    awaySlots: [4]
+  },
+  {
+    type: 'singles',
+    formatLabel: '501 Singles',
+    startingScore: 501,
+    blockNumber: 5,
+    blockOrder: 3,
+    homeSlots: [3],
+    awaySlots: [1]
+  },
+  {
+    type: 'singles',
+    formatLabel: '501 Singles',
+    startingScore: 501,
+    blockNumber: 5,
+    blockOrder: 4,
+    homeSlots: [4],
+    awaySlots: [2]
+  },
+
+  {
+    type: 'team_leg',
+    formatLabel: '1001 Team Leg',
+    startingScore: 1001,
+    blockNumber: 6,
+    blockOrder: 1,
+    homeSlots: [1, 2, 3, 4],
+    awaySlots: [1, 2, 3, 4]
+  }
+];
+
+function buildMixedTemplateMatchups(fixture, template) {
+  return template.map((templateItem, index) =>
+    buildTemplateMatchup(
+      fixture,
+      templateItem,
+      `matchup_${index + 1}`,
+      index + 1
+    )
+  );
+}
+
 function buildLiveMatchupsForFixture(fixture) {
   if (fixture.format?.type === 'singles_16_point') {
     return buildSixteenPointSinglesMatchups(fixture);
@@ -731,6 +993,10 @@ function buildLiveMatchupsForFixture(fixture) {
 
   if (fixture.format?.type === 'team_leg_standard') {
     return buildStandardTeamLegMatchups(fixture);
+  }
+
+  if (fixture.format?.type === 'oda_mixed_match_template') {
+    return buildMixedTemplateMatchups(fixture, odaMixedMatchTemplate);
   }
 
   return [];
