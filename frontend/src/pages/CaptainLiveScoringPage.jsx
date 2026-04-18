@@ -59,6 +59,8 @@ export default function CaptainLiveScoringPage() {
     );
   }
 
+  const isFixtureCompleted = fixture.status === 'completed';
+
   const matchups = fixture.liveSession?.games ?? [];
   const activeMatchups = matchups.filter((game) => game.status === 'in_progress');
   const waitingMatchups = matchups.filter((game) => game.status === 'waiting');
@@ -336,7 +338,8 @@ export default function CaptainLiveScoringPage() {
                       borderRadius: '10px',
                       padding: '0.75rem',
                       background: getMatchupTileBackground(matchup.status),
-                      cursor: matchup.status === 'in_progress' ? 'pointer' : 'default'
+                      cursor: matchup.status === 'in_progress' ? 'pointer' : 'default',
+                      opacity: matchup.status === 'completed' ? 0.7 : 1
                     }}
                     onClick={
                       matchup.status === 'in_progress'
@@ -362,11 +365,40 @@ export default function CaptainLiveScoringPage() {
         </div>
       </section>
 
+      {isFixtureCompleted ? (
+        <section className="panel">
+          <h3 className="panel-title">Match Complete</h3>
+
+          <div className="feature-list">
+            <div className="feature-item">
+              <div className="feature-title">Final Result</div>
+              <div className="muted-text">{fixture.scoreText}</div>
+            </div>
+
+            <div className="feature-item">
+              <div className="feature-title">Status</div>
+              <div className="muted-text">All matchups have been completed</div>
+            </div>
+
+            <div className="feature-item">
+              <div className="feature-title">Live Session</div>
+              <div className="muted-text">
+                {fixture.liveSession?.startedAt
+                  ? `Started: ${new Date(fixture.liveSession.startedAt).toLocaleString()}`
+                  : '—'}
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <section className="panel">
         <h3 className="panel-title">Active Matchups</h3>
 
         {activeMatchups.length === 0 ? (
-          <div className="muted-text">No matchups are currently active.</div>
+          <div className="muted-text">
+            {isFixtureCompleted ? 'All matchups completed' : 'No matchups are currently active.'}
+          </div>
         ) : (
           <div className="captain-fixture-list">
             {activeMatchups.map((matchup) => (
@@ -384,13 +416,15 @@ export default function CaptainLiveScoringPage() {
                 </div>
 
                 <div className="captain-fixture-side">
-                  <button
-                    type="button"
-                    className="secondary-btn captain-action-btn"
-                    onClick={() => openMatchupScorer(matchup.matchupId)}
-                  >
-                    Open Scorer
-                  </button>
+                  {!isFixtureCompleted ? (
+                    <button
+                      type="button"
+                      className="secondary-btn captain-action-btn"
+                      onClick={() => openMatchupScorer(matchup.matchupId)}
+                    >
+                      Open Scorer
+                    </button>
+                  ) : null}
                 </div>
               </div>
             ))}
@@ -402,11 +436,17 @@ export default function CaptainLiveScoringPage() {
         <h3 className="panel-title">Waiting Matchups</h3>
 
         {waitingMatchups.length === 0 ? (
-          <div className="muted-text">No waiting matchups.</div>
+          <div className="muted-text">
+            {isFixtureCompleted ? 'All matchups completed' : 'No waiting matchups.'}
+          </div>
         ) : (
           <div className="captain-fixture-list">
             {waitingMatchups.map((matchup) => (
-              <div key={matchup.matchupId} className="captain-fixture-card">
+              <div
+                key={matchup.matchupId}
+                className="captain-fixture-card"
+                style={matchup.status === 'completed' ? { opacity: 0.7 } : undefined}
+              >
                 <div className="captain-fixture-main">
                   <div className="history-title">{matchup.label}</div>
                   <div className="muted-text">Block {matchup.blockNumber}</div>
@@ -418,13 +458,15 @@ export default function CaptainLiveScoringPage() {
                 </div>
 
                 <div className="captain-fixture-side">
-                  <button
-                    type="button"
-                    className="secondary-btn captain-action-btn"
-                    onClick={() => handleStartMatchup(matchup.matchupId)}
-                  >
-                    Start Matchup
-                  </button>
+                  {!isFixtureCompleted ? (
+                    <button
+                      type="button"
+                      className="primary-btn"
+                      onClick={() => handleStartMatchup(matchup.matchupId)}
+                    >
+                      Start Match
+                    </button>
+                  ) : null}
                 </div>
               </div>
             ))}
@@ -440,7 +482,11 @@ export default function CaptainLiveScoringPage() {
         ) : (
           <div className="captain-fixture-list">
             {completedMatchups.map((matchup) => (
-              <div key={matchup.matchupId} className="captain-fixture-card">
+              <div
+                key={matchup.matchupId}
+                className="captain-fixture-card"
+                style={{ opacity: 0.7 }}
+              >
                 <div className="captain-fixture-main">
                   <div className="history-title">{matchup.label}</div>
                   <div className="muted-text">Block {matchup.blockNumber}</div>
@@ -469,7 +515,7 @@ export default function CaptainLiveScoringPage() {
           </div>
         )}
       </section>
-        </div>
+    </div>
   );
 }
 
