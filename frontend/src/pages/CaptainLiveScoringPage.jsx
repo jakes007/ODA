@@ -60,6 +60,8 @@ export default function CaptainLiveScoringPage() {
   }
 
   const isFixtureCompleted = fixture.status === 'completed';
+  const isHomeCaptain = fixture.captainSide === 'home';
+  const canControlFixtureFlow = isHomeCaptain && !isFixtureCompleted;
 
   const matchups = fixture.liveSession?.games ?? [];
   const activeMatchups = matchups.filter((game) => game.status === 'in_progress');
@@ -208,14 +210,38 @@ export default function CaptainLiveScoringPage() {
       </section>
 
       <section className="panel">
+        <h3 className="panel-title">Captain Responsibility</h3>
+
+        <div className="feature-list">
+          <div className="feature-item">
+            <div className="feature-title">Fixture Operator</div>
+            <div className="muted-text">
+              {isHomeCaptain
+                ? 'You are the home captain and control live fixture flow.'
+                : 'The home captain controls live fixture flow for this fixture.'}
+            </div>
+          </div>
+
+          <div className="feature-item">
+            <div className="feature-title">Your Access</div>
+            <div className="muted-text">
+              {isHomeCaptain
+                ? 'You can start matchups, monitor progress, and manage the fixture flow.'
+                : 'You can monitor live progress and manage your own side substitutions.'}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="panel">
         <h3 className="panel-title">Substitution Control</h3>
 
         <div className="feature-list">
           <div className="feature-item">
             <div className="feature-title">Rule</div>
             <div className="muted-text">
-              Substitutions update future waiting matchups only. Completed and in-progress matchups
-              stay unchanged.
+            You may manage substitutions for your own side only. Substitutions update future
+              waiting matchups only. Completed and in-progress matchups stay unchanged.
             </div>
           </div>
 
@@ -338,14 +364,17 @@ export default function CaptainLiveScoringPage() {
                       borderRadius: '10px',
                       padding: '0.75rem',
                       background: getMatchupTileBackground(matchup.status),
-                      cursor: matchup.status === 'in_progress' ? 'pointer' : 'default',
-                      opacity: matchup.status === 'completed' ? 0.7 : 1
-                    }}
-                    onClick={
-                      matchup.status === 'in_progress'
-                        ? () => openMatchupScorer(matchup.matchupId)
-                        : undefined
-                    }
+                      cursor:
+                      matchup.status === 'in_progress' && isHomeCaptain
+                        ? 'pointer'
+                        : 'default',
+                    opacity: matchup.status === 'completed' ? 0.7 : 1
+                  }}
+                  onClick={
+                    matchup.status === 'in_progress' && isHomeCaptain
+                      ? () => openMatchupScorer(matchup.matchupId)
+                      : undefined
+                  }
                   >
                     <div style={{ fontWeight: 600, marginBottom: '0.35rem' }}>
                       {matchup.label}
@@ -377,7 +406,9 @@ export default function CaptainLiveScoringPage() {
 
             <div className="feature-item">
               <div className="feature-title">Status</div>
-              <div className="muted-text">All matchups have been completed</div>
+              <div className="muted-text">
+                All matchups have been completed. Captains can now move to post-match wrap-up.
+              </div>
             </div>
 
             <div className="feature-item">
@@ -416,7 +447,7 @@ export default function CaptainLiveScoringPage() {
                 </div>
 
                 <div className="captain-fixture-side">
-                  {!isFixtureCompleted ? (
+                  {canControlFixtureFlow ? (
                     <button
                       type="button"
                       className="secondary-btn captain-action-btn"
@@ -424,7 +455,13 @@ export default function CaptainLiveScoringPage() {
                     >
                       Open Scorer
                     </button>
-                  ) : null}
+                  ) : (
+                    <div className="muted-text">
+                      {isFixtureCompleted
+                        ? 'Fixture complete'
+                        : 'Home captain controls active scorer access'}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -458,7 +495,7 @@ export default function CaptainLiveScoringPage() {
                 </div>
 
                 <div className="captain-fixture-side">
-                  {!isFixtureCompleted ? (
+                  {canControlFixtureFlow ? (
                     <button
                       type="button"
                       className="primary-btn"
@@ -466,7 +503,13 @@ export default function CaptainLiveScoringPage() {
                     >
                       Start Match
                     </button>
-                  ) : null}
+                  ) : (
+                    <div className="muted-text">
+                      {isFixtureCompleted
+                        ? 'Fixture complete'
+                        : 'Home captain starts matchups'}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
