@@ -54,9 +54,23 @@ const sharedFixtureStore = {
         name: 'ODA Mixed Match Template',
         type: 'oda_mixed_match_template'
       },
-    liveSession: null,
-    lineupsRevealed: false,
-    sides: {
+      liveSession: null,
+      lineupsRevealed: false,
+      postMatch: {
+        home: {
+          selectedOpponentPotmPlayerId: '',
+          selectedOpponentPotmPlayerName: '',
+          notes: '',
+          confirmedAt: null
+        },
+        away: {
+          selectedOpponentPotmPlayerId: '',
+          selectedOpponentPotmPlayerName: '',
+          notes: '',
+          confirmedAt: null
+        }
+      },
+      sides: {
       home: {
         teamName: 'Observatory A',
         squad: [
@@ -128,9 +142,23 @@ const sharedFixtureStore = {
         name: 'ODA 16 Point Singles',
         type: 'singles_16_point'
       },
-    liveSession: null,
-    lineupsRevealed: false,
-    sides: {
+      liveSession: null,
+      lineupsRevealed: false,
+      postMatch: {
+        home: {
+          selectedOpponentPotmPlayerId: '',
+          selectedOpponentPotmPlayerName: '',
+          notes: '',
+          confirmedAt: null
+        },
+        away: {
+          selectedOpponentPotmPlayerId: '',
+          selectedOpponentPotmPlayerName: '',
+          notes: '',
+          confirmedAt: null
+        }
+      },
+      sides: {
       home: {
         teamName: 'Observatory C',
         squad: [
@@ -203,6 +231,20 @@ const sharedFixtureStore = {
     },
     liveSession: null,
     lineupsRevealed: true,
+    postMatch: {
+      home: {
+        selectedOpponentPotmPlayerId: '',
+        selectedOpponentPotmPlayerName: '',
+        notes: '',
+        confirmedAt: null
+      },
+      away: {
+        selectedOpponentPotmPlayerId: '',
+        selectedOpponentPotmPlayerName: '',
+        notes: '',
+        confirmedAt: null
+      }
+    },
     sides: {
       home: {
         teamName: 'Observatory A',
@@ -456,6 +498,11 @@ function getPlayerFromSquad(sideData, playerId) {
 function getBenchPlayersForSide(sideData) {
   const currentLineupIds = new Set(sideData.currentLineup.filter(Boolean));
   return sideData.squad.filter((player) => !currentLineupIds.has(player.playerId));
+}
+
+function getOpponentSquadForCaptain(fixture, captainSide) {
+  const opponentSide = getOpponentSide(captainSide);
+  return fixture.sides[opponentSide]?.squad ?? [];
 }
 
 function buildSinglesLabel(homePlayer, awayPlayer) {
@@ -972,14 +1019,33 @@ const odaMixedMatchTemplate = [
 ];
 
 function buildMixedTemplateMatchups(fixture, template) {
-  return template.map((templateItem, index) =>
-    buildTemplateMatchup(
+  return template.map((templateItem, index) => {
+    const matchup = buildTemplateMatchup(
       fixture,
       templateItem,
       `matchup_${index + 1}`,
       index + 1
-    )
-  );
+    );
+
+    const isLastMatchup = index === template.length - 1;
+
+    if (!isLastMatchup && matchup.status === 'waiting') {
+      const winnerSide = index % 2 === 0 ? 'home' : 'away';
+
+      matchup.status = 'completed';
+      matchup.result = {
+        winnerSide,
+        winnerTeamName:
+          winnerSide === 'home'
+            ? fixture.homeTeam.teamName
+            : fixture.awayTeam.teamName
+      };
+      matchup.boardNumber = null;
+      matchup.liveState = null;
+    }
+
+    return matchup;
+  });
 }
 
 function buildLiveMatchupsForFixture(fixture) {
@@ -1281,10 +1347,14 @@ function cloneFixtureForViewer(playerId, fixture) {
           }))
         }
       : null,
-    lineupsRevealed: reveal,
-    captainSide,
-    opponentSide: opponentSideKey,
-    myTeam: {
+      lineupsRevealed: reveal,
+      postMatch: {
+        home: { ...fixture.postMatch.home },
+        away: { ...fixture.postMatch.away }
+      },
+      captainSide,
+      opponentSide: opponentSideKey,
+      myTeam: {
       teamName: viewerSide.teamName,
       squad: viewerSide.squad,
       currentLineup: [...viewerSide.currentLineup],
@@ -2188,6 +2258,75 @@ export function setCaptainMatchupStartingSide(
       result: matchup.result ? { ...matchup.result } : null,
       liveState: cloneLiveState(matchup.liveState)
     }
+  };
+}
+
+export function submitCaptainPostMatchWrapUp(
+  playerId,
+  fixtureId,
+  { selectedOpponentPotmPlayerId, notes, confirmScoresheet }
+) {
+  const rawFixture = getRawFixtureById(fixtureId);
+
+  if (!rawFixture) {
+    return {
+      success: false,
+      message: 'Fixture setup data not found'
+    };
+  }
+
+  const captainSide = getCaptainSide(playerId, rawFixture);
+  if (!captainSide) {
+    return {
+      success: false,
+      message: 'You are not assigned to this fixture'
+    };
+  }
+
+  syncFixtureStatus(rawFixture);
+
+  if (rawFixture.status !== 'completed' || !rawFixture.liveSession) {
+    return {
+      success: false,
+      message: 'Post-match wrap-up is only available once the fixture is complete'
+    };
+  }
+
+  const opponentSquad = getOpponentSquadForCaptain(rawFixture, captainSide);
+  const selectedPotmPlayer =
+    opponentSquad.find((player) => player.playerId === selectedOpponentPotmPlayerId) ?? null;
+
+  if (!selectedPotmPlayer) {
+    return {
+      success: false,
+      message: 'Please choose a valid POTM from the opposing team'
+    };
+  }
+
+  if (!confirmScoresheet) {
+    return {
+      success: false,
+      message: 'Please confirm the scoresheet before submitting'
+    };
+  }
+
+  rawFixture.postMatch[captainSide] = {
+    selectedOpponentPotmPlayerId: selectedPotmPlayer.playerId,
+    selectedOpponentPotmPlayerName: selectedPotmPlayer.displayName,
+    notes: notes?.trim() ?? '',
+    confirmedAt: new Date().toISOString()
+  };
+
+  const homeDone = Boolean(rawFixture.postMatch.home.confirmedAt);
+  const awayDone = Boolean(rawFixture.postMatch.away.confirmedAt);
+
+  return {
+    success: true,
+    message:
+      homeDone && awayDone
+        ? 'Both captains have completed the post-match wrap-up'
+        : 'Your post-match wrap-up has been submitted',
+    fixture: cloneFixtureForViewer(playerId, rawFixture)
   };
 }
 

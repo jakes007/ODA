@@ -106,7 +106,7 @@ export default function CaptainDashboardPage() {
 }
 
 function getCaptainFixtureRoute(fixture) {
-  if (fixture.status === 'active') {
+  if (fixture.status === 'active' || fixture.status === 'completed') {
     return `/captain/fixture/${fixture.fixtureId}/live`;
   }
 

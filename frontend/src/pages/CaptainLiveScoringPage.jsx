@@ -6,7 +6,8 @@ import { useAuth } from '../context/AuthContext';
 import {
   getCaptainLiveScoringData,
   startCaptainFixtureMatchup,
-  applyCaptainSubstitution
+  applyCaptainSubstitution,
+  submitCaptainPostMatchWrapUp
 } from '../services/captainData';
 
 export default function CaptainLiveScoringPage() {
@@ -18,6 +19,9 @@ export default function CaptainLiveScoringPage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [outgoingPlayerId, setOutgoingPlayerId] = useState('');
   const [incomingPlayerId, setIncomingPlayerId] = useState('');
+  const [selectedOpponentPotmPlayerId, setSelectedOpponentPotmPlayerId] = useState('');
+  const [captainNotes, setCaptainNotes] = useState('');
+  const [confirmScoresheet, setConfirmScoresheet] = useState(false);
 
   const fixture = useMemo(() => {
     if (!currentUser?.playerId) return null;
@@ -88,6 +92,22 @@ export default function CaptainLiveScoringPage() {
       eligibleOutgoingPlayerIds.has(player.playerId)
   );
 
+  const myPostMatch = fixture.postMatch?.[fixture.captainSide] ?? {
+    selectedOpponentPotmPlayerId: '',
+    selectedOpponentPotmPlayerName: '',
+    notes: '',
+    confirmedAt: null
+  };
+
+  const opponentCaptainSide = fixture.captainSide === 'home' ? 'away' : 'home';
+  const opponentPostMatch = fixture.postMatch?.[opponentCaptainSide] ?? {
+    selectedOpponentPotmPlayerId: '',
+    selectedOpponentPotmPlayerName: '',
+    notes: '',
+    confirmedAt: null
+  };
+
+  const wrapUpOpponentSquad = fixture.opponentTeam?.squad ?? [];
   const matchupsByBlock = groupMatchupsByBlock(matchups);
 
   function refreshPage() {
@@ -130,6 +150,24 @@ export default function CaptainLiveScoringPage() {
     setSuccessMessage(result.message);
     setOutgoingPlayerId('');
     setIncomingPlayerId('');
+    refreshPage();
+  }
+
+  function handleSubmitPostMatchWrapUp() {
+    const result = submitCaptainPostMatchWrapUp(currentUser.playerId, fixtureId, {
+      selectedOpponentPotmPlayerId,
+      notes: captainNotes,
+      confirmScoresheet
+    });
+
+    if (!result.success) {
+      setErrors([result.message]);
+      setSuccessMessage('');
+      return;
+    }
+
+    setErrors([]);
+    setSuccessMessage(result.message);
     refreshPage();
   }
 
@@ -395,32 +433,146 @@ export default function CaptainLiveScoringPage() {
       </section>
 
       {isFixtureCompleted ? (
-        <section className="panel">
-          <h3 className="panel-title">Match Complete</h3>
+        <>
+          <section className="panel">
+            <h3 className="panel-title">Match Complete</h3>
 
-          <div className="feature-list">
-            <div className="feature-item">
-              <div className="feature-title">Final Result</div>
-              <div className="muted-text">{fixture.scoreText}</div>
+            <div className="feature-list">
+              <div className="feature-item">
+                <div className="feature-title">Final Result</div>
+                <div className="muted-text">{fixture.scoreText}</div>
+              </div>
+
+              <div className="feature-item">
+                <div className="feature-title">Status</div>
+                <div className="muted-text">
+                  All matchups have been completed. Captains can now move to post-match wrap-up.
+                </div>
+              </div>
+
+              <div className="feature-item">
+                <div className="feature-title">Live Session</div>
+                <div className="muted-text">
+                  {fixture.liveSession?.startedAt
+                    ? `Started: ${new Date(fixture.liveSession.startedAt).toLocaleString()}`
+                    : '—'}
+                </div>
+              </div>
             </div>
+          </section>
 
-            <div className="feature-item">
-              <div className="feature-title">Status</div>
-              <div className="muted-text">
-                All matchups have been completed. Captains can now move to post-match wrap-up.
+          <section className="panel">
+            <h3 className="panel-title">Post-Match Wrap-Up</h3>
+
+            <div className="feature-list">
+              <div className="feature-item">
+                <div className="feature-title">Your Wrap-Up Status</div>
+                <div className="muted-text">
+                  {myPostMatch.confirmedAt
+                    ? `Submitted at ${new Date(myPostMatch.confirmedAt).toLocaleString()}`
+                    : 'Not yet submitted'}
+                </div>
+              </div>
+
+              <div className="feature-item">
+                <div className="feature-title">Opponent Captain Status</div>
+                <div className="muted-text">
+                  {opponentPostMatch.confirmedAt
+                    ? `Submitted at ${new Date(opponentPostMatch.confirmedAt).toLocaleString()}`
+                    : 'Still waiting on opponent captain'}
+                </div>
+              </div>
+
+              <div className="feature-item">
+                <div className="feature-title">Your POTM Selection</div>
+                <div className="muted-text">
+                  {myPostMatch.selectedOpponentPotmPlayerName || 'No POTM selected yet'}
+                </div>
               </div>
             </div>
 
-            <div className="feature-item">
-              <div className="feature-title">Live Session</div>
-              <div className="muted-text">
-                {fixture.liveSession?.startedAt
-                  ? `Started: ${new Date(fixture.liveSession.startedAt).toLocaleString()}`
-                  : '—'}
+            {!myPostMatch.confirmedAt ? (
+              <>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                    gap: '1rem',
+                    marginTop: '1rem'
+                  }}
+                >
+                  <div>
+                    <label className="form-label" htmlFor="postmatch-potm">
+                      Choose POTM from Opposing Team
+                    </label>
+                    <select
+                      id="postmatch-potm"
+                      className="form-input"
+                      value={selectedOpponentPotmPlayerId}
+                      onChange={(event) => setSelectedOpponentPotmPlayerId(event.target.value)}
+                    >
+                      <option value="">Select opponent POTM</option>
+                      {wrapUpOpponentSquad.map((player) => (
+                        <option key={player.playerId} value={player.playerId}>
+                          {player.displayName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="form-label" htmlFor="captain-notes">
+                      Match Notes
+                    </label>
+                    <textarea
+                      id="captain-notes"
+                      className="form-input"
+                      rows={4}
+                      value={captainNotes}
+                      onChange={(event) => setCaptainNotes(event.target.value)}
+                      placeholder="Add any notes about the fixture, incidents, or comments"
+                    />
+                  </div>
+                </div>
+
+                <div style={{ marginTop: '1rem' }}>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={confirmScoresheet}
+                      onChange={(event) => setConfirmScoresheet(event.target.checked)}
+                    />
+                    <span className="muted-text">
+                      I confirm that the digital scoresheet is correct to the best of my knowledge
+                    </span>
+                  </label>
+                </div>
+
+                <div style={{ marginTop: '1rem' }}>
+                  <button
+                    type="button"
+                    className="primary-btn"
+                    onClick={handleSubmitPostMatchWrapUp}
+                    disabled={!selectedOpponentPotmPlayerId || !confirmScoresheet}
+                  >
+                    Submit Post-Match Wrap-Up
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="muted-text" style={{ marginTop: '1rem' }}>
+                Your wrap-up has already been submitted for this fixture.
               </div>
-            </div>
-          </div>
-        </section>
+            )}
+          </section>
+        </>
       ) : null}
 
       <section className="panel">
