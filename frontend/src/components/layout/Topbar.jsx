@@ -1,10 +1,11 @@
+import logo from '../../assets/oda-logo.png';
+
 export default function Topbar({ onMenuClick }) {
   return (
     <header className="topbar">
       <div className="topbar-row">
-        <div>
-          <h1 className="topbar-title">Observatory Darts Association</h1>
-          <p className="topbar-subtitle">Competition Management Platform</p>
+        <div className="topbar-brand">
+          <img src={logo} alt="ODA Logo" className="topbar-logo" />
         </div>
 
         <button

@@ -14,8 +14,8 @@ export default function AppLayout({ children }) {
       <Sidebar mobile isOpen={mobileNavOpen} onClose={closeMobileNav} />
 
       {mobileNavOpen ? (
-        <button
-          className="mobile-nav-backdrop"
+  <button
+    className="mobile-nav-backdrop show"
           onClick={closeMobileNav}
           aria-label="Close navigation overlay"
         />

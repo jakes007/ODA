@@ -1492,6 +1492,41 @@ export function getCaptainLiveScoringData(playerId, fixtureId) {
   return cloneFixtureForViewer(playerId, fixture);
 }
 
+export function getPublicLiveFixtureData(fixtureId) {
+  const fixture = getRawFixtureById(fixtureId);
+  if (!fixture) return null;
+
+  syncFixtureStatus(fixture);
+
+  const matchups = fixture.liveSession?.games ?? [];
+
+  return {
+    fixtureId: fixture.fixtureId,
+    fixtureName: fixture.fixtureName,
+    competition: fixture.competition,
+    homeTeam: { ...fixture.homeTeam },
+    awayTeam: { ...fixture.awayTeam },
+    status: fixture.status,
+    scoreText: fixture.scoreText,
+    format: fixture.format,
+    lineupsRevealed: fixture.lineupsRevealed,
+    liveSession: fixture.liveSession
+      ? {
+          ...fixture.liveSession,
+          games: matchups.map((game) => ({
+            ...game,
+            homePlayers: [...game.homePlayers],
+            awayPlayers: [...game.awayPlayers],
+            homeSlots: [...game.homeSlots],
+            awaySlots: [...game.awaySlots],
+            result: game.result ? { ...game.result } : null,
+            liveState: cloneLiveState(game.liveState)
+          }))
+        }
+      : null
+  };
+}
+
 export function getCaptainMatchupScoringData(playerId, fixtureId, matchupId) {
   const fixture = getRawFixtureById(fixtureId);
   if (!fixture) return null;

@@ -4,6 +4,7 @@ import ScrollToTop from './components/layout/ScrollToTop';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import RoleRoute from './components/auth/RoleRoute';
 import LandingPage from './pages/LandingPage';
+import PublicLiveFixturePage from './pages/PublicLiveFixturePage';
 import CompetitionOverviewPage from './pages/CompetitionOverviewPage';
 import StandingsPage from './pages/StandingsPage';
 import RankingsPage from './pages/RankingsPage';
@@ -75,6 +76,11 @@ export default function App() {
               </RoleRoute>
             </ProtectedRoute>
           }
+        />
+
+<Route
+          path="/live/:fixtureId"
+          element={<PublicLiveFixturePage />}
         />
 
         <Route
