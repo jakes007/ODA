@@ -146,25 +146,8 @@
   min-width: 170px;
   justify-content: center;
   border-radius: 16px;
-  background: linear-gradient(135deg, #ff9800 0%, #ff6d00 100%);
-  border: 1px solid rgba(255, 180, 90, 0.5);
-  box-shadow:
-    0 20px 50px rgba(255,109,0,0.35),
-    0 0 30px rgba(255,152,0,0.2);
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    filter 180ms ease;
   font-weight: 700;
   letter-spacing: 0.02em;
-}
-
-.premium-watch-btn:hover {
-  transform: translateY(-3px) scale(1.02);
-  filter: brightness(1.03);
-  box-shadow:
-    0 30px 70px rgba(255,109,0,0.5),
-    0 0 60px rgba(255,152,0,0.35);
 }
 
 .premium-hero-stats {
@@ -371,15 +354,8 @@
   margin-bottom: 0.25rem;
 }
 
-.premium-card-meta,
-.premium-result-score {
+.premium-card-meta {
   text-align: right;
-}
-
-.premium-result-score {
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: #eef6ff;
 }
 
 .premium-list {
@@ -415,10 +391,6 @@
   border-color: rgba(0, 229, 255, 0.18);
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.22);
   background: rgba(255,255,255,0.04);
-}
-
-.premium-text-link {
-  color: #9defff;
 }
 
 .premium-empty-state {
@@ -496,8 +468,7 @@
     align-items: flex-start;
   }
 
-  .premium-card-meta,
-  .premium-result-score {
+  .premium-card-meta {
     text-align: left;
   }
 }
