@@ -434,8 +434,10 @@ export function createEmptyRegistry() {
     players: {},
     playerIdsByDsaNumber: {},
     editRequests: {},
-    historicalStatsNormalized: {},
-    importExceptions: {}
+
+    historicalStatsRaw: {},          // 🔥 NEW
+    historicalStatsNormalized: {},   // already added
+    importExceptions: {}             // already added
   };
 }
 
