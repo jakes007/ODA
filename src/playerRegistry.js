@@ -433,11 +433,24 @@ export function createEmptyRegistry() {
   return {
     players: {},
     playerIdsByDsaNumber: {},
-    editRequests: {},
 
-    historicalStatsRaw: {},          // 🔥 NEW
-    historicalStatsNormalized: {},   // already added
-    importExceptions: {}             // already added
+    clubs: {},
+    clubIdsByLookupKey: {},
+
+    competitions: {},
+    competitionIdsByLookupKey: {},
+
+    teams: {},
+    teamIdsByLookupKey: {},
+
+    competitionMemberships: {},
+    membershipIdsByLookupKey: {},
+
+    historicalStatsRaw: {},
+    historicalStatsNormalized: {},
+    importExceptions: {},
+
+    editRequests: {}
   };
 }
 
