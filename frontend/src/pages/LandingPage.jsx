@@ -67,41 +67,85 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="panel premium-panel">
-      <div className="panel-header">
-          <h3 className="panel-title">Live Fixtures Now</h3>
+      <section className="panel premium-panel premium-live-section">
+        <div className="panel-header premium-live-section-header">
+          <div className="premium-live-heading-wrap">
+            <div className="premium-live-heading">
+              <span className="premium-live-now-dot" />
+              <h3 className="panel-title">Live Fixtures Now</h3>
+            </div>
+
+            <div className="premium-live-count">
+              {liveFixtures.length} {liveFixtures.length === 1 ? 'Match Live' : 'Matches Live'}
+            </div>
+          </div>
+
+          <Link to="/competition/fixtures" className="panel-link">
+            View all live fixtures
+          </Link>
         </div>
 
         {liveFixtures.length === 0 ? (
           <div className="premium-empty-state">No fixtures are currently live.</div>
         ) : (
-          <div className="premium-live-grid">
+          <div className="premium-broadcast-list">
             {liveFixtures.map((fixture) => (
-              <div key={fixture.fixtureId} className="premium-live-card">
-                <div className="premium-live-status">
-                  <span className="premium-live-dot" />
-                  <span>Live Now</span>
-                </div>
+              <div key={fixture.fixtureId} className="premium-broadcast-card">
+                <div className="premium-broadcast-main">
+                  <div className="premium-broadcast-team premium-broadcast-team-left">
+                    <div className="premium-broadcast-badge premium-broadcast-badge-home">
+                      {getTeamInitials(fixture.homeTeam.teamName)}
+                    </div>
 
-                <div className="premium-live-fixture-name">{fixture.fixtureName}</div>
-
-                <div className="premium-live-score-row">
-                  <div className="premium-live-teams">
-                    <div>{fixture.homeTeam.teamName}</div>
-                    <div>{fixture.awayTeam.teamName}</div>
+                    <div className="premium-broadcast-team-text">
+                      <div className="premium-broadcast-team-name">
+                        {fixture.homeTeam.teamName}
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="premium-live-score">{fixture.scoreText}</div>
+                  <div className="premium-broadcast-scoreboard">
+                    <div className="premium-broadcast-score">
+                      {getFixtureScoreParts(fixture.scoreText).home}
+                    </div>
+
+                    <div className="premium-broadcast-vs-wrap">
+                      <div className="premium-broadcast-vs">VS</div>
+                    </div>
+
+                    <div className="premium-broadcast-score">
+                      {getFixtureScoreParts(fixture.scoreText).away}
+                    </div>
+                  </div>
+
+                  <div className="premium-broadcast-team premium-broadcast-team-right">
+                    <div className="premium-broadcast-team-text premium-broadcast-team-text-right">
+                      <div className="premium-broadcast-team-name">
+                        {fixture.awayTeam.teamName}
+                      </div>
+                    </div>
+
+                    <div className="premium-broadcast-badge premium-broadcast-badge-away">
+                      {getTeamInitials(fixture.awayTeam.teamName)}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="premium-live-meta">
-                  <span>{fixture.format?.name ?? 'Fixture format'}</span>
-                  <span>{fixture.liveSession?.activeBoardCount ?? 0} active board(s)</span>
-                </div>
+                <div className="premium-broadcast-footer">
+                  <div className="premium-broadcast-status">
+                    <span className="premium-live-now-dot" />
+                    <span>Live</span>
+                  </div>
 
-                <div className="premium-live-actions">
-                  <Link to={`/live/${fixture.fixtureId}`} className="secondary-btn premium-live-btn">
-                    Watch Live
+                  <div className="premium-broadcast-meta">
+                    <span>{getLiveFixtureFormatLabel(fixture)}</span>
+                  </div>
+
+                  <Link
+                    to={`/live/${fixture.fixtureId}`}
+                    className="secondary-btn premium-broadcast-watch-btn"
+                  >
+                    ▶ Watch Live Match
                   </Link>
                 </div>
               </div>
@@ -201,24 +245,6 @@ export default function LandingPage() {
     </div>
   </section>
 </div>
-
-      <section className="panel landing-cta premium-panel premium-cta">
-        <div>
-          <h3 className="panel-title">Players, captains, and admins</h3>
-          <p className="page-subtitle">
-            Login for existing users or submit an access request to be linked to an official player record.
-          </p>
-        </div>
-
-        <div className="landing-actions premium-cta-actions">
-          <Link to="/login" className="primary-btn premium-login-btn">
-            Login
-          </Link>
-          <Link to="/register" className="secondary-btn premium-register-btn">
-            Request Access
-          </Link>
-        </div>
-      </section>
     </div>
   );
 }
@@ -231,4 +257,65 @@ function formatCompetitionStatus(status) {
   };
 
   return labels[status] ?? status;
+}
+
+function getTeamInitials(teamName) {
+  if (!teamName) return '?';
+
+  const words = teamName
+    .split(' ')
+    .map((word) => word.trim())
+    .filter(Boolean);
+
+  if (words.length === 1) {
+    return words[0].slice(0, 1).toUpperCase();
+  }
+
+  return `${words[0][0] ?? ''}${words[1][0] ?? ''}`.toUpperCase();
+}
+
+function getFixtureScoreParts(scoreText) {
+  if (!scoreText || !scoreText.includes('-')) {
+    return { home: '0', away: '0' };
+  }
+
+  const [home, away] = scoreText.split('-').map((part) => part.trim());
+  return {
+    home: home || '0',
+    away: away || '0'
+  };
+}
+
+function formatFixtureStatusLabel(status) {
+  const labels = {
+    active: 'Live',
+    completed: 'Completed',
+    ready_to_play: 'Ready To Play',
+    waiting_for_opponent: 'Waiting For Opponent'
+  };
+
+  return labels[status] ?? status;
+}
+
+function getLiveFixtureFormatLabel(fixture) {
+  const formatType = fixture?.format?.type ?? '';
+  const formatName = fixture?.format?.name ?? '';
+
+  if (formatType === 'singles_16_point') {
+    return '16 Point Singles';
+  }
+
+  if (formatType === 'doubles_standard') {
+    return 'Doubles';
+  }
+
+  if (formatType === 'team_leg_standard') {
+    return 'Team Game';
+  }
+
+  if (formatType === 'oda_mixed_match_template') {
+    return 'Mixed Match Format';
+  }
+
+  return formatName || 'Live Fixture';
 }

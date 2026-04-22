@@ -152,16 +152,16 @@ textarea {
 
 .topbar-row {
   width: 100%;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
   align-items: center;
-  justify-content: space-between;
+  gap: 16px;
 }
 
 .topbar-brand {
   display: flex;
   align-items: center;
   gap: 16px;
-  transform: translateY(5px);
 }
 
 .topbar-logo {
@@ -170,6 +170,7 @@ textarea {
   object-fit: contain;
   display: block;
   filter: drop-shadow(0 0 6px rgba(255, 152, 0, 0.12));
+  transform: translateY(7px);
 }
 
 .topbar-text {
@@ -185,6 +186,36 @@ textarea {
 .topbar-subtitle {
   margin: 4px 0 0;
   color: rgba(205, 216, 232, 0.68);
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.topbar-action-btn {
+  min-width: 132px;
+}
+
+.topbar-motto {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-divider {
+  width: 1px;
+  height: 26px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.topbar-motto-text {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(220, 230, 245, 0.75);
 }
 
 .mobile-menu-btn {
@@ -254,12 +285,14 @@ textarea {
 .stat-card-label {
   color: rgba(205, 216, 232, 0.62);
   font-size: 14px;
+  text-align: center;
   margin-bottom: 8px;
 }
 
 .stat-card-value {
   font-size: 28px;
   font-weight: 700;
+  text-align: center;
 }
 
 .content-grid {
@@ -661,8 +694,6 @@ textarea {
     padding: 16px;
   }
 
-  
-
   .topbar {
     padding: 16px;
   }
@@ -674,13 +705,35 @@ textarea {
   }
 
   .topbar-brand {
-    grid-column: auto;
     justify-content: flex-start;
+    align-items: center;
+    gap: 0;
     transform: translateY(5px);
+    flex: 0 1 auto;
+    min-width: 0;
   }
 
   .topbar-logo {
     height: 240px;
+    width: auto;
+    max-width: 190px;
+    object-fit: contain;
+    transform: translateY(0px);
+  }
+
+  .topbar-motto {
+    display: none;
+  }
+
+  .topbar-actions {
+    display: none;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
 
   .topbar-title {
@@ -689,10 +742,6 @@ textarea {
 
   .topbar-subtitle {
     font-size: 12px;
-  }
-
-  .topbar-motto {
-    display: none;
   }
 
   .page-title {
