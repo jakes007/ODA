@@ -183,16 +183,8 @@ export function buildCanonicalPlayerFromRegistryRow(row) {
     'DSA_NUMBER'
   ]);
 
-  const surname = readFirstNonEmpty(row, [
-    'Surname',
-    'SURNAME'
-  ]);
-
-  const initials = readFirstNonEmpty(row, [
-    'Initials',
-    'INITIALS'
-  ]);
-
+  const surname = readFirstNonEmpty(row, ['Surname', 'SURNAME']);
+  const initials = readFirstNonEmpty(row, ['Initials', 'INITIALS']);
   const firstNames = readFirstNonEmpty(row, [
     'First Names',
     'Firstname',
@@ -223,16 +215,8 @@ export function buildCanonicalPlayerFromRegistryRow(row) {
     'PROVINCE'
   ]);
 
-  const gender = readFirstNonEmpty(row, [
-    'Gender',
-    'GENDER'
-  ]);
-
-  const race = readFirstNonEmpty(row, [
-    'Race',
-    'RACE'
-  ]);
-
+  const gender = readFirstNonEmpty(row, ['Gender', 'GENDER']);
+  const race = readFirstNonEmpty(row, ['Race', 'RACE']);
   const idNumber = readFirstNonEmpty(row, [
     'ID Number',
     'ID No',
@@ -250,7 +234,7 @@ export function buildCanonicalPlayerFromRegistryRow(row) {
   const aliases = [
     fullName,
     [initials, surname].filter(Boolean).join(' ').trim(),
-    [initials, surname].filter(Boolean).join('.').trim(),
+    `${initials}.${surname}`.replace(/^\./, '').trim(),
     callingName ? [callingName, surname].filter(Boolean).join(' ').trim() : ''
   ].filter(Boolean);
 
@@ -377,17 +361,33 @@ export function normalizeMatchedStatsRow(registry, statsRow, options = {}) {
     dsaNumber: player.dsaNumber,
     displayName: player.fullName,
     teamId: options.teamId ?? null,
-    teamName: readFirstNonEmpty(statsRow, ['Team', 'TEAM']),
-    clubId: player.clubId ?? null,
-    clubName: player.clubName ?? '',
-    opponentTeamName: readFirstNonEmpty(statsRow, ['Opponent', 'Opponent Team', 'OPPONENT']),
+    teamName: options.teamName ?? readFirstNonEmpty(statsRow, ['Team', 'TEAM']),
+    clubId: options.clubId ?? player.clubId ?? null,
+    clubName: options.clubName ?? player.clubName ?? '',
+    opponentTeamName: readFirstNonEmpty(statsRow, [
+      'Opponent',
+      'Opponent Team',
+      'OPPONENT'
+    ]),
     matchDate: readFirstNonEmpty(statsRow, ['Date', 'DATE']),
     metrics: {
       average: readFirstNonEmpty(statsRow, ['Average', 'AVG', '3DA']),
-      dartsUsed: readFirstNonEmpty(statsRow, ['Darts Used', 'Darts', 'DARTS USED']),
+      dartsUsed: readFirstNonEmpty(statsRow, [
+        'Darts Used',
+        'Darts',
+        'DARTS USED'
+      ]),
       tons: readFirstNonEmpty(statsRow, ['Tons', 'TONS']),
-      oneEighties: readFirstNonEmpty(statsRow, ['180s', '1x80s', 'OneEighties']),
-      legsPlayed: readFirstNonEmpty(statsRow, ['Legs Played', 'Legs', 'LEGS PLAYED']),
+      oneEighties: readFirstNonEmpty(statsRow, [
+        '180s',
+        '1x80s',
+        'OneEighties'
+      ]),
+      legsPlayed: readFirstNonEmpty(statsRow, [
+        'Legs Played',
+        'Legs',
+        'LEGS PLAYED'
+      ]),
       legsWon: readFirstNonEmpty(statsRow, ['Legs Won', 'WON']),
       points: readFirstNonEmpty(statsRow, ['Points', 'PTS'])
     },
