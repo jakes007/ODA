@@ -1,0 +1,288 @@
+{
+  "registryImport": {
+    "success": true,
+    "createdPlayers": 105,
+    "createdClubs": 8
+  },
+  "statsImport": {
+    "rawCount": 8788,
+    "matchedCount": 7435,
+    "exceptionCount": 1353,
+    "skippedCount": 1176,
+    "createdClubs": 3,
+    "createdCompetitions": 1,
+    "createdTeams": 25,
+    "createdMemberships": 161
+  },
+  "registryTotals": {
+    "players": 105,
+    "clubs": 11,
+    "competitions": 1,
+    "teams": 25,
+    "competitionMemberships": 161,
+    "historicalStatsRaw": 8787,
+    "historicalStatsNormalized": 7435,
+    "importExceptions": 1353,
+    "editRequests": 0
+  },
+  "standings": {
+    "success": true,
+    "competitionName": "ODA League",
+    "rowCount": 25,
+    "top3": [
+      {
+        "position": 1,
+        "teamName": "BOO 1",
+        "leaguePoints": 0,
+        "played": 0,
+        "scoreDifference": 0
+      },
+      {
+        "position": 2,
+        "teamName": "BOO 2",
+        "leaguePoints": 0,
+        "played": 0,
+        "scoreDifference": 0
+      },
+      {
+        "position": 3,
+        "teamName": "BOO 3",
+        "leaguePoints": 0,
+        "played": 0,
+        "scoreDifference": 0
+      }
+    ]
+  },
+  "rankings": {
+    "success": true,
+    "competitionName": "ODA League",
+    "rowCount": 100,
+    "top5": [
+      {
+        "position": 1,
+        "displayName": "Daywin Adams",
+        "average": 0,
+        "points": 0
+      },
+      {
+        "position": 2,
+        "displayName": "Garth Henry",
+        "average": 0,
+        "points": 0
+      },
+      {
+        "position": 3,
+        "displayName": "JP",
+        "average": 0,
+        "points": 0
+      },
+      {
+        "position": 4,
+        "displayName": "Cliffy",
+        "average": 0,
+        "points": 0
+      },
+      {
+        "position": 5,
+        "displayName": "Garth May",
+        "average": 0,
+        "points": 0
+      }
+    ]
+  },
+  "samplePlayerHistory": {
+    "success": true,
+    "playerName": "Ash Adams",
+    "competitionName": "ODA League",
+    "summary": {
+      "matchesPlayed": 82,
+      "average": 0,
+      "points": 0,
+      "legsWon": 0
+    },
+    "first3Rows": [
+      {
+        "statId": "stat_1776891106577_78107",
+        "rawStatId": "rawstat_1776891106577_31534",
+        "competitionId": "competition_1776891106382_74909",
+        "season": "2026",
+        "division": "Lower",
+        "playerId": "player_1776891106373_38606",
+        "dsaNumber": "130013",
+        "displayName": "Ash Adams",
+        "teamId": "team_1776891106386_69030",
+        "teamName": "BOO 5",
+        "clubId": "club_1776891106373_36719",
+        "clubName": "Best Of Order",
+        "opponentTeamName": "T.Oliphant",
+        "matchDate": "11-Jun-25",
+        "tournament": "Placements",
+        "league": "",
+        "ageGroup": "",
+        "metrics": {
+          "average": null,
+          "ranking": 13.53,
+          "dartsUsed": 33,
+          "tons": 0,
+          "oneEighties": null,
+          "oneSeventyOnes": null,
+          "highestClose": null,
+          "fastestClose": null,
+          "singlesPlayed": 1,
+          "singlesWon": 0,
+          "legsWon": null,
+          "legsLost": null,
+          "gp": 1,
+          "wins": null,
+          "draws": null,
+          "losses": null,
+          "points": null
+        },
+        "importStatus": "matched",
+        "importedAt": "2026-04-22T20:51:46.577Z"
+      },
+      {
+        "statId": "stat_1776891106577_49689",
+        "rawStatId": "rawstat_1776891106577_82954",
+        "competitionId": "competition_1776891106382_74909",
+        "season": "2026",
+        "division": "Lower",
+        "playerId": "player_1776891106373_38606",
+        "dsaNumber": "130013",
+        "displayName": "Ash Adams",
+        "teamId": "team_1776891106386_69030",
+        "teamName": "BOO 5",
+        "clubId": "club_1776891106373_36719",
+        "clubName": "Best Of Order",
+        "opponentTeamName": "M.Du Plessis",
+        "matchDate": "11-Jun-25",
+        "tournament": "Placements",
+        "league": "",
+        "ageGroup": "",
+        "metrics": {
+          "average": null,
+          "ranking": 80.74,
+          "dartsUsed": 42,
+          "tons": 0,
+          "oneEighties": null,
+          "oneSeventyOnes": null,
+          "highestClose": 4,
+          "fastestClose": 42,
+          "singlesPlayed": 1,
+          "singlesWon": 1,
+          "legsWon": null,
+          "legsLost": null,
+          "gp": 1,
+          "wins": null,
+          "draws": null,
+          "losses": null,
+          "points": null
+        },
+        "importStatus": "matched",
+        "importedAt": "2026-04-22T20:51:46.577Z"
+      },
+      {
+        "statId": "stat_1776891106577_60513",
+        "rawStatId": "rawstat_1776891106577_13289",
+        "competitionId": "competition_1776891106382_74909",
+        "season": "2026",
+        "division": "Lower",
+        "playerId": "player_1776891106373_38606",
+        "dsaNumber": "130013",
+        "displayName": "Ash Adams",
+        "teamId": "team_1776891106386_69030",
+        "teamName": "BOO 5",
+        "clubId": "club_1776891106373_36719",
+        "clubName": "Best Of Order",
+        "opponentTeamName": "Z.Pieterse",
+        "matchDate": "11-Jun-25",
+        "tournament": "Placements",
+        "league": "",
+        "ageGroup": "",
+        "metrics": {
+          "average": null,
+          "ranking": 13.55,
+          "dartsUsed": 33,
+          "tons": 1,
+          "oneEighties": null,
+          "oneSeventyOnes": null,
+          "highestClose": null,
+          "fastestClose": null,
+          "singlesPlayed": 1,
+          "singlesWon": 0,
+          "legsWon": null,
+          "legsLost": null,
+          "gp": 1,
+          "wins": null,
+          "draws": null,
+          "losses": null,
+          "points": null
+        },
+        "importStatus": "matched",
+        "importedAt": "2026-04-22T20:51:46.577Z"
+      }
+    ]
+  },
+  "sampleExceptions": [
+    {
+      "dsaNumber": "190425",
+      "rawPlayerName": "D.Van Der Speck",
+      "reason": "DSA number not found in registry",
+      "status": "pending_review"
+    },
+    {
+      "dsaNumber": "190425",
+      "rawPlayerName": "D.Van Der Speck",
+      "reason": "DSA number not found in registry",
+      "status": "pending_review"
+    },
+    {
+      "dsaNumber": "190425",
+      "rawPlayerName": "D.Van Der Speck",
+      "reason": "DSA number not found in registry",
+      "status": "pending_review"
+    },
+    {
+      "dsaNumber": "190425",
+      "rawPlayerName": "D.Van Der Speck",
+      "reason": "DSA number not found in registry",
+      "status": "pending_review"
+    },
+    {
+      "dsaNumber": "",
+      "rawPlayerName": "Mahir Alexander",
+      "reason": "Missing DSA number",
+      "status": "pending_review"
+    },
+    {
+      "dsaNumber": "",
+      "rawPlayerName": "Mahir Alexander",
+      "reason": "Missing DSA number",
+      "status": "pending_review"
+    },
+    {
+      "dsaNumber": "",
+      "rawPlayerName": "Mahir Alexander",
+      "reason": "Missing DSA number",
+      "status": "pending_review"
+    },
+    {
+      "dsaNumber": "",
+      "rawPlayerName": "Mahir Alexander",
+      "reason": "Missing DSA number",
+      "status": "pending_review"
+    },
+    {
+      "dsaNumber": "130156",
+      "rawPlayerName": "S.Boyce",
+      "reason": "DSA number not found in registry",
+      "status": "pending_review"
+    },
+    {
+      "dsaNumber": "130156",
+      "rawPlayerName": "S.Boyce",
+      "reason": "DSA number not found in registry",
+      "status": "pending_review"
+    }
+  ]
+}

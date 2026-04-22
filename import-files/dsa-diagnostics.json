@@ -1,0 +1,31 @@
+{
+  "registryCount": 0,
+  "statsCount": 123,
+  "overlapCount": 0,
+  "onlyInStatsCount": 123,
+  "onlyInRegistryCount": 0,
+  "sampleOnlyInStats": [
+    "190425",
+    "140194",
+    "250221",
+    "122613",
+    "230702",
+    "210502",
+    "120192",
+    "130156",
+    "140119",
+    "240847",
+    "210551",
+    "121377",
+    "250222",
+    "210534",
+    "210555",
+    "0",
+    "210501",
+    "210531",
+    "230575",
+    "130591"
+  ],
+  "sampleOnlyInRegistry": [],
+  "sampleOverlap": []
+}

@@ -8,7 +8,10 @@ import {
 } from './dataModel.js';
 
 export function registerPlayer(registry, playerData) {
-  const player = createPlayerMasterRecord(playerData);
+  const player = createPlayerMasterRecord({
+    ...playerData,
+    dsaNumber: normalizeDsaNumber(playerData.dsaNumber)
+  });
 
   registry.players[player.playerId] = player;
 
@@ -27,26 +30,17 @@ export function getAdminPlayerView(registry, playerId) {
   const player = registry.players[playerId];
 
   if (!player) {
-    return {
-      success: false,
-      reason: 'Player not found'
-    };
+    return { success: false, reason: 'Player not found' };
   }
 
-  return {
-    success: true,
-    player
-  };
+  return { success: true, player };
 }
 
 export function getPrivatePlayerView(registry, playerId) {
   const player = registry.players[playerId];
 
   if (!player) {
-    return {
-      success: false,
-      reason: 'Player not found'
-    };
+    return { success: false, reason: 'Player not found' };
   }
 
   return {
@@ -59,10 +53,7 @@ export function getPublicPlayerView(registry, playerId, options = {}) {
   const player = registry.players[playerId];
 
   if (!player) {
-    return {
-      success: false,
-      reason: 'Player not found'
-    };
+    return { success: false, reason: 'Player not found' };
   }
 
   return {
@@ -100,19 +91,11 @@ export function approvePlayerEditRequest(registry, requestId, reviewedBy = 'admi
   const request = registry.editRequests[requestId];
 
   if (!request) {
-    return {
-      success: false,
-      registry,
-      reason: 'Edit request not found'
-    };
+    return { success: false, registry, reason: 'Edit request not found' };
   }
 
   if (request.status !== 'pending') {
-    return {
-      success: false,
-      registry,
-      reason: 'Edit request is not pending'
-    };
+    return { success: false, registry, reason: 'Edit request is not pending' };
   }
 
   const player = registry.players[request.playerId];
@@ -126,7 +109,6 @@ export function approvePlayerEditRequest(registry, requestId, reviewedBy = 'admi
   }
 
   applyAllowedChanges(player, request.requestedChanges);
-
   player.updatedAt = new Date().toISOString();
 
   request.status = 'approved';
@@ -145,19 +127,11 @@ export function rejectPlayerEditRequest(registry, requestId, reviewedBy = 'admin
   const request = registry.editRequests[requestId];
 
   if (!request) {
-    return {
-      success: false,
-      registry,
-      reason: 'Edit request not found'
-    };
+    return { success: false, registry, reason: 'Edit request not found' };
   }
 
   if (request.status !== 'pending') {
-    return {
-      success: false,
-      registry,
-      reason: 'Edit request is not pending'
-    };
+    return { success: false, registry, reason: 'Edit request is not pending' };
   }
 
   request.status = 'rejected';
@@ -171,36 +145,61 @@ export function rejectPlayerEditRequest(registry, requestId, reviewedBy = 'admin
   };
 }
 
-// ============================================
-// REGISTRY IMPORT HELPERS
-// ============================================
-
 export function buildCanonicalPlayerFromRegistryRow(row) {
-  const dsaNumber = readFirstNonEmpty(row, [
-    'DSA Number',
-    'DSA No',
-    'DSA',
-    'DSA_NUMBER'
+  const dsaNumber = normalizeDsaNumber(
+    readFirstNonEmpty(row, [
+      'Membership No.',
+      'Membership No',
+      'Membership Number',
+      'DSA Number',
+      'DSA No',
+      'DSA',
+      'DSA_NUMBER',
+      'Dsa Number',
+      'Dsa No'
+    ])
+  );
+
+  const surname = readFirstNonEmpty(row, [
+    'Surname',
+    'SURNAME',
+    'Last Name',
+    'Lastname',
+    'LastName'
   ]);
 
-  const surname = readFirstNonEmpty(row, ['Surname', 'SURNAME']);
-  const initials = readFirstNonEmpty(row, ['Initials', 'INITIALS']);
+  const initials = readFirstNonEmpty(row, [
+    'Initials',
+    'INITIALS',
+    'Inits',
+    'INITS'
+  ]);
+
   const firstNames = readFirstNonEmpty(row, [
+    'First Names (as per ID)',
     'First Names',
-    'Firstname',
+    'FIRST NAMES',
+    'First Name',
     'FirstName',
-    'FIRST NAMES'
+    'Firstname',
+    'Names',
+    'NAMES',
+    'Christian Names'
   ]);
 
   const callingName = readFirstNonEmpty(row, [
+    'Calling  Name',
     'Calling Name',
-    'CALLING NAME'
+    'CALLING NAME',
+    'Nickname',
+    'Known As'
   ]);
 
   const clubName = readFirstNonEmpty(row, [
     'Club',
     'Club Name',
-    'CLUB'
+    'CLUB',
+    'ClubName'
   ]);
 
   const associationName = readFirstNonEmpty(row, [
@@ -215,28 +214,39 @@ export function buildCanonicalPlayerFromRegistryRow(row) {
     'PROVINCE'
   ]);
 
-  const gender = readFirstNonEmpty(row, ['Gender', 'GENDER']);
+  const gender = readFirstNonEmpty(row, ['Sex', 'Gender', 'GENDER']);
   const race = readFirstNonEmpty(row, ['Race', 'RACE']);
-  const idNumber = readFirstNonEmpty(row, [
-    'ID Number',
-    'ID No',
-    'ID NUMBER'
-  ]);
-
+  const registrationStatus = readFirstNonEmpty(row, ['Status', 'STATUS']);
+  const idNumber = readFirstNonEmpty(row, ['ID Number', 'ID No', 'ID NUMBER', 'Id Number']);
   const dateOfBirth = readFirstNonEmpty(row, [
+    'Date of Birth\r\n(yyyy-mm-dd)',
     'Date Of Birth',
     'Date of Birth',
-    'DOB'
+    'DOB',
+    'Birth Date'
   ]);
+  const email = readFirstNonEmpty(row, [
+    'eMail address',
+    'Email address',
+    'Email',
+    'eMail Address'
+  ]);
+  const phone = readFirstNonEmpty(row, ['Cell No', 'Cell', 'Phone', 'Cell No.']);
 
-  const fullName = [firstNames, surname].filter(Boolean).join(' ').trim();
+  const fullName = buildFullName({
+    firstNames,
+    surname,
+    initials,
+    callingName
+  });
 
-  const aliases = [
+  const aliases = buildAliases({
     fullName,
-    [initials, surname].filter(Boolean).join(' ').trim(),
-    `${initials}.${surname}`.replace(/^\./, '').trim(),
-    callingName ? [callingName, surname].filter(Boolean).join(' ').trim() : ''
-  ].filter(Boolean);
+    firstNames,
+    surname,
+    initials,
+    callingName
+  });
 
   return createPlayerMasterRecord({
     fullName,
@@ -249,10 +259,12 @@ export function buildCanonicalPlayerFromRegistryRow(row) {
     dateOfBirth,
     race,
     gender,
-    registrationStatus: 'active',
+    registrationStatus: registrationStatus || 'active',
     associationName,
     provinceName,
     clubName,
+    phone,
+    email,
     aliases,
     source: 'registry_import',
     sourceImportedAt: new Date().toISOString()
@@ -275,22 +287,19 @@ export function registerCanonicalPlayerFromRegistryRow(registry, row) {
   };
 }
 
-// ============================================
-// STATS IMPORT MATCHING
-// ============================================
-
 export function matchStatsRowToRegistryPlayerByDsaNumber(registry, statsRow) {
-  const dsaNumber = readFirstNonEmpty(statsRow, [
-    'DSA Number',
-    'DSA No',
-    'DSA',
-    'DSA_NUMBER'
-  ]);
+  const dsaNumber = normalizeDsaNumber(
+    readFirstNonEmpty(statsRow, [
+      'DSA Number',
+      'DSA No',
+      'DSA',
+      'DSA_NUMBER',
+      'Dsa Number',
+      'Dsa No'
+    ])
+  );
 
-  const rawPlayerName = readFirstNonEmpty(statsRow, [
-    'Player',
-    'PLAYER'
-  ]);
+  const rawPlayerName = readFirstNonEmpty(statsRow, ['Player', 'PLAYER']);
 
   if (!dsaNumber) {
     return {
@@ -364,32 +373,30 @@ export function normalizeMatchedStatsRow(registry, statsRow, options = {}) {
     teamName: options.teamName ?? readFirstNonEmpty(statsRow, ['Team', 'TEAM']),
     clubId: options.clubId ?? player.clubId ?? null,
     clubName: options.clubName ?? player.clubName ?? '',
-    opponentTeamName: readFirstNonEmpty(statsRow, [
-      'Opponent',
-      'Opponent Team',
-      'OPPONENT'
-    ]),
+    opponentPlayerName: readFirstNonEmpty(statsRow, ['Opponent', 'OPPONENT']),
+    opponentTeamName: options.opponentTeamName ?? '',
     matchDate: readFirstNonEmpty(statsRow, ['Date', 'DATE']),
+    tournament: readFirstNonEmpty(statsRow, ['Tournament']),
+    league: readFirstNonEmpty(statsRow, ['League']),
+    ageGroup: readFirstNonEmpty(statsRow, [' Age Group ', 'Age Group']),
     metrics: {
-      average: readFirstNonEmpty(statsRow, ['Average', 'AVG', '3DA']),
-      dartsUsed: readFirstNonEmpty(statsRow, [
-        'Darts Used',
-        'Darts',
-        'DARTS USED'
-      ]),
-      tons: readFirstNonEmpty(statsRow, ['Tons', 'TONS']),
-      oneEighties: readFirstNonEmpty(statsRow, [
-        '180s',
-        '1x80s',
-        'OneEighties'
-      ]),
-      legsPlayed: readFirstNonEmpty(statsRow, [
-        'Legs Played',
-        'Legs',
-        'LEGS PLAYED'
-      ]),
-      legsWon: readFirstNonEmpty(statsRow, ['Legs Won', 'WON']),
-      points: readFirstNonEmpty(statsRow, ['Points', 'PTS'])
+      average: readFirstNonEmpty(statsRow, [' Average ', 'Average', 'AVG']),
+      ranking: readFirstNonEmpty(statsRow, ['Ranking']),
+      dartsUsed: readFirstNonEmpty(statsRow, ['Darts Used', 'Darts']),
+      tons: readFirstNonEmpty(statsRow, ['Total Tons', 'No Tons']),
+      oneEighties: readFirstNonEmpty(statsRow, ["180's", '180s']),
+      oneSeventyOnes: readFirstNonEmpty(statsRow, ["171's", '171s']),
+      highestClose: readFirstNonEmpty(statsRow, ['Highest Close']),
+      fastestClose: readFirstNonEmpty(statsRow, ['Fastest Close']),
+      singlesPlayed: readFirstNonEmpty(statsRow, ['Singles Played']),
+      singlesWon: readFirstNonEmpty(statsRow, ['Singles Won']),
+      legsWon: readFirstNonEmpty(statsRow, ['Legs Won']),
+      legsLost: readFirstNonEmpty(statsRow, ['Legs Lost']),
+      gp: readFirstNonEmpty(statsRow, ['GP']),
+      wins: readFirstNonEmpty(statsRow, ['Win ']),
+      draws: readFirstNonEmpty(statsRow, ['Draw']),
+      losses: readFirstNonEmpty(statsRow, ['Lost']),
+      points: readFirstNonEmpty(statsRow, ['Points'])
     },
     importStatus: 'matched',
     importedAt: new Date().toISOString()
@@ -403,6 +410,40 @@ export function normalizeMatchedStatsRow(registry, statsRow, options = {}) {
     stat: normalizedStat,
     player
   };
+}
+
+export function normalizeDsaNumber(value) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+
+  return raw
+    .toUpperCase()
+    .replace(/^DSA[\s\-:]*/i, '')
+    .replace(/\s+/g, '')
+    .replace(/[^0-9A-Z]/g, '');
+}
+
+function buildFullName({ firstNames, surname, initials, callingName }) {
+  const preferredFirstPart = firstNames || callingName || initials;
+  return [preferredFirstPart, surname].filter(Boolean).join(' ').trim();
+}
+
+function buildAliases({ fullName, firstNames, surname, initials, callingName }) {
+  const aliasSet = new Set();
+
+  [
+    fullName,
+    [firstNames, surname].filter(Boolean).join(' ').trim(),
+    [callingName, surname].filter(Boolean).join(' ').trim(),
+    [initials, surname].filter(Boolean).join(' ').trim(),
+    initials && surname ? `${initials}.${surname}` : '',
+    initials && surname ? `${initials} ${surname}` : ''
+  ]
+    .map((value) => cleanString(value))
+    .filter(Boolean)
+    .forEach((value) => aliasSet.add(value));
+
+  return Array.from(aliasSet);
 }
 
 function applyAllowedChanges(player, requestedChanges) {
@@ -429,6 +470,10 @@ function readFirstNonEmpty(row, possibleKeys) {
   return '';
 }
 
+function cleanString(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
 export function createEmptyRegistry() {
   return {
     players: {},
@@ -448,6 +493,8 @@ export function createEmptyRegistry() {
 
     historicalStatsRaw: {},
     historicalStatsNormalized: {},
+    historicalTeamResultsRaw: {},
+    historicalTeamResultsNormalized: {},
     importExceptions: {},
 
     editRequests: {}

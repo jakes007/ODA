@@ -10,10 +10,15 @@ function safeObject(value) {
   return value && typeof value === 'object' ? value : {};
 }
 
-// ============================================
-// PLAYER MASTER RECORD
-// Admin-controlled official registry record
-// ============================================
+function toNullableNumber(value) {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? numericValue : null;
+}
+
 export function createPlayerMasterRecord(data) {
   const firstNames = cleanString(data.firstNames);
   const surname = cleanString(data.surname);
@@ -23,8 +28,6 @@ export function createPlayerMasterRecord(data) {
 
   return {
     playerId: data.playerId ?? createId('player'),
-
-    // official identity
     fullName,
     firstNames,
     surname,
@@ -35,24 +38,14 @@ export function createPlayerMasterRecord(data) {
     dateOfBirth: cleanString(data.dateOfBirth),
     race: cleanString(data.race),
     gender: cleanString(data.gender),
-
-    // admin registry status
-    registrationStatus: cleanString(data.registrationStatus) || 'active', // active | inactive | non-active
+    registrationStatus: cleanString(data.registrationStatus) || 'active',
     associationName: cleanString(data.associationName),
     provinceName: cleanString(data.provinceName),
-
-    // club and competition identity
     clubId: cleanString(data.clubId),
     clubName: cleanString(data.clubName),
-
-    // helpful import aliases
     aliases: Array.isArray(data.aliases)
-      ? data.aliases
-          .map((alias) => cleanString(alias))
-          .filter(Boolean)
+      ? data.aliases.map((alias) => cleanString(alias)).filter(Boolean)
       : [],
-
-    // private contact details
     contact: {
       phone: cleanString(data.phone),
       email: cleanString(data.email),
@@ -61,21 +54,13 @@ export function createPlayerMasterRecord(data) {
       city: cleanString(data.city),
       postalCode: cleanString(data.postalCode)
     },
-
-    // source metadata
     source: cleanString(data.source) || 'manual',
     sourceImportedAt: data.sourceImportedAt ?? null,
-
-    // system metadata
     createdAt: data.createdAt ?? new Date().toISOString(),
     updatedAt: data.updatedAt ?? new Date().toISOString()
   };
 }
 
-// ============================================
-// CLUB
-// Registry / branding source for teams and logos later
-// ============================================
 export function createClub(data) {
   return {
     clubId: data.clubId ?? createId('club'),
@@ -95,10 +80,6 @@ export function createClub(data) {
   };
 }
 
-// ============================================
-// PLAYER PRIVATE PROFILE
-// What the player themselves can see/edit
-// ============================================
 export function buildPlayerPrivateProfile(masterRecord) {
   return {
     playerId: masterRecord.playerId,
@@ -124,10 +105,6 @@ export function buildPlayerPrivateProfile(masterRecord) {
   };
 }
 
-// ============================================
-// PLAYER PUBLIC PROFILE
-// What public / other players may see
-// ============================================
 export function buildPlayerPublicProfile(masterRecord, options = {}) {
   return {
     playerId: masterRecord.playerId,
@@ -140,43 +117,31 @@ export function buildPlayerPublicProfile(masterRecord, options = {}) {
   };
 }
 
-// ============================================
-// COMPETITION
-// Example: ODA League, ODA Singles League, ODA Memorial
-// ============================================
 export function createCompetition(data) {
   return {
     competitionId: data.competitionId ?? createId('competition'),
     name: data.name,
-    type: data.type, // league | singles | memorial | tournament
+    type: data.type,
     season: cleanString(data.season),
-    status: cleanString(data.status) || 'active', // active | completed | archived
+    status: cleanString(data.status) || 'active',
     associationName: cleanString(data.associationName),
     provinceName: cleanString(data.provinceName),
     createdAt: data.createdAt ?? new Date().toISOString()
   };
 }
 
-// ============================================
-// COMPETITION MEMBERSHIP
-// Links ONE player to MANY competitions
-// ============================================
 export function createCompetitionMembership(data) {
   return {
     membershipId: data.membershipId ?? createId('membership'),
     playerId: data.playerId,
     competitionId: data.competitionId,
     teamId: data.teamId ?? null,
-    role: cleanString(data.role) || 'player', // player | captain | reserve
-    status: cleanString(data.status) || 'active', // active | inactive
+    role: cleanString(data.role) || 'player',
+    status: cleanString(data.status) || 'active',
     joinedAt: data.joinedAt ?? new Date().toISOString()
   };
 }
 
-// ============================================
-// TEAM
-// Used in leagues and team fixtures
-// ============================================
 export function createTeam(data) {
   return {
     teamId: data.teamId ?? createId('team'),
@@ -195,10 +160,6 @@ export function createTeam(data) {
   };
 }
 
-// ============================================
-// HISTORICAL RAW STAT ROW
-// Exact imported row from spreadsheet for audit / traceability
-// ============================================
 export function createHistoricalStatRaw(data) {
   return {
     rawStatId: data.rawStatId ?? createId('rawstat'),
@@ -207,63 +168,121 @@ export function createHistoricalStatRaw(data) {
     sourceRowNumber: Number.isFinite(Number(data.sourceRowNumber))
       ? Number(data.sourceRowNumber)
       : null,
-
     dsaNumber: cleanString(data.dsaNumber),
     rawPlayerName: cleanString(data.rawPlayerName),
     rawTeamName: cleanString(data.rawTeamName),
     rawOpponentName: cleanString(data.rawOpponentName),
     rawDate: cleanString(data.rawDate),
-
     rawFields: safeObject(data.rawFields),
-
     importedAt: data.importedAt ?? new Date().toISOString()
   };
 }
 
-// ============================================
-// NORMALIZED HISTORICAL STAT ROW
-// Clean app-facing stat record linked to official player/team
-// ============================================
 export function createHistoricalStatNormalized(data) {
   return {
     statId: data.statId ?? createId('stat'),
     rawStatId: data.rawStatId ?? null,
-
     competitionId: data.competitionId ?? null,
     season: cleanString(data.season),
     division: cleanString(data.division),
-
     playerId: data.playerId ?? null,
     dsaNumber: cleanString(data.dsaNumber),
     displayName: cleanString(data.displayName),
-
     teamId: data.teamId ?? null,
     teamName: cleanString(data.teamName),
     clubId: data.clubId ?? null,
     clubName: cleanString(data.clubName),
-
+    opponentPlayerName: cleanString(data.opponentPlayerName),
     opponentTeamName: cleanString(data.opponentTeamName),
     matchDate: cleanString(data.matchDate),
-
+    tournament: cleanString(data.tournament),
+    league: cleanString(data.league),
+    ageGroup: cleanString(data.ageGroup),
     metrics: {
       average: toNullableNumber(data.metrics?.average),
+      ranking: toNullableNumber(data.metrics?.ranking),
       dartsUsed: toNullableNumber(data.metrics?.dartsUsed),
       tons: toNullableNumber(data.metrics?.tons),
       oneEighties: toNullableNumber(data.metrics?.oneEighties),
-      legsPlayed: toNullableNumber(data.metrics?.legsPlayed),
+      oneSeventyOnes: toNullableNumber(data.metrics?.oneSeventyOnes),
+      highestClose: toNullableNumber(data.metrics?.highestClose),
+      fastestClose: toNullableNumber(data.metrics?.fastestClose),
+      singlesPlayed: toNullableNumber(data.metrics?.singlesPlayed),
+      singlesWon: toNullableNumber(data.metrics?.singlesWon),
       legsWon: toNullableNumber(data.metrics?.legsWon),
+      legsLost: toNullableNumber(data.metrics?.legsLost),
+      gp: toNullableNumber(data.metrics?.gp),
+      wins: toNullableNumber(data.metrics?.wins),
+      draws: toNullableNumber(data.metrics?.draws),
+      losses: toNullableNumber(data.metrics?.losses),
       points: toNullableNumber(data.metrics?.points)
     },
-
     importStatus: cleanString(data.importStatus) || 'matched',
     importedAt: data.importedAt ?? new Date().toISOString()
   };
 }
 
-// ============================================
-// IMPORT EXCEPTION
-// Stores unmatched or ambiguous spreadsheet rows
-// ============================================
+export function createHistoricalTeamResultRaw(data) {
+  return {
+    rawTeamResultId: data.rawTeamResultId ?? createId('rawteamresult'),
+    sourceWorkbook: cleanString(data.sourceWorkbook),
+    sourceSheet: cleanString(data.sourceSheet),
+    sourceRowNumber: Number.isFinite(Number(data.sourceRowNumber))
+      ? Number(data.sourceRowNumber)
+      : null,
+    rawTeamName: cleanString(data.rawTeamName),
+    rawOpponentTeamName: cleanString(data.rawOpponentTeamName),
+    rawDate: cleanString(data.rawDate),
+    rawFields: safeObject(data.rawFields),
+    importedAt: data.importedAt ?? new Date().toISOString()
+  };
+}
+
+export function createHistoricalTeamResultNormalized(data) {
+  return {
+    teamResultId: data.teamResultId ?? createId('teamresult'),
+    rawTeamResultId: data.rawTeamResultId ?? null,
+    competitionId: data.competitionId ?? null,
+    season: cleanString(data.season),
+    division: cleanString(data.division),
+    teamId: data.teamId ?? null,
+    teamName: cleanString(data.teamName),
+    clubId: data.clubId ?? null,
+    clubName: cleanString(data.clubName),
+    opponentTeamId: data.opponentTeamId ?? null,
+    opponentTeamName: cleanString(data.opponentTeamName),
+    matchDate: cleanString(data.matchDate),
+    tournament: cleanString(data.tournament),
+    league: cleanString(data.league),
+    ageGroup: cleanString(data.ageGroup),
+    metrics: {
+      dartsUsed: toNullableNumber(data.metrics?.dartsUsed),
+      verifyDartsUsed: toNullableNumber(data.metrics?.verifyDartsUsed),
+      theoreticalDartsUsed: toNullableNumber(data.metrics?.theoreticalDartsUsed),
+      singlesPlayed: toNullableNumber(data.metrics?.singlesPlayed),
+      singlesWon: toNullableNumber(data.metrics?.singlesWon),
+      average: toNullableNumber(data.metrics?.average),
+      tons: toNullableNumber(data.metrics?.tons),
+      oneEighties: toNullableNumber(data.metrics?.oneEighties),
+      oneSeventyOnes: toNullableNumber(data.metrics?.oneSeventyOnes),
+      totalTons: toNullableNumber(data.metrics?.totalTons),
+      highestClose: toNullableNumber(data.metrics?.highestClose),
+      playerOfMatch: cleanString(data.metrics?.playerOfMatch),
+      fastestClose: toNullableNumber(data.metrics?.fastestClose),
+      ranking: toNullableNumber(data.metrics?.ranking),
+      legsWon: toNullableNumber(data.metrics?.legsWon),
+      legsLost: toNullableNumber(data.metrics?.legsLost),
+      gp: toNullableNumber(data.metrics?.gp),
+      wins: toNullableNumber(data.metrics?.wins),
+      draws: toNullableNumber(data.metrics?.draws),
+      losses: toNullableNumber(data.metrics?.losses),
+      points: toNullableNumber(data.metrics?.points)
+    },
+    importStatus: cleanString(data.importStatus) || 'matched',
+    importedAt: data.importedAt ?? new Date().toISOString()
+  };
+}
+
 export function createImportException(data) {
   return {
     exceptionId: data.exceptionId ?? createId('import_exception'),
@@ -277,20 +296,16 @@ export function createImportException(data) {
   };
 }
 
-// ============================================
-// FIXTURE TEMPLATE
-// Reusable format definition, admin can still override later
-// ============================================
 export function createFixtureTemplate(data) {
   return {
     templateId: data.templateId ?? createId('template'),
     name: data.name,
-    competitionType: data.competitionType, // league | singles | memorial | tournament
+    competitionType: data.competitionType,
     associationName: cleanString(data.associationName),
     games: data.games.map((game, index) => ({
       order: index + 1,
       label: game.label ?? `Game ${index + 1}`,
-      type: game.type, // singles | doubles | team
+      type: game.type,
       startingScore: game.startingScore ?? 501,
       legsMode: game.legsMode ?? 'fixed',
       totalLegs: game.totalLegs ?? 1
@@ -299,34 +314,18 @@ export function createFixtureTemplate(data) {
   };
 }
 
-// ============================================
-// EDIT REQUEST
-// For player self-service with admin approval flow
-// ============================================
 export function createPlayerEditRequest(data) {
   return {
     requestId: data.requestId ?? createId('editreq'),
     playerId: data.playerId,
     requestedChanges: data.requestedChanges,
-    status: data.status ?? 'pending', // pending | approved | rejected
+    status: data.status ?? 'pending',
     submittedAt: data.submittedAt ?? new Date().toISOString(),
     reviewedAt: data.reviewedAt ?? null,
     reviewedBy: data.reviewedBy ?? null
   };
 }
 
-function toNullableNumber(value) {
-  if (value === null || value === undefined || value === '') {
-    return null;
-  }
-
-  const numericValue = Number(value);
-  return Number.isFinite(numericValue) ? numericValue : null;
-}
-
-// ============================================
-// SIMPLE PRINTERS FOR TESTING
-// ============================================
 export function printObject(title, obj) {
   console.log(`\n===== ${title} =====`);
   console.log(JSON.stringify(obj, null, 2));

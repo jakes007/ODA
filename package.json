@@ -6,6 +6,7 @@
         "start": "node index.js"
     },
     "dependencies": {
-        "react-icons": "^5.6.0"
+        "react-icons": "^5.6.0",
+        "xlsx": "^0.18.5"
     }
 }
