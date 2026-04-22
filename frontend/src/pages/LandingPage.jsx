@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom';
+import { FiFacebook, FiInstagram, FiMail } from 'react-icons/fi';
+import { FaWhatsapp } from 'react-icons/fa';
 import PageHeader from '../components/common/PageHeader';
 import StatCard from '../components/common/StatCard';
 import {
@@ -25,9 +27,7 @@ export default function LandingPage() {
       competitionId: overview.competition.competitionId,
       name: overview.competition.name,
       season: overview.competition.season,
-      status: overview.competition.status,
-      teams: overview.summary.totalTeams,
-      fixtures: overview.summary.totalFixtures
+      status: overview.competition.status
     }
   ];
 
@@ -81,7 +81,7 @@ export default function LandingPage() {
           </div>
 
           <Link to="/competition/fixtures" className="panel-link">
-            View all live fixtures
+            View all
           </Link>
         </div>
 
@@ -155,15 +155,15 @@ export default function LandingPage() {
       </section>
 
       <div className="content-grid landing-grid premium-grid">
-  <section className="panel premium-panel premium-card-section">
-    <div className="panel-header">
-      <h3 className="panel-title">Competitions</h3>
-      <Link to="/competition/overview" className="panel-link">
-        View all
-      </Link>
-    </div>
+        <section className="panel premium-panel premium-card-section">
+          <div className="panel-header">
+            <h3 className="panel-title">Featured Competitions</h3>
+            <Link to="/competition/overview" className="panel-link">
+              View all
+            </Link>
+          </div>
 
-    {featuredCompetitions.map((competition) => (
+          {featuredCompetitions.map((competition) => (
             <div key={competition.competitionId} className="premium-info-card">
               <div>
                 <div className="premium-card-title">
@@ -173,78 +173,129 @@ export default function LandingPage() {
               </div>
             </div>
           ))}
-  </section>
+        </section>
 
-  <section className="panel premium-panel premium-card-section">
-    <div className="panel-header">
-      <h3 className="panel-title">Latest Results</h3>
-      <Link to="/competition/fixtures" className="panel-link">
-        View all
-      </Link>
-    </div>
+        <section className="panel premium-panel premium-card-section">
+          <div className="panel-header">
+            <h3 className="panel-title">Latest Results</h3>
+            <Link to="/competition/fixtures" className="panel-link">
+              View all
+            </Link>
+          </div>
 
-    {latestResults.map((fixture) => (
-      <div key={fixture.id} className="premium-info-card">
-        <div>
-          <div className="premium-card-title">{fixture.fixtureName}</div>
-          <div className="muted-text">
-            {fixture.complete ? 'Completed' : 'Pending'}
+          {latestResults.map((fixture) => (
+            <div key={fixture.id} className="premium-info-card">
+              <div>
+                <div className="premium-card-title">{fixture.fixtureName}</div>
+                <div className="muted-text">
+                  {fixture.complete ? 'Completed' : 'Pending'}
+                </div>
+              </div>
+
+              <div className="premium-result-score">{fixture.scoreText}</div>
+            </div>
+          ))}
+        </section>
+      </div>
+
+      <div className="content-grid landing-grid premium-grid">
+        <section className="panel premium-panel premium-card-section">
+          <div className="panel-header">
+            <h3 className="panel-title">Standings Snapshot</h3>
+            <Link to="/competition/standings" className="panel-link">
+              Full table
+            </Link>
+          </div>
+
+          <div className="premium-list">
+            {standingsSnapshot.map((team, index) => (
+              <div key={team.teamId} className="premium-list-row">
+                <span>
+                  {index + 1}. {team.teamName}
+                </span>
+                <span className="premium-points-value">{team.leaguePoints} pts</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="panel premium-panel premium-card-section">
+          <div className="panel-header">
+            <h3 className="panel-title">Top Players</h3>
+            <Link to="/competition/rankings" className="panel-link">
+              Full rankings
+            </Link>
+          </div>
+
+          <div className="premium-list">
+            {topPlayers.map((player, index) => (
+              <Link
+                key={player.playerId}
+                to={`/player/${player.playerId}`}
+                className="premium-list-row premium-clickable-row"
+              >
+                <span>
+                  {index + 1}. {player.displayName}
+                </span>
+                <span className="premium-average-value">{player.threeDartAverage}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <footer className="premium-footer">
+        <div className="premium-footer-inner">
+          <div className="premium-footer-brand">
+            <div className="premium-footer-title">Observatory Darts Association</div>
+            <div className="premium-footer-subtitle">
+              Follow our Socials for exclusive content or get in contact with us.
+            </div>
+          </div>
+
+          <div className="premium-footer-socials">
+            <a
+              href="https://www.facebook.com/obsdarts"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="premium-footer-icon-link"
+              aria-label="Visit Observatory Darts on Facebook"
+            >
+              <FiFacebook />
+            </a>
+
+            <a
+              href="https://www.instagram.com/observatorydarts"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="premium-footer-icon-link"
+              aria-label="Visit Observatory Darts on Instagram"
+            >
+              <FiInstagram />
+            </a>
+
+            <a
+              href="https://wa.me/27648906677"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="premium-footer-icon-link"
+              aria-label="Chat to Observatory Darts on WhatsApp"
+            >
+              <FaWhatsapp />
+            </a>
+
+            <a
+              href="mailto:observatorydarts@gmail.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="premium-footer-icon-link"
+              aria-label="Email Observatory Darts"
+            >
+              <FiMail />
+            </a>
           </div>
         </div>
-
-        <div className="premium-result-score">
-          {fixture.scoreText}
-        </div>
-      </div>
-    ))}
-  </section>
-</div>
-
-<div className="content-grid landing-grid premium-grid">
-  <section className="panel premium-panel premium-card-section">
-    <div className="panel-header">
-      <h3 className="panel-title">Standings</h3>
-      <Link to="/competition/standings" className="panel-link">
-        Full table
-      </Link>
-    </div>
-
-    <div className="premium-list">
-      {standingsSnapshot.map((team, index) => (
-                      <div key={team.teamId} className="premium-list-row">
-                      <span>
-                        {index + 1}. {team.teamName}
-                      </span>
-                      <span className="premium-points-value">{team.leaguePoints} pts</span>
-                    </div>
-      ))}
-    </div>
-  </section>
-
-  <section className="panel premium-panel premium-card-section">
-    <div className="panel-header">
-      <h3 className="panel-title">Top Players by Average</h3>
-      <Link to="/competition/rankings" className="panel-link">
-        Full rankings
-      </Link>
-    </div>
-
-    <div className="premium-list">
-      {topPlayers.map((player, index) => (
-                      <Link
-                      key={player.playerId}
-                      to={`/player/${player.playerId}`}
-                      className="premium-list-row premium-clickable-row"
-                    >
-                      <span>
-                        {index + 1}. {player.displayName}
-                      </span>
-                      <span className="premium-average-value">{player.threeDartAverage}</span>
-                    </Link>
-      ))}
-    </div>
-  </section>
-</div>
+      </footer>
     </div>
   );
 }
@@ -284,17 +335,6 @@ function getFixtureScoreParts(scoreText) {
     home: home || '0',
     away: away || '0'
   };
-}
-
-function formatFixtureStatusLabel(status) {
-  const labels = {
-    active: 'Live',
-    completed: 'Completed',
-    ready_to_play: 'Ready To Play',
-    waiting_for_opponent: 'Waiting For Opponent'
-  };
-
-  return labels[status] ?? status;
 }
 
 function getLiveFixtureFormatLabel(fixture) {

@@ -173,20 +173,6 @@ textarea {
   transform: translateY(7px);
 }
 
-.topbar-text {
-  display: flex;
-  flex-direction: column;
-}
-
-.topbar-title {
-  margin: 0;
-  font-size: 22px;
-}
-
-.topbar-subtitle {
-  margin: 4px 0 0;
-  color: rgba(205, 216, 232, 0.68);
-}
 
 .topbar-actions {
   display: flex;
@@ -714,7 +700,7 @@ textarea {
   }
 
   .topbar-logo {
-    height: 240px;
+    height: 280px;
     width: auto;
     max-width: 190px;
     object-fit: contain;
