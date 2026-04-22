@@ -354,10 +354,6 @@
   margin-bottom: 0.25rem;
 }
 
-.premium-card-meta {
-  text-align: right;
-}
-
 .premium-list {
   display: grid;
   gap: 0.65rem;
@@ -468,7 +464,4 @@
     align-items: flex-start;
   }
 
-  .premium-card-meta {
-    text-align: left;
-  }
 }

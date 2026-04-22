@@ -60,9 +60,9 @@ export default function LandingPage() {
         </div>
 
         <div className="landing-hero-stats premium-hero-stats">
-          <StatCard label="Competitions" value={featuredCompetitions.length} />
+          <StatCard label="Clubs" value={overview.summary.totalTeams} />
           <StatCard label="Teams" value={overview.summary.totalTeams} />
-          <StatCard label="Ranked Players" value={overview.summary.totalRankedPlayers} />
+          <StatCard label="Players" value={overview.summary.totalRankedPlayers} />
           <StatCard label="Fixtures" value={overview.summary.totalFixtures} />
         </div>
       </section>
@@ -120,22 +120,15 @@ export default function LandingPage() {
     </div>
 
     {featuredCompetitions.map((competition) => (
-      <div key={competition.competitionId} className="premium-info-card">
-        <div>
-          <div className="premium-card-title">
-            {competition.name} • {competition.season}
-          </div>
-          <div className="muted-text">
-            {formatCompetitionStatus(competition.status)}
-          </div>
-        </div>
-
-        <div className="premium-card-meta">
-          <div>{competition.teams} teams</div>
-          <div>{competition.fixtures} fixtures</div>
-        </div>
-      </div>
-    ))}
+            <div key={competition.competitionId} className="premium-info-card">
+              <div>
+                <div className="premium-card-title">
+                  {competition.name} • {competition.season}
+                </div>
+                <div className="muted-text">{formatCompetitionStatus(competition.status)}</div>
+              </div>
+            </div>
+          ))}
   </section>
 
   <section className="panel premium-panel premium-card-section">
@@ -174,19 +167,19 @@ export default function LandingPage() {
 
     <div className="premium-list">
       {standingsSnapshot.map((team, index) => (
-        <div key={team.teamId} className="premium-list-row">
-          <span>
-            {index + 1}. {team.teamName}
-          </span>
-          <span>{team.leaguePoints} pts</span>
-        </div>
+                      <div key={team.teamId} className="premium-list-row">
+                      <span>
+                        {index + 1}. {team.teamName}
+                      </span>
+                      <span className="premium-points-value">{team.leaguePoints} pts</span>
+                    </div>
       ))}
     </div>
   </section>
 
   <section className="panel premium-panel premium-card-section">
     <div className="panel-header">
-      <h3 className="panel-title">Top Players</h3>
+      <h3 className="panel-title">Top Players by Average</h3>
       <Link to="/competition/rankings" className="panel-link">
         Full rankings
       </Link>
@@ -194,16 +187,16 @@ export default function LandingPage() {
 
     <div className="premium-list">
       {topPlayers.map((player, index) => (
-        <Link
-          key={player.playerId}
-          to={`/player/${player.playerId}`}
-          className="premium-list-row premium-clickable-row"
-        >
-          <span>
-            {index + 1}. {player.displayName}
-          </span>
-          <span>{player.threeDartAverage}</span>
-        </Link>
+                      <Link
+                      key={player.playerId}
+                      to={`/player/${player.playerId}`}
+                      className="premium-list-row premium-clickable-row"
+                    >
+                      <span>
+                        {index + 1}. {player.displayName}
+                      </span>
+                      <span className="premium-average-value">{player.threeDartAverage}</span>
+                    </Link>
       ))}
     </div>
   </section>

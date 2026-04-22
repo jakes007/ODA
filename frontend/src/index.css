@@ -583,8 +583,13 @@ textarea {
     0 0 20px rgba(255, 152, 0, 0.15);
 }
 
-.premium-highlight {
-  color: #ff9800;
+.premium-points-value {
+  color: rgba(255, 196, 120, 0.92);
+  font-weight: 700;
+}
+
+.premium-average-value {
+  color: #8edfff;
   font-weight: 700;
 }
 
