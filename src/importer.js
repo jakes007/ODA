@@ -136,32 +136,6 @@ function findOverridePlayer(registry, dsaNumber, rawPlayerName) {
   return null;
 }
 
-function createPlayerMatchedRowFromOverride(registry, row, options, overridePlayer) {
-  const syntheticDsa =
-    normalizeDsaNumber(readFirst(row, ['DSA Number', 'DSA No', 'DSA'])) || '__override__';
-
-  const patchedRegistry = {
-    ...registry,
-    playerIdsByDsaNumber: {
-      ...registry.playerIdsByDsaNumber,
-      [syntheticDsa]: overridePlayer.playerId
-    },
-    players: {
-      ...registry.players,
-      [overridePlayer.playerId]: overridePlayer
-    }
-  };
-
-  return normalizeMatchedStatsRow(
-    patchedRegistry,
-    {
-      ...row,
-      'DSA Number': syntheticDsa
-    },
-    options
-  );
-}
-
 export function importRegistryRows(registry, rows = [], options = {}) {
   let createdPlayers = 0;
   let createdClubs = 0;
@@ -391,47 +365,29 @@ export function importStatsRows(registry, rows = [], options = {}) {
 
     let player = null;
 
-// Try DSA first
-if (normalizedDsaNumber) {
-  let player = null;
+    // 1. Try DSA first
+    if (normalizedDsaNumber) {
+      const playerId = registry.playerIdsByDsaNumber[normalizedDsaNumber];
+      if (playerId) {
+        player = registry.players[playerId];
+      }
+    }
 
-// 1. Try DSA first
-if (normalizedDsaNumber) {
-  const playerId = registry.playerIdsByDsaNumber[normalizedDsaNumber];
-  if (playerId) {
-    player = registry.players[playerId];
-  }
-}
+    // 2. If no DSA match, try name/alias match
+    if (!player && rawPlayerName) {
+      player =
+        Object.values(registry.players).find((p) => {
+          const namesToCheck = [
+            p.fullName,
+            p.callingName,
+            ...(p.aliases || [])
+          ];
 
-// 2. If no DSA match, try name/alias match
-if (!player && rawPlayerName) {
-  player =
-    Object.values(registry.players).find((p) => {
-      const namesToCheck = [
-        p.fullName,
-        p.callingName,
-        ...(p.aliases || [])
-      ];
-
-      return namesToCheck.some(
-        (name) => normalizeName(name) === normalizeName(rawPlayerName)
-      );
-    }) || null;
-}
-}
-
-// 🔥 Fallback: match by name if no DSA
-player = Object.values(registry.players).find(p => {
-  const namesToCheck = [
-    p.fullName,
-    p.callingName,
-    ...(p.aliases || [])
-  ];
-
-  return namesToCheck.some(name =>
-    normalizeName(name) === normalizeName(rawPlayerName)
-  );
-}) || null;
+          return namesToCheck.some(
+            (name) => normalizeName(name) === normalizeName(rawPlayerName)
+          );
+        }) || null;
+    }
 
     if (player && competitionResult.success) {
       const membershipResult = ensureCompetitionMembershipExists(registry, {
@@ -471,7 +427,48 @@ player = Object.values(registry.players).find(p => {
       opponentTeamName: matchingTeamResult?.opponentTeamName ?? ''
     };
 
-    let normalizedResult = normalizeMatchedStatsRow(registry, row, normalizeOptions);
+    let normalizedResult = null;
+
+    // If we already found a player by DSA or name/alias, create the stat directly
+    if (player) {
+      const stat = {
+        statId: `stat_${Date.now()}_${Math.floor(Math.random() * 100000)}`,
+        rawStatId: raw.rawStatId,
+        competitionId: normalizeOptions.competitionId,
+        season: normalizeOptions.season,
+        division: readFirst(row, ['Division']),
+        playerId: player.playerId,
+        dsaNumber: player.dsaNumber || '',
+        displayName: player.fullName,
+        teamId: normalizeOptions.teamId,
+        teamName: normalizeOptions.teamName,
+        clubId: normalizeOptions.clubId,
+        clubName: normalizeOptions.clubName,
+        opponentPlayerName: readFirst(row, ['Opponent']),
+        opponentTeamName: normalizeOptions.opponentTeamName,
+        matchDate: readFirst(row, ['Date']),
+        tournament: readFirst(row, ['Tournament']),
+        league: readFirst(row, ['League']),
+        ageGroup: readFirst(row, [' Age Group ', 'Age Group']),
+        metrics: {
+          average: Number(readFirst(row, [' Average ', 'Average'])) || 0,
+          ranking: Number(readFirst(row, ['Ranking'])) || 0,
+          dartsUsed: Number(readFirst(row, ['Darts Used'])) || 0,
+          tons: Number(readFirst(row, ['No Tons'])) || 0,
+          singlesPlayed: Number(readFirst(row, ['Singles Played'])) || 0,
+          singlesWon: Number(readFirst(row, ['Singles Won'])) || 0
+        },
+        importStatus: 'matched',
+        importedAt: new Date().toISOString()
+      };
+
+      registry.historicalStatsNormalized[stat.statId] = stat;
+      matchedCount++;
+      return;
+    }
+
+    // Only use the old matcher if no player was found
+    normalizedResult = normalizeMatchedStatsRow(registry, row, normalizeOptions);
 
     if (!normalizedResult.success) {
       const overridePlayer = findOverridePlayer(
@@ -489,13 +486,12 @@ player = Object.values(registry.players).find(p => {
             role: options.defaultRole ?? 'player',
             status: 'active'
           });
-      
+
           if (membershipResult.success && membershipResult.created) {
             createdMemberships++;
           }
         }
-      
-        // 🔥 DIRECT NORMALIZATION (no DSA matching again)
+
         const stat = {
           statId: `stat_${Date.now()}_${Math.floor(Math.random() * 100000)}`,
           rawStatId: raw.rawStatId,
@@ -526,9 +522,9 @@ player = Object.values(registry.players).find(p => {
           importStatus: 'matched',
           importedAt: new Date().toISOString()
         };
-      
+
         registry.historicalStatsNormalized[stat.statId] = stat;
-      
+
         matchedCount++;
         overrideMatchedCount++;
         return;
