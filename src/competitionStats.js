@@ -7,6 +7,18 @@ function toNumber(value) {
   return Number.isFinite(numericValue) ? numericValue : 0;
 }
 
+function matchesFilter(row, filters = {}) {
+  const season = cleanString(filters.season);
+  const tournament = cleanString(filters.tournament);
+  const division = cleanString(filters.division);
+
+  if (season && cleanString(row.season) !== season) return false;
+  if (tournament && cleanString(row.tournament) !== tournament) return false;
+  if (division && cleanString(row.division) !== division) return false;
+
+  return true;
+}
+
 function buildTeamStatsRow(team) {
   return {
     teamId: team.teamId,
@@ -43,8 +55,6 @@ function buildPlayerRankingRow(player) {
     dartsUsed: 0,
     tons: 0,
     oneEighties: 0,
-    highestClose: 0,
-    fastestCloseBest: null,
     singlesPlayed: 0,
     singlesWon: 0,
     winRate: 0,
@@ -52,37 +62,10 @@ function buildPlayerRankingRow(player) {
   };
 }
 
-function getCompetitionTeams(registry, competitionId) {
-  return Object.values(registry.teams).filter(
-    (team) => team.competitionId === competitionId
-  );
-}
-
-function getCompetitionStatsRows(registry, competitionId) {
-  return Object.values(registry.historicalStatsNormalized).filter(
-    (stat) => stat.competitionId === competitionId
-  );
-}
-
-function getCompetitionTeamResults(registry, competitionId) {
-  return Object.values(registry.historicalTeamResultsNormalized).filter(
-    (result) => result.competitionId === competitionId
-  );
-}
-
 function compareStandingsRows(a, b) {
-  if (b.leaguePoints !== a.leaguePoints) {
-    return b.leaguePoints - a.leaguePoints;
-  }
-
-  if (b.scoreDifference !== a.scoreDifference) {
-    return b.scoreDifference - a.scoreDifference;
-  }
-
-  if (b.matchPointsFor !== a.matchPointsFor) {
-    return b.matchPointsFor - a.matchPointsFor;
-  }
-
+  if (b.leaguePoints !== a.leaguePoints) return b.leaguePoints - a.leaguePoints;
+  if (b.scoreDifference !== a.scoreDifference) return b.scoreDifference - a.scoreDifference;
+  if (b.matchPointsFor !== a.matchPointsFor) return b.matchPointsFor - a.matchPointsFor;
   return a.teamName.localeCompare(b.teamName);
 }
 
@@ -98,7 +81,36 @@ function compareRankingRows(a, b) {
   return a.displayName.localeCompare(b.displayName);
 }
 
-export function buildCompetitionStandings(registry, competitionId) {
+function getCompetitionTeamResults(registry, competitionId, filters = {}) {
+  return Object.values(registry.historicalTeamResultsNormalized).filter(
+    (result) =>
+      result.competitionId === competitionId &&
+      matchesFilter(result, filters)
+  );
+}
+
+function getCompetitionStatsRows(registry, competitionId, filters = {}) {
+  return Object.values(registry.historicalStatsNormalized).filter(
+    (stat) =>
+      stat.competitionId === competitionId &&
+      matchesFilter(stat, filters)
+  );
+}
+
+function getTeamsFromTeamResults(registry, competitionId, filters = {}) {
+  const teamResults = getCompetitionTeamResults(registry, competitionId, filters);
+  const teamIds = new Set();
+
+  teamResults.forEach((result) => {
+    if (result.teamId) {
+      teamIds.add(result.teamId);
+    }
+  });
+
+  return Object.values(registry.teams).filter((team) => teamIds.has(team.teamId));
+}
+
+export function buildCompetitionStandings(registry, competitionId, filters = {}) {
   const competition = registry.competitions[competitionId];
 
   if (!competition) {
@@ -108,8 +120,9 @@ export function buildCompetitionStandings(registry, competitionId) {
     };
   }
 
-  const teams = getCompetitionTeams(registry, competitionId);
-  const teamResults = getCompetitionTeamResults(registry, competitionId);
+  const teams = getTeamsFromTeamResults(registry, competitionId, filters);
+  const teamResults = getCompetitionTeamResults(registry, competitionId, filters);
+
   const standingsMap = {};
 
   teams.forEach((team) => {
@@ -122,7 +135,18 @@ export function buildCompetitionStandings(registry, competitionId) {
     const teamName = cleanString(result.teamName);
     const opponentTeamName = cleanString(result.opponentTeamName);
     const date = cleanString(result.matchDate);
-    const pairKey = [date, teamName, opponentTeamName].sort().join('::');
+    const tournament = cleanString(result.tournament);
+    const division = cleanString(result.division);
+
+    const pairKey = [
+      date,
+      tournament,
+      division,
+      teamName,
+      opponentTeamName
+    ]
+      .sort()
+      .join('::');
 
     if (!teamName || !opponentTeamName || processed.has(pairKey)) {
       return;
@@ -131,22 +155,20 @@ export function buildCompetitionStandings(registry, competitionId) {
     const reverse = teamResults.find(
       (item) =>
         cleanString(item.matchDate) === date &&
+        cleanString(item.tournament) === tournament &&
+        cleanString(item.division) === division &&
         cleanString(item.teamName) === opponentTeamName &&
         cleanString(item.opponentTeamName) === teamName
     );
 
-    if (!reverse) {
-      return;
-    }
+    if (!reverse) return;
 
     processed.add(pairKey);
 
     const teamA = teams.find((team) => cleanString(team.name) === teamName);
     const teamB = teams.find((team) => cleanString(team.name) === opponentTeamName);
 
-    if (!teamA || !teamB) {
-      return;
-    }
+    if (!teamA || !teamB) return;
 
     const teamAStanding = standingsMap[teamA.teamId];
     const teamBStanding = standingsMap[teamB.teamId];
@@ -205,11 +227,12 @@ export function buildCompetitionStandings(registry, competitionId) {
   return {
     success: true,
     competition,
+    filters,
     standings
   };
 }
 
-export function buildCompetitionPlayerRankings(registry, competitionId) {
+export function buildCompetitionPlayerRankings(registry, competitionId, filters = {}) {
   const competition = registry.competitions[competitionId];
 
   if (!competition) {
@@ -219,14 +242,12 @@ export function buildCompetitionPlayerRankings(registry, competitionId) {
     };
   }
 
-  const statsRows = getCompetitionStatsRows(registry, competitionId);
+  const statsRows = getCompetitionStatsRows(registry, competitionId, filters);
   const rankingsMap = {};
 
   statsRows.forEach((row) => {
     const player = registry.players[row.playerId];
-    if (!player) {
-      return;
-    }
+    if (!player) return;
 
     if (!rankingsMap[player.playerId]) {
       rankingsMap[player.playerId] = buildPlayerRankingRow(player);
@@ -247,18 +268,6 @@ export function buildCompetitionPlayerRankings(registry, competitionId) {
     rankingRow.dartsUsed += toNumber(row.metrics?.dartsUsed);
     rankingRow.tons += toNumber(row.metrics?.tons);
     rankingRow.oneEighties += toNumber(row.metrics?.oneEighties);
-    rankingRow.highestClose = Math.max(
-      rankingRow.highestClose,
-      toNumber(row.metrics?.highestClose)
-    );
-
-    const fastestClose = toNumber(row.metrics?.fastestClose);
-    if (fastestClose > 0) {
-      if (rankingRow.fastestCloseBest === null || fastestClose < rankingRow.fastestCloseBest) {
-        rankingRow.fastestCloseBest = fastestClose;
-      }
-    }
-
     rankingRow.singlesPlayed += toNumber(row.metrics?.singlesPlayed);
     rankingRow.singlesWon += toNumber(row.metrics?.singlesWon);
   });
@@ -266,7 +275,9 @@ export function buildCompetitionPlayerRankings(registry, competitionId) {
   const rankings = Object.values(rankingsMap)
     .map((row) => {
       row.rankingAverage =
-        row.rankingCount > 0 ? Number((row.rankingTotal / row.rankingCount).toFixed(2)) : 0;
+        row.rankingCount > 0
+          ? Number((row.rankingTotal / row.rankingCount).toFixed(2))
+          : 0;
 
       row.winRate =
         row.singlesPlayed > 0
@@ -293,12 +304,14 @@ export function buildCompetitionPlayerRankings(registry, competitionId) {
   return {
     success: true,
     competition,
+    filters,
     rankings
   };
 }
 
-export function buildPlayerCompetitionHistory(registry, playerId, competitionId) {
+export function buildPlayerCompetitionHistory(registry, playerId, competitionId, filters = {}) {
   const player = registry.players[playerId];
+
   if (!player) {
     return {
       success: false,
@@ -307,6 +320,7 @@ export function buildPlayerCompetitionHistory(registry, playerId, competitionId)
   }
 
   const competition = registry.competitions[competitionId];
+
   if (!competition) {
     return {
       success: false,
@@ -316,13 +330,17 @@ export function buildPlayerCompetitionHistory(registry, playerId, competitionId)
 
   const rows = Object.values(registry.historicalStatsNormalized)
     .filter(
-      (row) => row.playerId === playerId && row.competitionId === competitionId
+      (row) =>
+        row.playerId === playerId &&
+        row.competitionId === competitionId &&
+        matchesFilter(row, filters)
     )
     .sort((a, b) => cleanString(a.matchDate).localeCompare(cleanString(b.matchDate)));
 
   const summary = rows.reduce(
     (acc, row) => {
       const rankingValue = Number(row.metrics?.ranking);
+
       if (Number.isFinite(rankingValue) && rankingValue > 0) {
         acc.rankingTotal += rankingValue;
         acc.rankingCount += 1;
@@ -334,14 +352,6 @@ export function buildPlayerCompetitionHistory(registry, playerId, competitionId)
       acc.oneEighties += toNumber(row.metrics?.oneEighties);
       acc.singlesPlayed += toNumber(row.metrics?.singlesPlayed);
       acc.singlesWon += toNumber(row.metrics?.singlesWon);
-      acc.highestClose = Math.max(acc.highestClose, toNumber(row.metrics?.highestClose));
-
-      const fastestClose = toNumber(row.metrics?.fastestClose);
-      if (fastestClose > 0) {
-        if (acc.fastestCloseBest === null || fastestClose < acc.fastestCloseBest) {
-          acc.fastestCloseBest = fastestClose;
-        }
-      }
 
       return acc;
     },
@@ -355,8 +365,6 @@ export function buildPlayerCompetitionHistory(registry, playerId, competitionId)
       oneEighties: 0,
       singlesPlayed: 0,
       singlesWon: 0,
-      highestClose: 0,
-      fastestCloseBest: null,
       winRate: 0
     }
   );
@@ -375,6 +383,7 @@ export function buildPlayerCompetitionHistory(registry, playerId, competitionId)
     success: true,
     player,
     competition,
+    filters,
     summary,
     rows
   };

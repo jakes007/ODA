@@ -64,15 +64,21 @@ export function runImportSmokeTest({
 
   const competitionId = getFirstCompetitionId(registry);
 
+  const activeFilters = {
+    season,
+    tournament: 'Placements',
+    division: 'Upper'
+  };
+
   const standingsResult = competitionId
-    ? buildCompetitionStandings(registry, competitionId)
+    ? buildCompetitionStandings(registry, competitionId, activeFilters)
     : {
         success: false,
         reason: 'No competition found after import'
       };
 
   const rankingsResult = competitionId
-    ? buildCompetitionPlayerRankings(registry, competitionId)
+    ? buildCompetitionPlayerRankings(registry, competitionId, activeFilters)
     : {
         success: false,
         reason: 'No competition found after import'
@@ -82,7 +88,7 @@ export function runImportSmokeTest({
 
   const playerHistoryResult =
     competitionId && firstPlayerId
-      ? buildPlayerCompetitionHistory(registry, firstPlayerId, competitionId)
+      ? buildPlayerCompetitionHistory(registry, firstPlayerId, competitionId, activeFilters)
       : {
           success: false,
           reason: 'No player or competition found for history check'

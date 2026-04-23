@@ -1,30 +1,55 @@
+import React from 'react';
 import PageHeader from '../components/common/PageHeader';
-import DataTable from '../components/tables/DataTable';
-import { getCompetitionStandings } from '../services/competitionData';
-
-const columns = [
-  { key: 'position', label: '#', render: (_, index) => index + 1 },
-  { key: 'teamName', label: 'Team' },
-  { key: 'played', label: 'P' },
-  { key: 'won', label: 'W' },
-  { key: 'drawn', label: 'D' },
-  { key: 'lost', label: 'L' },
-  { key: 'pointsFor', label: 'PF' },
-  { key: 'pointsAgainst', label: 'PA' },
-  { key: 'difference', label: 'Diff' },
-  { key: 'leaguePoints', label: 'Pts' }
-];
+import { standingsData } from '../data/standingsData';
+import { formatStandingRow, getPositionBadgeClass } from '../utils/standingsUtils';
 
 export default function StandingsPage() {
-  const data = getCompetitionStandings();
+  const rows = standingsData.map(formatStandingRow);
 
   return (
-    <div className="page-stack">
+    <div className="standings-page">
       <PageHeader
         title="Standings"
-        subtitle={`${data.competition.name} • ${data.competition.season}`}
+        subtitle="Current 2026 league table"
       />
-      <DataTable columns={columns} rows={data.standings} />
+
+      <section className="panel premium-panel standings-panel">
+        <div className="standings-table-wrap">
+          <table className="standings-table">
+            <thead>
+              <tr>
+                <th>Pos</th>
+                <th>Team</th>
+                <th>P</th>
+                <th>W</th>
+                <th>D</th>
+                <th>L</th>
+                <th>Diff</th>
+                <th>Pts</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {rows.map((row) => (
+                <tr key={`${row.position}-${row.teamName}`}>
+                  <td>
+                    <span className={getPositionBadgeClass(row.position)}>
+                      {row.position}
+                    </span>
+                  </td>
+                  <td className="team-name-cell">{row.teamName}</td>
+                  <td>{row.played}</td>
+                  <td>{row.won}</td>
+                  <td>{row.drawn}</td>
+                  <td>{row.lost}</td>
+                  <td>{row.scoreDifference}</td>
+                  <td className="points-cell">{row.leaguePoints}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }

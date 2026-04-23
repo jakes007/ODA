@@ -13,17 +13,17 @@
     "teamResultRawCount": 642,
     "teamResultMatchedCount": 642,
     "createdClubs": 2,
-    "createdCompetitions": 1,
+    "createdCompetitions": 2,
     "createdTeams": 25,
-    "createdMemberships": 172
+    "createdMemberships": 237
   },
   "registryTotals": {
     "players": 112,
     "clubs": 10,
-    "competitions": 1,
+    "competitions": 2,
     "teams": 25,
-    "competitionMemberships": 172,
-    "historicalStatsRaw": 8706,
+    "competitionMemberships": 237,
+    "historicalStatsRaw": 8705,
     "historicalStatsNormalized": 7965,
     "importExceptions": 1048,
     "editRequests": 0
@@ -31,155 +31,21 @@
   "standings": {
     "success": true,
     "competitionName": "ODA League",
-    "rowCount": 25,
-    "top3": [
-      {
-        "position": 1,
-        "teamName": "Guardians 2",
-        "leaguePoints": 38,
-        "played": 32,
-        "scoreDifference": 23
-      },
-      {
-        "position": 2,
-        "teamName": "Stallion 2",
-        "leaguePoints": 38,
-        "played": 32,
-        "scoreDifference": 8
-      },
-      {
-        "position": 3,
-        "teamName": "Cathkin 1",
-        "leaguePoints": 37,
-        "played": 34,
-        "scoreDifference": 9
-      }
-    ]
+    "rowCount": 0,
+    "top3": []
   },
   "rankings": {
     "success": true,
     "competitionName": "ODA League",
-    "rowCount": 106,
-    "top5": [
-      {
-        "position": 1,
-        "displayName": "Daywin Adams"
-      },
-      {
-        "position": 2,
-        "displayName": "Garth Henry"
-      },
-      {
-        "position": 3,
-        "displayName": "Earl Pentolfe"
-      },
-      {
-        "position": 4,
-        "displayName": "Cliffy"
-      },
-      {
-        "position": 5,
-        "displayName": "Garth May"
-      }
-    ]
+    "rowCount": 0,
+    "top5": []
   },
   "samplePlayerHistory": {
     "success": true,
     "playerName": "Ash Adams",
     "competitionName": "ODA League",
     "summary": {},
-    "first3Rows": [
-      {
-        "statId": "stat_1776977766157_32546",
-        "rawStatId": "rawstat_1776977766157_97207",
-        "competitionId": "competition_1776977765418_64931",
-        "season": "2026",
-        "division": "Lower",
-        "playerId": "player_1776977765397_70418",
-        "dsaNumber": "130013",
-        "displayName": "Ash Adams",
-        "teamId": "team_1776977765423_38809",
-        "teamName": "BOO 5",
-        "clubId": "club_1776977765398_86966",
-        "clubName": "Best Of Order",
-        "opponentPlayerName": "T.Oliphant",
-        "opponentTeamName": "",
-        "matchDate": "11-Jun-25",
-        "tournament": "Placements",
-        "league": "",
-        "ageGroup": "Veterans/Mens",
-        "metrics": {
-          "average": 45.09,
-          "ranking": 13.53,
-          "dartsUsed": 33,
-          "tons": 0,
-          "singlesPlayed": 1,
-          "singlesWon": 0
-        },
-        "importStatus": "matched",
-        "importedAt": "2026-04-23T20:56:06.157Z"
-      },
-      {
-        "statId": "stat_1776977766157_24642",
-        "rawStatId": "rawstat_1776977766157_27338",
-        "competitionId": "competition_1776977765418_64931",
-        "season": "2026",
-        "division": "Lower",
-        "playerId": "player_1776977765397_70418",
-        "dsaNumber": "130013",
-        "displayName": "Ash Adams",
-        "teamId": "team_1776977765423_38809",
-        "teamName": "BOO 5",
-        "clubId": "club_1776977765398_86966",
-        "clubName": "Best Of Order",
-        "opponentPlayerName": "M.Du Plessis",
-        "opponentTeamName": "",
-        "matchDate": "11-Jun-25",
-        "tournament": "Placements",
-        "league": "",
-        "ageGroup": "Veterans/Mens",
-        "metrics": {
-          "average": 35.79,
-          "ranking": 80.74,
-          "dartsUsed": 42,
-          "tons": 0,
-          "singlesPlayed": 1,
-          "singlesWon": 1
-        },
-        "importStatus": "matched",
-        "importedAt": "2026-04-23T20:56:06.157Z"
-      },
-      {
-        "statId": "stat_1776977766157_78597",
-        "rawStatId": "rawstat_1776977766157_63763",
-        "competitionId": "competition_1776977765418_64931",
-        "season": "2026",
-        "division": "Lower",
-        "playerId": "player_1776977765397_70418",
-        "dsaNumber": "130013",
-        "displayName": "Ash Adams",
-        "teamId": "team_1776977765423_38809",
-        "teamName": "BOO 5",
-        "clubId": "club_1776977765398_86966",
-        "clubName": "Best Of Order",
-        "opponentPlayerName": "Z.Pieterse",
-        "opponentTeamName": "",
-        "matchDate": "11-Jun-25",
-        "tournament": "Placements",
-        "league": "",
-        "ageGroup": "Veterans/Mens",
-        "metrics": {
-          "average": 45.18,
-          "ranking": 13.55,
-          "dartsUsed": 33,
-          "tons": 1,
-          "singlesPlayed": 1,
-          "singlesWon": 0
-        },
-        "importStatus": "matched",
-        "importedAt": "2026-04-23T20:56:06.157Z"
-      }
-    ]
+    "first3Rows": []
   },
   "sampleExceptions": [
     {

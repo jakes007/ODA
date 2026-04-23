@@ -212,7 +212,7 @@ export function importStatsRows(registry, rows = [], options = {}) {
     const competitionResult = ensureCompetitionExists(registry, {
       name: options.competitionName ?? 'Unknown Competition',
       type: options.competitionType ?? 'league',
-      season: options.season ?? '',
+      season: readFirst(row, ['Year']) || options.season || '',
       status: options.competitionStatus ?? 'active',
       associationName,
       provinceName
@@ -250,8 +250,6 @@ export function importStatsRows(registry, rows = [], options = {}) {
         clubId: club?.clubId ?? '',
         clubName: club?.name ?? clubNameFromRow ?? '',
         associationName,
-        competitionId: competitionResult.competition.competitionId,
-        season: options.season ?? '',
         source: 'stats_import',
         sourceImportedAt: new Date().toISOString()
       });
@@ -287,7 +285,7 @@ export function importStatsRows(registry, rows = [], options = {}) {
         competitionId: competitionResult.success
           ? competitionResult.competition.competitionId
           : null,
-        season: options.season ?? '',
+        season: readFirst(row, ['Year']) || options.season || '',
         division: readFirst(row, ['Division']),
         teamId: team?.teamId ?? null,
         teamName: team?.name ?? teamName,
@@ -419,7 +417,7 @@ export function importStatsRows(registry, rows = [], options = {}) {
       competitionId: competitionResult.success
         ? competitionResult.competition.competitionId
         : null,
-      season: options.season ?? '',
+        season: readFirst(row, ['Year']) || options.season || '',
       teamId: team?.teamId ?? null,
       teamName: team?.name ?? teamName,
       clubId: club?.clubId ?? player?.clubId ?? null,
@@ -435,7 +433,7 @@ export function importStatsRows(registry, rows = [], options = {}) {
         statId: `stat_${Date.now()}_${Math.floor(Math.random() * 100000)}`,
         rawStatId: raw.rawStatId,
         competitionId: normalizeOptions.competitionId,
-        season: normalizeOptions.season,
+        season: readFirst(row, ['Year']) || normalizeOptions.season || '',
         division: readFirst(row, ['Division']),
         playerId: player.playerId,
         dsaNumber: player.dsaNumber || '',
