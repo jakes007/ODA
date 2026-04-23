@@ -5,26 +5,27 @@
     "createdClubs": 8
   },
   "statsImport": {
-    "rawCount": 8788,
-    "matchedCount": 7435,
-    "exceptionCount": 1353,
-    "skippedCount": 534,
+    "rawCount": 8706,
+    "matchedCount": 7965,
+    "overrideMatchedCount": 373,
+    "exceptionCount": 741,
+    "skippedCount": 616,
     "teamResultRawCount": 642,
     "teamResultMatchedCount": 642,
-    "createdClubs": 3,
+    "createdClubs": 2,
     "createdCompetitions": 1,
     "createdTeams": 25,
-    "createdMemberships": 161
+    "createdMemberships": 152
   },
   "registryTotals": {
-    "players": 105,
-    "clubs": 11,
+    "players": 112,
+    "clubs": 10,
     "competitions": 1,
     "teams": 25,
-    "competitionMemberships": 161,
-    "historicalStatsRaw": 8788,
-    "historicalStatsNormalized": 7434,
-    "importExceptions": 1353,
+    "competitionMemberships": 152,
+    "historicalStatsRaw": 8706,
+    "historicalStatsNormalized": 7965,
+    "importExceptions": 1114,
     "editRequests": 0
   },
   "standings": {
@@ -58,15 +59,15 @@
   "rankings": {
     "success": true,
     "competitionName": "ODA League",
-    "rowCount": 100,
+    "rowCount": 106,
     "top5": [
       {
         "position": 1,
-        "displayName": "Garth May"
+        "displayName": "Daywin Adams"
       },
       {
         "position": 2,
-        "displayName": "Daywin Adams"
+        "displayName": "Garth May"
       },
       {
         "position": 3,
@@ -89,18 +90,18 @@
     "summary": {},
     "first3Rows": [
       {
-        "statId": "stat_1776895551733_68513",
-        "rawStatId": "rawstat_1776895551733_46301",
-        "competitionId": "competition_1776895551209_84882",
+        "statId": "stat_1776954981639_12062",
+        "rawStatId": "rawstat_1776954981639_8514",
+        "competitionId": "competition_1776954979482_37165",
         "season": "2026",
         "division": "Lower",
-        "playerId": "player_1776895550909_23571",
+        "playerId": "player_1776954979474_19130",
         "dsaNumber": "130013",
         "displayName": "Ash Adams",
-        "teamId": "team_1776895551304_93273",
+        "teamId": "team_1776954979499_28563",
         "teamName": "BOO 5",
-        "clubId": "club_1776895551303_14604",
-        "clubName": "BOO",
+        "clubId": "club_1776954979474_46066",
+        "clubName": "Best Of Order",
         "opponentPlayerName": "T.Oliphant",
         "opponentTeamName": "",
         "matchDate": "11-Jun-25",
@@ -127,21 +128,21 @@
           "points": null
         },
         "importStatus": "matched",
-        "importedAt": "2026-04-22T22:05:51.733Z"
+        "importedAt": "2026-04-23T14:36:21.639Z"
       },
       {
-        "statId": "stat_1776895551733_42690",
-        "rawStatId": "rawstat_1776895551733_91400",
-        "competitionId": "competition_1776895551209_84882",
+        "statId": "stat_1776954981639_84253",
+        "rawStatId": "rawstat_1776954981639_33582",
+        "competitionId": "competition_1776954979482_37165",
         "season": "2026",
         "division": "Lower",
-        "playerId": "player_1776895550909_23571",
+        "playerId": "player_1776954979474_19130",
         "dsaNumber": "130013",
         "displayName": "Ash Adams",
-        "teamId": "team_1776895551304_93273",
+        "teamId": "team_1776954979499_28563",
         "teamName": "BOO 5",
-        "clubId": "club_1776895551303_14604",
-        "clubName": "BOO",
+        "clubId": "club_1776954979474_46066",
+        "clubName": "Best Of Order",
         "opponentPlayerName": "M.Du Plessis",
         "opponentTeamName": "",
         "matchDate": "11-Jun-25",
@@ -168,21 +169,21 @@
           "points": null
         },
         "importStatus": "matched",
-        "importedAt": "2026-04-22T22:05:51.733Z"
+        "importedAt": "2026-04-23T14:36:21.639Z"
       },
       {
-        "statId": "stat_1776895551733_8107",
-        "rawStatId": "rawstat_1776895551733_64944",
-        "competitionId": "competition_1776895551209_84882",
+        "statId": "stat_1776954981639_21277",
+        "rawStatId": "rawstat_1776954981639_24571",
+        "competitionId": "competition_1776954979482_37165",
         "season": "2026",
         "division": "Lower",
-        "playerId": "player_1776895550909_23571",
+        "playerId": "player_1776954979474_19130",
         "dsaNumber": "130013",
         "displayName": "Ash Adams",
-        "teamId": "team_1776895551304_93273",
+        "teamId": "team_1776954979499_28563",
         "teamName": "BOO 5",
-        "clubId": "club_1776895551303_14604",
-        "clubName": "BOO",
+        "clubId": "club_1776954979474_46066",
+        "clubName": "Best Of Order",
         "opponentPlayerName": "Z.Pieterse",
         "opponentTeamName": "",
         "matchDate": "11-Jun-25",
@@ -209,36 +210,12 @@
           "points": null
         },
         "importStatus": "matched",
-        "importedAt": "2026-04-22T22:05:51.733Z"
+        "importedAt": "2026-04-23T14:36:21.639Z"
       }
     ]
   },
   "sampleExceptions": [
     {
-      "dsaNumber": "190425",
-      "rawPlayerName": "D.Van Der Speck",
-      "reason": "DSA number not found in registry",
-      "status": "pending_review"
-    },
-    {
-      "dsaNumber": "190425",
-      "rawPlayerName": "D.Van Der Speck",
-      "reason": "DSA number not found in registry",
-      "status": "pending_review"
-    },
-    {
-      "dsaNumber": "190425",
-      "rawPlayerName": "D.Van Der Speck",
-      "reason": "DSA number not found in registry",
-      "status": "pending_review"
-    },
-    {
-      "dsaNumber": "190425",
-      "rawPlayerName": "D.Van Der Speck",
-      "reason": "DSA number not found in registry",
-      "status": "pending_review"
-    },
-    {
       "dsaNumber": "",
       "rawPlayerName": "Mahir Alexander",
       "reason": "Missing DSA number",
@@ -263,14 +240,38 @@
       "status": "pending_review"
     },
     {
-      "dsaNumber": "130156",
-      "rawPlayerName": "S.Boyce",
+      "dsaNumber": "",
+      "rawPlayerName": "Y.Boltman",
+      "reason": "Missing DSA number",
+      "status": "pending_review"
+    },
+    {
+      "dsaNumber": "",
+      "rawPlayerName": "Y.Boltman",
+      "reason": "Missing DSA number",
+      "status": "pending_review"
+    },
+    {
+      "dsaNumber": "",
+      "rawPlayerName": "Y.Boltman",
+      "reason": "Missing DSA number",
+      "status": "pending_review"
+    },
+    {
+      "dsaNumber": "",
+      "rawPlayerName": "Y.Boltman",
+      "reason": "Missing DSA number",
+      "status": "pending_review"
+    },
+    {
+      "dsaNumber": "0",
+      "rawPlayerName": "C.Roberts",
       "reason": "DSA number not found in registry",
       "status": "pending_review"
     },
     {
-      "dsaNumber": "130156",
-      "rawPlayerName": "S.Boyce",
+      "dsaNumber": "0",
+      "rawPlayerName": "C.Roberts",
       "reason": "DSA number not found in registry",
       "status": "pending_review"
     }

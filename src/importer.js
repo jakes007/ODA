@@ -6,7 +6,8 @@ import {
 import {
   registerCanonicalPlayerFromRegistryRow,
   normalizeMatchedStatsRow,
-  normalizeDsaNumber
+  normalizeDsaNumber,
+  registerPlayer
 } from './playerRegistry.js';
 import {
   ensureClubExists,
@@ -14,6 +15,11 @@ import {
   ensureTeamExists,
   ensureCompetitionMembershipExists
 } from './importSetup.js';
+import {
+  IMPORT_OVERRIDES,
+  buildOverrideKey
+} from './importOverrideMap.js';
+import { SUPPLEMENTAL_REGISTRY_PLAYERS } from './supplementalRegistry.js';
 
 function readFirst(row, keys) {
   for (const key of keys) {
@@ -23,6 +29,42 @@ function readFirst(row, keys) {
     }
   }
   return '';
+}
+
+function normalizeName(value) {
+  return String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/\./g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function normalizeClubName(value) {
+  const raw = String(value ?? '').trim();
+
+  if (!raw) return '';
+
+  if (raw.toUpperCase() === 'BOO') {
+    return 'Best Of Order';
+  }
+
+  return raw;
+}
+
+function seedSupplementalRegistry(registry) {
+  SUPPLEMENTAL_REGISTRY_PLAYERS.forEach((player) => {
+    const exists = Object.values(registry.players).some(
+      (existing) =>
+        normalizeName(existing.fullName) === normalizeName(player.fullName) ||
+        (player.dsaNumber &&
+          normalizeDsaNumber(existing.dsaNumber) === normalizeDsaNumber(player.dsaNumber))
+    );
+
+    if (!exists) {
+      registerPlayer(registry, player);
+    }
+  });
 }
 
 function isTeamResultsRow(row) {
@@ -42,12 +84,82 @@ function shouldSkipCompletely(row) {
     return true;
   }
 
+  if (playerName === '0') {
+    return true;
+  }
+
+  if (playerName.trim().toLowerCase() === 'default') {
+    return true;
+  }
+
   return false;
 }
 
 function buildMatchKey(date, teamA, teamB) {
-  const pair = [teamA, teamB].map((v) => String(v || '').trim()).sort().join('::');
+  const pair = [teamA, teamB]
+    .map((v) => String(v || '').trim())
+    .sort()
+    .join('::');
+
   return `${String(date || '').trim()}::${pair}`;
+}
+
+function findPlayerByFullName(registry, fullName) {
+  const target = normalizeName(fullName);
+
+  return (
+    Object.values(registry.players).find((player) => {
+      const namesToCheck = [
+        player.fullName,
+        player.callingName,
+        ...(player.aliases || [])
+      ];
+
+      return namesToCheck.some((name) => normalizeName(name) === target);
+    }) ?? null
+  );
+}
+
+function findOverridePlayer(registry, dsaNumber, rawPlayerName) {
+  const exactKey = buildOverrideKey(dsaNumber, rawPlayerName);
+  const nameOnlyKey = buildOverrideKey('', rawPlayerName);
+
+  const override = IMPORT_OVERRIDES[exactKey] || IMPORT_OVERRIDES[nameOnlyKey];
+  if (!override) {
+    return null;
+  }
+
+  if (override.playerLookup?.fullName) {
+    return findPlayerByFullName(registry, override.playerLookup.fullName);
+  }
+
+  return null;
+}
+
+function createPlayerMatchedRowFromOverride(registry, row, options, overridePlayer) {
+  const syntheticDsa =
+    normalizeDsaNumber(readFirst(row, ['DSA Number', 'DSA No', 'DSA'])) || '__override__';
+
+  const patchedRegistry = {
+    ...registry,
+    playerIdsByDsaNumber: {
+      ...registry.playerIdsByDsaNumber,
+      [syntheticDsa]: overridePlayer.playerId
+    },
+    players: {
+      ...registry.players,
+      [overridePlayer.playerId]: overridePlayer
+    }
+  };
+
+  return normalizeMatchedStatsRow(
+    patchedRegistry,
+    {
+      ...row,
+      'DSA Number': syntheticDsa
+    },
+    options
+  );
 }
 
 export function importRegistryRows(registry, rows = [], options = {}) {
@@ -61,7 +173,7 @@ export function importRegistryRows(registry, rows = [], options = {}) {
       createdPlayers++;
     }
 
-    const clubName = readFirst(row, ['Club', 'Club Name', 'CLUB']);
+    const clubName = normalizeClubName(readFirst(row, ['Club', 'Club Name', 'CLUB']));
     const associationName = readFirst(row, ['Association', 'Association Name', 'ASSOCIATION']);
     const provinceName = readFirst(row, ['Province', 'Province Name', 'PROVINCE']);
 
@@ -87,6 +199,8 @@ export function importRegistryRows(registry, rows = [], options = {}) {
     }
   });
 
+  seedSupplementalRegistry(registry);
+
   return {
     success: true,
     registry,
@@ -98,6 +212,7 @@ export function importRegistryRows(registry, rows = [], options = {}) {
 export function importStatsRows(registry, rows = [], options = {}) {
   let rawCount = 0;
   let matchedCount = 0;
+  let overrideMatchedCount = 0;
   let exceptionCount = 0;
   let skippedCount = 0;
   let teamResultRawCount = 0;
@@ -133,8 +248,8 @@ export function importStatsRows(registry, rows = [], options = {}) {
       createdCompetitions++;
     }
 
-    const teamName = readFirst(row, ['Team', 'TEAM']);
-    const clubNameFromRow = readFirst(row, ['Club', 'Club Name']);
+    const teamName = normalizeClubName(readFirst(row, ['Team', 'TEAM']));
+    const clubNameFromRow = normalizeClubName(readFirst(row, ['Club', 'Club Name']));
     let club = null;
 
     if (clubNameFromRow) {
@@ -176,12 +291,16 @@ export function importStatsRows(registry, rows = [], options = {}) {
     }
 
     if (isTeamResultsRow(row)) {
+      const opponentTeamName = normalizeClubName(
+        readFirst(row, ['Opponent_1', 'Opponent Team'])
+      );
+
       const rawTeamResult = createHistoricalTeamResultRaw({
         sourceWorkbook: options.sourceWorkbook ?? 'Unknown Workbook',
         sourceSheet: options.sourceSheet ?? 'Stats Input',
         sourceRowNumber: index + 1,
         rawTeamName: teamName,
-        rawOpponentTeamName: readFirst(row, ['Opponent_1', 'Opponent Team']),
+        rawOpponentTeamName: opponentTeamName,
         rawDate: readFirst(row, ['Date']),
         rawFields: row
       });
@@ -200,7 +319,7 @@ export function importStatsRows(registry, rows = [], options = {}) {
         teamName: team?.name ?? teamName,
         clubId: club?.clubId ?? null,
         clubName: club?.name ?? clubNameFromRow ?? '',
-        opponentTeamName: readFirst(row, ['Opponent_1', 'Opponent Team']),
+        opponentTeamName,
         matchDate: readFirst(row, ['Date']),
         tournament: readFirst(row, ['Tournament']),
         league: readFirst(row, ['League']),
@@ -254,12 +373,13 @@ export function importStatsRows(registry, rows = [], options = {}) {
       readFirst(row, ['DSA Number', 'DSA No', 'DSA', 'DSA_NUMBER'])
     );
 
+    const rawPlayerName = readFirst(row, ['Player']);
     const raw = createHistoricalStatRaw({
       sourceWorkbook: options.sourceWorkbook ?? 'Unknown Workbook',
       sourceSheet: options.sourceSheet ?? 'Stats Input',
       sourceRowNumber: index + 1,
       dsaNumber: normalizedDsaNumber,
-      rawPlayerName: readFirst(row, ['Player']),
+      rawPlayerName,
       rawTeamName: teamName,
       rawOpponentName: readFirst(row, ['Opponent']),
       rawDate: readFirst(row, ['Date']),
@@ -269,8 +389,49 @@ export function importStatsRows(registry, rows = [], options = {}) {
     registry.historicalStatsRaw[raw.rawStatId] = raw;
     rawCount++;
 
-    const playerId = registry.playerIdsByDsaNumber[normalizedDsaNumber];
-    const player = playerId ? registry.players[playerId] : null;
+    let player = null;
+
+// Try DSA first
+if (normalizedDsaNumber) {
+  let player = null;
+
+// 1. Try DSA first
+if (normalizedDsaNumber) {
+  const playerId = registry.playerIdsByDsaNumber[normalizedDsaNumber];
+  if (playerId) {
+    player = registry.players[playerId];
+  }
+}
+
+// 2. If no DSA match, try name/alias match
+if (!player && rawPlayerName) {
+  player =
+    Object.values(registry.players).find((p) => {
+      const namesToCheck = [
+        p.fullName,
+        p.callingName,
+        ...(p.aliases || [])
+      ];
+
+      return namesToCheck.some(
+        (name) => normalizeName(name) === normalizeName(rawPlayerName)
+      );
+    }) || null;
+}
+}
+
+// 🔥 Fallback: match by name if no DSA
+player = Object.values(registry.players).find(p => {
+  const namesToCheck = [
+    p.fullName,
+    p.callingName,
+    ...(p.aliases || [])
+  ];
+
+  return namesToCheck.some(name =>
+    normalizeName(name) === normalizeName(rawPlayerName)
+  );
+}) || null;
 
     if (player && competitionResult.success) {
       const membershipResult = ensureCompetitionMembershipExists(registry, {
@@ -289,7 +450,7 @@ export function importStatsRows(registry, rows = [], options = {}) {
     const rowMatchKey = buildMatchKey(
       readFirst(row, ['Date']),
       teamName,
-      readFirst(row, ['Opponent_1', 'Opponent Team'])
+      normalizeClubName(readFirst(row, ['Opponent_1', 'Opponent Team']))
     );
 
     const possibleTeamResults = teamResultLookup[rowMatchKey] ?? [];
@@ -297,7 +458,7 @@ export function importStatsRows(registry, rows = [], options = {}) {
       (item) => String(item.teamName).trim() === String(teamName).trim()
     );
 
-    const normalizedResult = normalizeMatchedStatsRow(registry, row, {
+    const normalizeOptions = {
       rawStatId: raw.rawStatId,
       competitionId: competitionResult.success
         ? competitionResult.competition.competitionId
@@ -308,9 +469,73 @@ export function importStatsRows(registry, rows = [], options = {}) {
       clubId: club?.clubId ?? player?.clubId ?? null,
       clubName: club?.name ?? player?.clubName ?? '',
       opponentTeamName: matchingTeamResult?.opponentTeamName ?? ''
-    });
+    };
 
-    if (normalizedResult.success) {
+    let normalizedResult = normalizeMatchedStatsRow(registry, row, normalizeOptions);
+
+    if (!normalizedResult.success) {
+      const overridePlayer = findOverridePlayer(
+        registry,
+        normalizedDsaNumber,
+        rawPlayerName
+      );
+
+      if (overridePlayer) {
+        if (competitionResult.success) {
+          const membershipResult = ensureCompetitionMembershipExists(registry, {
+            playerId: overridePlayer.playerId,
+            competitionId: competitionResult.competition.competitionId,
+            teamId: team?.teamId ?? null,
+            role: options.defaultRole ?? 'player',
+            status: 'active'
+          });
+      
+          if (membershipResult.success && membershipResult.created) {
+            createdMemberships++;
+          }
+        }
+      
+        // 🔥 DIRECT NORMALIZATION (no DSA matching again)
+        const stat = {
+          statId: `stat_${Date.now()}_${Math.floor(Math.random() * 100000)}`,
+          rawStatId: raw.rawStatId,
+          competitionId: normalizeOptions.competitionId,
+          season: normalizeOptions.season,
+          division: readFirst(row, ['Division']),
+          playerId: overridePlayer.playerId,
+          dsaNumber: overridePlayer.dsaNumber || '',
+          displayName: overridePlayer.fullName,
+          teamId: normalizeOptions.teamId,
+          teamName: normalizeOptions.teamName,
+          clubId: normalizeOptions.clubId,
+          clubName: normalizeOptions.clubName,
+          opponentPlayerName: readFirst(row, ['Opponent']),
+          opponentTeamName: normalizeOptions.opponentTeamName,
+          matchDate: readFirst(row, ['Date']),
+          tournament: readFirst(row, ['Tournament']),
+          league: readFirst(row, ['League']),
+          ageGroup: readFirst(row, [' Age Group ', 'Age Group']),
+          metrics: {
+            average: Number(readFirst(row, [' Average ', 'Average'])) || 0,
+            ranking: Number(readFirst(row, ['Ranking'])) || 0,
+            dartsUsed: Number(readFirst(row, ['Darts Used'])) || 0,
+            tons: Number(readFirst(row, ['No Tons'])) || 0,
+            singlesPlayed: Number(readFirst(row, ['Singles Played'])) || 0,
+            singlesWon: Number(readFirst(row, ['Singles Won'])) || 0
+          },
+          importStatus: 'matched',
+          importedAt: new Date().toISOString()
+        };
+      
+        registry.historicalStatsNormalized[stat.statId] = stat;
+      
+        matchedCount++;
+        overrideMatchedCount++;
+        return;
+      }
+    }
+
+    if (normalizedResult && normalizedResult.success) {
       matchedCount++;
     } else {
       exceptionCount++;
@@ -323,6 +548,7 @@ export function importStatsRows(registry, rows = [], options = {}) {
     summary: {
       rawCount,
       matchedCount,
+      overrideMatchedCount,
       exceptionCount,
       skippedCount,
       teamResultRawCount,
