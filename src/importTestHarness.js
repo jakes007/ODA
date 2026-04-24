@@ -25,7 +25,11 @@ function summarizeRegistry(registry) {
 }
 
 function getFirstCompetitionId(registry) {
-  return Object.keys(registry.competitions)[0] ?? null;
+  const placementsCompetition = Object.values(registry.competitions).find(
+    (competition) => competition.name === 'Placements' && competition.season === '2026'
+  );
+
+  return placementsCompetition?.competitionId ?? Object.keys(registry.competitions)[0] ?? null;
 }
 
 function getFirstPlayerId(registry) {
@@ -65,8 +69,7 @@ export function runImportSmokeTest({
   const competitionId = getFirstCompetitionId(registry);
 
   const activeFilters = {
-    season,
-    tournament: 'Placements',
+    season: '2026',
     division: 'Upper'
   };
 

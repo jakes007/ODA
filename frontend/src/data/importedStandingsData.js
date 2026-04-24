@@ -1,0 +1,262 @@
+export const importedStandingsData = {
+  season: '2026',
+  competitionName: 'Placements',
+  divisions: {
+    Upper: [
+    {
+        "position": 1,
+        "teamName": "BOO 1",
+        "played": 5,
+        "won": 5,
+        "drawn": 0,
+        "lost": 0,
+        "leaguePoints": 15,
+        "legsFor": 90,
+        "legsAgainst": 38,
+        "scoreDifference": 52
+    },
+    {
+        "position": 2,
+        "teamName": "Stallion 1",
+        "played": 5,
+        "won": 4,
+        "drawn": 0,
+        "lost": 1,
+        "leaguePoints": 12,
+        "legsFor": 80,
+        "legsAgainst": 48,
+        "scoreDifference": 32
+    },
+    {
+        "position": 3,
+        "teamName": "Guardians 1",
+        "played": 5,
+        "won": 4,
+        "drawn": 0,
+        "lost": 1,
+        "leaguePoints": 12,
+        "legsFor": 77,
+        "legsAgainst": 51,
+        "scoreDifference": 26
+    },
+    {
+        "position": 4,
+        "teamName": "Guardians 2",
+        "played": 5,
+        "won": 3,
+        "drawn": 0,
+        "lost": 2,
+        "leaguePoints": 9,
+        "legsFor": 74,
+        "legsAgainst": 54,
+        "scoreDifference": 20
+    },
+    {
+        "position": 5,
+        "teamName": "BOO 2",
+        "played": 5,
+        "won": 2,
+        "drawn": 0,
+        "lost": 3,
+        "leaguePoints": 6,
+        "legsFor": 61,
+        "legsAgainst": 67,
+        "scoreDifference": -6
+    },
+    {
+        "position": 6,
+        "teamName": "West Point 1",
+        "played": 5,
+        "won": 1,
+        "drawn": 1,
+        "lost": 3,
+        "leaguePoints": 4,
+        "legsFor": 48,
+        "legsAgainst": 80,
+        "scoreDifference": -32
+    },
+    {
+        "position": 7,
+        "teamName": "Cathkin 1",
+        "played": 5,
+        "won": 0,
+        "drawn": 1,
+        "lost": 4,
+        "leaguePoints": 1,
+        "legsFor": 50,
+        "legsAgainst": 78,
+        "scoreDifference": -28
+    },
+    {
+        "position": 8,
+        "teamName": "Stallion 2",
+        "played": 5,
+        "won": 0,
+        "drawn": 0,
+        "lost": 5,
+        "leaguePoints": 0,
+        "legsFor": 32,
+        "legsAgainst": 96,
+        "scoreDifference": -64
+    }
+],
+    Lower: [
+    {
+        "position": 1,
+        "teamName": "BOO 3",
+        "played": 3,
+        "won": 3,
+        "drawn": 0,
+        "lost": 0,
+        "leaguePoints": 9,
+        "legsFor": 32,
+        "legsAgainst": 16,
+        "scoreDifference": 16
+    },
+    {
+        "position": 2,
+        "teamName": "Stallion 3",
+        "played": 3,
+        "won": 2,
+        "drawn": 1,
+        "lost": 0,
+        "leaguePoints": 7,
+        "legsFor": 30,
+        "legsAgainst": 18,
+        "scoreDifference": 12
+    },
+    {
+        "position": 3,
+        "teamName": "Cathkin 2",
+        "played": 3,
+        "won": 2,
+        "drawn": 1,
+        "lost": 0,
+        "leaguePoints": 7,
+        "legsFor": 29,
+        "legsAgainst": 19,
+        "scoreDifference": 10
+    },
+    {
+        "position": 4,
+        "teamName": "West Point 2",
+        "played": 3,
+        "won": 2,
+        "drawn": 0,
+        "lost": 1,
+        "leaguePoints": 6,
+        "legsFor": 26,
+        "legsAgainst": 22,
+        "scoreDifference": 4
+    },
+    {
+        "position": 5,
+        "teamName": "East Side 1",
+        "played": 3,
+        "won": 2,
+        "drawn": 0,
+        "lost": 1,
+        "leaguePoints": 6,
+        "legsFor": 23,
+        "legsAgainst": 25,
+        "scoreDifference": -2
+    },
+    {
+        "position": 6,
+        "teamName": "Seagulls 2",
+        "played": 2,
+        "won": 1,
+        "drawn": 1,
+        "lost": 0,
+        "leaguePoints": 4,
+        "legsFor": 18,
+        "legsAgainst": 14,
+        "scoreDifference": 4
+    },
+    {
+        "position": 7,
+        "teamName": "Seagulls 1",
+        "played": 3,
+        "won": 1,
+        "drawn": 1,
+        "lost": 1,
+        "leaguePoints": 4,
+        "legsFor": 23,
+        "legsAgainst": 25,
+        "scoreDifference": -2
+    },
+    {
+        "position": 8,
+        "teamName": "Stallion 4",
+        "played": 2,
+        "won": 1,
+        "drawn": 0,
+        "lost": 1,
+        "leaguePoints": 3,
+        "legsFor": 18,
+        "legsAgainst": 14,
+        "scoreDifference": 4
+    },
+    {
+        "position": 9,
+        "teamName": "Guardians 3",
+        "played": 2,
+        "won": 1,
+        "drawn": 0,
+        "lost": 1,
+        "leaguePoints": 3,
+        "legsFor": 16,
+        "legsAgainst": 16,
+        "scoreDifference": 0
+    },
+    {
+        "position": 10,
+        "teamName": "BOO 4",
+        "played": 3,
+        "won": 1,
+        "drawn": 0,
+        "lost": 2,
+        "leaguePoints": 3,
+        "legsFor": 21,
+        "legsAgainst": 27,
+        "scoreDifference": -6
+    },
+    {
+        "position": 11,
+        "teamName": "Brisdel 1",
+        "played": 3,
+        "won": 0,
+        "drawn": 0,
+        "lost": 3,
+        "leaguePoints": 0,
+        "legsFor": 21,
+        "legsAgainst": 27,
+        "scoreDifference": -6
+    },
+    {
+        "position": 12,
+        "teamName": "West Point 3",
+        "played": 3,
+        "won": 0,
+        "drawn": 0,
+        "lost": 3,
+        "leaguePoints": 0,
+        "legsFor": 16,
+        "legsAgainst": 32,
+        "scoreDifference": -16
+    },
+    {
+        "position": 13,
+        "teamName": "Cathkin 3",
+        "played": 3,
+        "won": 0,
+        "drawn": 0,
+        "lost": 3,
+        "leaguePoints": 0,
+        "legsFor": 15,
+        "legsAgainst": 33,
+        "scoreDifference": -18
+    }
+]
+  }
+};

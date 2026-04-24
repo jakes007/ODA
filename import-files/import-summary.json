@@ -5,108 +5,90 @@
     "createdClubs": 8
   },
   "statsImport": {
-    "rawCount": 8706,
-    "matchedCount": 7965,
-    "overrideMatchedCount": 307,
-    "exceptionCount": 741,
-    "skippedCount": 616,
-    "teamResultRawCount": 642,
-    "teamResultMatchedCount": 642,
-    "createdClubs": 2,
+    "rawCount": 1600,
+    "matchedCount": 1600,
+    "overrideMatchedCount": 0,
+    "exceptionCount": 0,
+    "skippedCount": 0,
+    "teamResultRawCount": 76,
+    "teamResultMatchedCount": 76,
+    "createdClubs": 1,
     "createdCompetitions": 2,
-    "createdTeams": 25,
-    "createdMemberships": 237
+    "createdTeams": 21,
+    "createdMemberships": 106
   },
   "registryTotals": {
-    "players": 112,
-    "clubs": 10,
+    "players": 125,
+    "clubs": 9,
     "competitions": 2,
-    "teams": 25,
-    "competitionMemberships": 237,
-    "historicalStatsRaw": 8705,
-    "historicalStatsNormalized": 7965,
-    "importExceptions": 1048,
+    "teams": 21,
+    "competitionMemberships": 106,
+    "historicalStatsRaw": 1600,
+    "historicalStatsNormalized": 1600,
+    "importExceptions": 0,
     "editRequests": 0
   },
   "standings": {
     "success": true,
-    "competitionName": "ODA League",
-    "rowCount": 0,
-    "top3": []
+    "competitionName": "Placements",
+    "rowCount": 8,
+    "top3": [
+      {
+        "position": 1,
+        "teamName": "BOO 1",
+        "leaguePoints": 15,
+        "played": 5,
+        "scoreDifference": 52
+      },
+      {
+        "position": 2,
+        "teamName": "Stallion 1",
+        "leaguePoints": 12,
+        "played": 5,
+        "scoreDifference": 32
+      },
+      {
+        "position": 3,
+        "teamName": "Guardians 1",
+        "leaguePoints": 12,
+        "played": 5,
+        "scoreDifference": 26
+      }
+    ]
   },
   "rankings": {
     "success": true,
-    "competitionName": "ODA League",
-    "rowCount": 0,
-    "top5": []
+    "competitionName": "Placements",
+    "rowCount": 36,
+    "top5": [
+      {
+        "position": 1,
+        "displayName": "Warrick Scheffer"
+      },
+      {
+        "position": 2,
+        "displayName": "Daywin Adams"
+      },
+      {
+        "position": 3,
+        "displayName": "Garth Henry"
+      },
+      {
+        "position": 4,
+        "displayName": "Craig Williams"
+      },
+      {
+        "position": 5,
+        "displayName": "Jade Talmarks"
+      }
+    ]
   },
   "samplePlayerHistory": {
     "success": true,
     "playerName": "Ash Adams",
-    "competitionName": "ODA League",
+    "competitionName": "Placements",
     "summary": {},
     "first3Rows": []
   },
-  "sampleExceptions": [
-    {
-      "dsaNumber": "",
-      "rawPlayerName": "J.Mcquire",
-      "reason": "Missing DSA number",
-      "status": "pending_review"
-    },
-    {
-      "dsaNumber": "",
-      "rawPlayerName": "J.Mcquire",
-      "reason": "Missing DSA number",
-      "status": "pending_review"
-    },
-    {
-      "dsaNumber": "",
-      "rawPlayerName": "J.Mcquire",
-      "reason": "Missing DSA number",
-      "status": "pending_review"
-    },
-    {
-      "dsaNumber": "",
-      "rawPlayerName": "J.Mcquire",
-      "reason": "Missing DSA number",
-      "status": "pending_review"
-    },
-    {
-      "dsaNumber": "230575",
-      "rawPlayerName": "W.Kelly",
-      "reason": "DSA number not found in registry",
-      "status": "pending_review"
-    },
-    {
-      "dsaNumber": "230575",
-      "rawPlayerName": "W.Kelly",
-      "reason": "DSA number not found in registry",
-      "status": "pending_review"
-    },
-    {
-      "dsaNumber": "230575",
-      "rawPlayerName": "W.Kelly",
-      "reason": "DSA number not found in registry",
-      "status": "pending_review"
-    },
-    {
-      "dsaNumber": "230575",
-      "rawPlayerName": "W.Kelly",
-      "reason": "DSA number not found in registry",
-      "status": "pending_review"
-    },
-    {
-      "dsaNumber": "210521",
-      "rawPlayerName": "N.Kannemeyer",
-      "reason": "DSA number not found in registry",
-      "status": "pending_review"
-    },
-    {
-      "dsaNumber": "210521",
-      "rawPlayerName": "N.Kannemeyer",
-      "reason": "DSA number not found in registry",
-      "status": "pending_review"
-    }
-  ]
+  "sampleExceptions": []
 }

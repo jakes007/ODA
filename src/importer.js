@@ -209,14 +209,22 @@ export function importStatsRows(registry, rows = [], options = {}) {
     const provinceName =
       options.provinceName || readFirst(row, ['Province', 'Province Name']) || '';
 
-    const competitionResult = ensureCompetitionExists(registry, {
-      name: options.competitionName ?? 'Unknown Competition',
-      type: options.competitionType ?? 'league',
-      season: readFirst(row, ['Year']) || options.season || '',
-      status: options.competitionStatus ?? 'active',
-      associationName,
-      provinceName
-    });
+      const seasonFromRow = readFirst(row, ['Year']) || options.season || '';
+      const leagueNameFromRow =
+        readFirst(row, ['League']) ||
+        options.competitionName ||
+        'Unknown League';
+      
+      const divisionFromRow = readFirst(row, ['Division']);
+      
+      const competitionResult = ensureCompetitionExists(registry, {
+        name: leagueNameFromRow,
+        type: options.competitionType ?? 'league',
+        season: seasonFromRow,
+        status: options.competitionStatus ?? 'active',
+        associationName,
+        provinceName
+      });
 
     if (competitionResult.success && competitionResult.created) {
       createdCompetitions++;
@@ -264,7 +272,7 @@ export function importStatsRows(registry, rows = [], options = {}) {
 
     if (isTeamResultsRow(row)) {
       const opponentTeamName = normalizeClubName(
-        readFirst(row, ['Opponent_1', 'Opponent Team'])
+        readFirst(row, ['Opponent', 'Opponent_1', 'Opponent Team'])
       );
 
       const rawTeamResult = createHistoricalTeamResultRaw({
@@ -285,8 +293,9 @@ export function importStatsRows(registry, rows = [], options = {}) {
         competitionId: competitionResult.success
           ? competitionResult.competition.competitionId
           : null,
-        season: readFirst(row, ['Year']) || options.season || '',
-        division: readFirst(row, ['Division']),
+          season: seasonFromRow,
+league: leagueNameFromRow,
+division: divisionFromRow,
         teamId: team?.teamId ?? null,
         teamName: team?.name ?? teamName,
         clubId: club?.clubId ?? null,
@@ -341,6 +350,8 @@ export function importStatsRows(registry, rows = [], options = {}) {
       return;
     }
 
+    
+
     const normalizedDsaNumber = normalizeDsaNumber(
       readFirst(row, ['DSA Number', 'DSA No', 'DSA', 'DSA_NUMBER'])
     );
@@ -372,20 +383,47 @@ export function importStatsRows(registry, rows = [], options = {}) {
     }
 
     // 2. If no DSA match, try name/alias match
-    if (!player && rawPlayerName) {
-      player =
-        Object.values(registry.players).find((p) => {
-          const namesToCheck = [
-            p.fullName,
-            p.callingName,
-            ...(p.aliases || [])
-          ];
+if (!player && rawPlayerName) {
+  player =
+    Object.values(registry.players).find((p) => {
+      const namesToCheck = [
+        p.fullName,
+        p.callingName,
+        ...(p.aliases || [])
+      ];
 
-          return namesToCheck.some(
-            (name) => normalizeName(name) === normalizeName(rawPlayerName)
-          );
-        }) || null;
-    }
+      return namesToCheck.some(
+        (name) => normalizeName(name) === normalizeName(rawPlayerName)
+      );
+    }) || null;
+}
+
+// 3. If DSA exists but player is still missing, create a player from the stats row
+if (!player && normalizedDsaNumber && rawPlayerName) {
+  const nameParts = rawPlayerName.trim().split(/\s+/);
+  const surname =
+    nameParts.length > 1 ? nameParts[nameParts.length - 1] : rawPlayerName;
+  const firstNames =
+    nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : rawPlayerName;
+
+  const newPlayerResult = registerPlayer(registry, {
+    fullName: rawPlayerName,
+    firstNames,
+    surname,
+    initials: firstNames.includes('.') ? firstNames.replace('.', '') : '',
+    callingName: firstNames,
+    dsaNumber: normalizedDsaNumber,
+    clubName: club?.name ?? clubNameFromRow ?? '',
+    associationName,
+    provinceName,
+    registrationStatus: 'active',
+    source: 'stats_auto_created'
+  });
+
+  if (newPlayerResult.success) {
+    player = newPlayerResult.player;
+  }
+}
 
     if (player && competitionResult.success) {
       const membershipResult = ensureCompetitionMembershipExists(registry, {
@@ -417,7 +455,7 @@ export function importStatsRows(registry, rows = [], options = {}) {
       competitionId: competitionResult.success
         ? competitionResult.competition.competitionId
         : null,
-        season: readFirst(row, ['Year']) || options.season || '',
+        season: seasonFromRow,
       teamId: team?.teamId ?? null,
       teamName: team?.name ?? teamName,
       clubId: club?.clubId ?? player?.clubId ?? null,
@@ -434,7 +472,7 @@ export function importStatsRows(registry, rows = [], options = {}) {
         rawStatId: raw.rawStatId,
         competitionId: normalizeOptions.competitionId,
         season: readFirst(row, ['Year']) || normalizeOptions.season || '',
-        division: readFirst(row, ['Division']),
+        division: divisionFromRow,
         playerId: player.playerId,
         dsaNumber: player.dsaNumber || '',
         displayName: player.fullName,
@@ -495,7 +533,7 @@ export function importStatsRows(registry, rows = [], options = {}) {
           rawStatId: raw.rawStatId,
           competitionId: normalizeOptions.competitionId,
           season: normalizeOptions.season,
-          division: readFirst(row, ['Division']),
+          division: divisionFromRow,
           playerId: overridePlayer.playerId,
           dsaNumber: overridePlayer.dsaNumber || '',
           displayName: overridePlayer.fullName,

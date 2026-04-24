@@ -9,11 +9,11 @@ function toNumber(value) {
 
 function matchesFilter(row, filters = {}) {
   const season = cleanString(filters.season);
-  const tournament = cleanString(filters.tournament);
+  const league = cleanString(filters.league);
   const division = cleanString(filters.division);
 
   if (season && cleanString(row.season) !== season) return false;
-  if (tournament && cleanString(row.tournament) !== tournament) return false;
+  if (league && cleanString(row.league) !== league) return false;
   if (division && cleanString(row.division) !== division) return false;
 
   return true;
@@ -83,9 +83,7 @@ function compareRankingRows(a, b) {
 
 function getCompetitionTeamResults(registry, competitionId, filters = {}) {
   return Object.values(registry.historicalTeamResultsNormalized).filter(
-    (result) =>
-      result.competitionId === competitionId &&
-      matchesFilter(result, filters)
+    (result) => matchesFilter(result, filters)
   );
 }
 
@@ -99,15 +97,38 @@ function getCompetitionStatsRows(registry, competitionId, filters = {}) {
 
 function getTeamsFromTeamResults(registry, competitionId, filters = {}) {
   const teamResults = getCompetitionTeamResults(registry, competitionId, filters);
-  const teamIds = new Set();
+  const teamsByName = {};
 
   teamResults.forEach((result) => {
-    if (result.teamId) {
-      teamIds.add(result.teamId);
+    const teamName = cleanString(result.teamName);
+    const opponentTeamName = cleanString(result.opponentTeamName);
+
+    if (teamName && !teamsByName[teamName]) {
+      teamsByName[teamName] =
+        Object.values(registry.teams).find(
+          (team) => cleanString(team.name) === teamName
+        ) || {
+          teamId: `virtual_${teamName}`,
+          name: teamName,
+          clubId: '',
+          clubName: ''
+        };
+    }
+
+    if (opponentTeamName && !teamsByName[opponentTeamName]) {
+      teamsByName[opponentTeamName] =
+        Object.values(registry.teams).find(
+          (team) => cleanString(team.name) === opponentTeamName
+        ) || {
+          teamId: `virtual_${opponentTeamName}`,
+          name: opponentTeamName,
+          clubId: '',
+          clubName: ''
+        };
     }
   });
 
-  return Object.values(registry.teams).filter((team) => teamIds.has(team.teamId));
+  return Object.values(teamsByName);
 }
 
 export function buildCompetitionStandings(registry, competitionId, filters = {}) {
@@ -120,97 +141,61 @@ export function buildCompetitionStandings(registry, competitionId, filters = {})
     };
   }
 
-  const teams = getTeamsFromTeamResults(registry, competitionId, filters);
   const teamResults = getCompetitionTeamResults(registry, competitionId, filters);
-
   const standingsMap = {};
-
-  teams.forEach((team) => {
-    standingsMap[team.teamId] = buildTeamStatsRow(team);
-  });
-
-  const processed = new Set();
 
   teamResults.forEach((result) => {
     const teamName = cleanString(result.teamName);
-    const opponentTeamName = cleanString(result.opponentTeamName);
-    const date = cleanString(result.matchDate);
-    const tournament = cleanString(result.tournament);
-    const division = cleanString(result.division);
 
-    const pairKey = [
-      date,
-      tournament,
-      division,
-      teamName,
-      opponentTeamName
-    ]
-      .sort()
-      .join('::');
+    if (!teamName) return;
 
-    if (!teamName || !opponentTeamName || processed.has(pairKey)) {
-      return;
+    if (!standingsMap[teamName]) {
+      standingsMap[teamName] = {
+        teamId: result.teamId || `virtual_${teamName}`,
+        teamName,
+        clubId: result.clubId || '',
+        clubName: result.clubName || '',
+        played: 0,
+        won: 0,
+        drawn: 0,
+        lost: 0,
+        leaguePoints: 0,
+        matchPointsFor: 0,
+        matchPointsAgainst: 0,
+        legsWon: 0,
+        legsLost: 0,
+        scoreDifference: 0
+      };
     }
 
-    const reverse = teamResults.find(
-      (item) =>
-        cleanString(item.matchDate) === date &&
-        cleanString(item.tournament) === tournament &&
-        cleanString(item.division) === division &&
-        cleanString(item.teamName) === opponentTeamName &&
-        cleanString(item.opponentTeamName) === teamName
-    );
+    const row = standingsMap[teamName];
+    const metrics = result.metrics || {};
 
-    if (!reverse) return;
+    const gp = toNumber(metrics.gp);
+    const wins = toNumber(metrics.wins);
+    const draws = toNumber(metrics.draws);
+    const losses = toNumber(metrics.losses);
+    const points = toNumber(metrics.points);
 
-    processed.add(pairKey);
+    const legsFor =
+      toNumber(metrics.legsWon) ||
+      toNumber(metrics.singlesWon);
 
-    const teamA = teams.find((team) => cleanString(team.name) === teamName);
-    const teamB = teams.find((team) => cleanString(team.name) === opponentTeamName);
+    const legsAgainst =
+      toNumber(metrics.legsLost) ||
+      toNumber(metrics.legsAgainst);
 
-    if (!teamA || !teamB) return;
+    row.played += gp || 1;
+    row.won += wins;
+    row.drawn += draws;
+    row.lost += losses;
+    row.leaguePoints += points;
 
-    const teamAStanding = standingsMap[teamA.teamId];
-    const teamBStanding = standingsMap[teamB.teamId];
+    row.matchPointsFor += legsFor;
+    row.matchPointsAgainst += legsAgainst;
 
-    const teamAPoints = toNumber(result.metrics?.points || result.metrics?.singlesWon);
-    const teamBPoints = toNumber(reverse.metrics?.points || reverse.metrics?.singlesWon);
-
-    const teamALegsWon = toNumber(result.metrics?.legsWon);
-    const teamBLegsWon = toNumber(reverse.metrics?.legsWon);
-
-    const teamALegsLost = toNumber(result.metrics?.legsLost);
-    const teamBLegsLost = toNumber(reverse.metrics?.legsLost);
-
-    teamAStanding.played += 1;
-    teamBStanding.played += 1;
-
-    teamAStanding.matchPointsFor += teamAPoints;
-    teamAStanding.matchPointsAgainst += teamBPoints;
-
-    teamBStanding.matchPointsFor += teamBPoints;
-    teamBStanding.matchPointsAgainst += teamAPoints;
-
-    teamAStanding.legsWon += teamALegsWon;
-    teamAStanding.legsLost += teamALegsLost;
-
-    teamBStanding.legsWon += teamBLegsWon;
-    teamBStanding.legsLost += teamBLegsLost;
-
-    if (teamAPoints > teamBPoints) {
-      teamAStanding.won += 1;
-      teamBStanding.lost += 1;
-      teamAStanding.leaguePoints += 2;
-    } else if (teamBPoints > teamAPoints) {
-      teamBStanding.won += 1;
-      teamAStanding.lost += 1;
-      teamBStanding.leaguePoints += 2;
-    } else {
-      teamAStanding.drawn += 1;
-      teamBStanding.drawn += 1;
-      teamAStanding.leaguePoints += 1;
-      teamBStanding.leaguePoints += 1;
-    }
+    row.legsWon += legsFor;
+    row.legsLost += legsAgainst;
   });
 
   const standings = Object.values(standingsMap)

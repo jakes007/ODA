@@ -871,3 +871,78 @@ textarea {
     font-size: 12px;
   }
 }
+
+.standings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.standings-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.standings-filter-btn {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #dfe7f5;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.standings-filter-btn.active {
+  background: linear-gradient(135deg, #ff9800, #ff6d00);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(255, 152, 0, 0.28);
+}
+
+.standings-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.standings-table {
+  width: 100%;
+  min-width: 820px;
+  border-collapse: collapse;
+}
+
+.standings-table th,
+.standings-table td {
+  padding: 14px 12px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.standings-table th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.team-name-cell {
+  text-align: left !important;
+  font-weight: 800;
+}
+
+.points-cell {
+  color: #ff9800;
+  font-weight: 900;
+}
+
+@media (max-width: 768px) {
+  .standings-controls {
+    justify-content: center;
+  }
+
+  .standings-filter-btn {
+    flex: 1;
+    min-width: 130px;
+  }
+}
