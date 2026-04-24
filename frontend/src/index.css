@@ -910,3 +910,159 @@ textarea {
     z-index: 6;
   }
 }
+
+.rankings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.rankings-panel {
+  overflow: hidden;
+  background: rgba(8, 14, 26, 0.92);
+}
+
+.rankings-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.rankings-filter-btn {
+  border: 1px solid rgba(255, 152, 0, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+  color: #dfe7f5;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rankings-filter-btn.active {
+  background: #ff9800;
+  color: #111827;
+}
+
+.rankings-section-heading {
+  margin: 18px 0 12px;
+}
+
+.rankings-section-heading h3 {
+  margin: 0;
+  color: #f5f7fb;
+}
+
+.rankings-section-heading p {
+  margin: 6px 0 0;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.also-played-heading {
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rankings-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 16px;
+  background: #101827;
+}
+
+.rankings-table {
+  width: 100%;
+  min-width: 1180px;
+  border-collapse: collapse;
+}
+
+.rankings-table th,
+.rankings-table td {
+  padding: 12px 10px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #101827;
+}
+
+.rankings-table th {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(38, 187, 247, 0.62);
+}
+
+.rankings-table td {
+  font-size: 14px;
+  color: #f5f7fb;
+}
+
+.player-name-cell,
+.rankings-table th:nth-child(2),
+.rankings-table td:nth-child(2) {
+  text-align: left !important;
+}
+
+.player-name-cell {
+  font-weight: 850;
+}
+
+.ranking-score-cell {
+  color: #ff9800;
+  font-weight: 950;
+  font-size: 15px;
+}
+
+.rankings-table td:nth-child(6),
+.rankings-table td:nth-child(13),
+.rankings-table td:nth-child(14) {
+  color: #ff9800;
+  font-weight: 850;
+}
+
+@media (max-width: 768px) {
+  .rankings-filter-btn {
+    flex: 1;
+    min-width: 130px;
+  }
+
+  .rankings-table {
+    min-width: 980px;
+  }
+
+  .rankings-table th,
+  .rankings-table td {
+    padding: 9px 6px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .rankings-table th:first-child,
+  .rankings-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    min-width: 32px;
+    max-width: 32px;
+    background: #101827;
+  }
+
+  .rankings-table th:nth-child(2),
+.rankings-table td:nth-child(2) {
+  position: sticky;
+  left: 32px;
+  z-index: 5;
+  min-width: 120px;
+  max-width: 120px;
+  background: #101827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left !important;
+}
+
+  .rankings-table th:first-child,
+  .rankings-table th:nth-child(2) {
+    z-index: 6;
+  }
+}
