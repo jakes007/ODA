@@ -826,6 +826,11 @@ textarea {
   font-weight: 600;
 }
 
+.standings-table th:nth-child(2),
+.standings-table td:nth-child(2) {
+  text-align: left !important;
+}
+
 .points-cell {
   font-weight: 700;
   color: #ff9800;
@@ -944,5 +949,41 @@ textarea {
   .standings-filter-btn {
     flex: 1;
     min-width: 130px;
+  }
+
+  .standings-table {
+    min-width: 680px;
+    font-size: 12px;
+  }
+
+  .standings-table th,
+  .standings-table td {
+    padding: 10px 8px;
+    white-space: nowrap;
+  }
+
+  .standings-table th:first-child,
+  .standings-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: #101827;
+    min-width: 44px;
+  }
+
+  .standings-table th:nth-child(2),
+  .standings-table td:nth-child(2) {
+    position: sticky;
+    left: 44px;
+    z-index: 3;
+    background: #101827;
+    min-width: 128px;
+    max-width: 128px;
+    text-align: left !important;
+  }
+
+  .standings-table th:first-child,
+  .standings-table th:nth-child(2) {
+    z-index: 4;
   }
 }
