@@ -54,10 +54,20 @@ function getRawFields(registry, row) {
 }
 
 function readRaw(rawFields, keys) {
-  for (const key of keys) {
-    const value = rawFields?.[key];
-    if (value !== undefined && value !== null && String(value).trim() !== '') {
-      return value;
+  const rawKeys = Object.keys(rawFields || {});
+
+  for (const wantedKey of keys) {
+    const matchingKey = rawKeys.find(
+      (rawKey) =>
+        rawKey.trim().toLowerCase() === wantedKey.trim().toLowerCase()
+    );
+
+    if (matchingKey) {
+      const value = rawFields[matchingKey];
+
+      if (value !== undefined && value !== null && String(value).trim() !== '') {
+        return value;
+      }
     }
   }
 
@@ -83,9 +93,9 @@ function buildPlayerRankingRows(registry, division) {
         playerId: row.playerId,
         playerName:
   player?.fullName ||
-  player?.firstName && player?.surname
-    ? `${player.firstName} ${player.surname}`
-    : row.displayName || 'Unknown Player',
+  (player?.firstNames && player?.surname
+    ? `${player.firstNames} ${player.surname}`
+    : row.displayName || 'Unknown Player'),
         clubName: row.clubName || player?.clubName || '',
         total: 0,
         dartsUsed: 0,
@@ -115,8 +125,11 @@ function buildPlayerRankingRows(registry, division) {
     playerRow.playerOfMatch += toNumber(
       readRaw(rawFields, [
         'Player Of Match',
+        'Player of Match',
         'Player Of The Match',
-        'POTM'
+        'Player of the Match',
+        'POTM',
+        'POM'
       ])
     );
   });
