@@ -773,12 +773,6 @@ textarea {
   background: rgba(255, 255, 255, 0.15);
 }
 
-.topbar-motto-text {
-  font-size: 24px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: rgba(220, 230, 245, 0.75);
-}
 
 .standings-page {
   display: flex;
@@ -787,25 +781,12 @@ textarea {
 }
 
 .standings-panel {
-  position: relative;
   overflow: hidden;
-  border: 1px solid rgba(255, 152, 0, 0.16);
-  background:
-    radial-gradient(circle at top left, rgba(255, 152, 0, 0.12), transparent 34%),
-    rgba(8, 14, 26, 0.86);
-}
-
-.standings-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(90deg, rgba(255, 152, 0, 0.08), transparent 24%, transparent 76%, rgba(0, 229, 255, 0.05));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(8, 14, 26, 0.92);
 }
 
 .standings-controls {
-  position: relative;
-  z-index: 2;
   display: flex;
   gap: 12px;
   margin-bottom: 18px;
@@ -813,7 +794,7 @@ textarea {
 }
 
 .standings-filter-btn {
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 152, 0, 0.28);
   background: rgba(255, 255, 255, 0.06);
   color: #dfe7f5;
   border-radius: 999px;
@@ -823,54 +804,42 @@ textarea {
 }
 
 .standings-filter-btn.active {
-  background: linear-gradient(135deg, #ff9800, #ff6d00);
-  color: #fff;
-  box-shadow: 0 0 22px rgba(255, 152, 0, 0.32);
+  background: #ff9800;
+  color: #111827;
 }
 
 .standings-table-wrap {
-  position: relative;
-  z-index: 2;
   width: 100%;
   overflow-x: auto;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: #101827;
 }
 
 .standings-table {
   width: 100%;
-  min-width: 820px;
-  border-collapse: separate;
-  border-spacing: 0;
+  min-width: 760px;
+  border-collapse: collapse;
 }
 
 .standings-table th,
 .standings-table td {
-  padding: 14px 12px;
+  padding: 13px 10px;
   text-align: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.075);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #101827;
 }
 
 .standings-table th {
   font-family: 'Orbitron', sans-serif;
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.62);
-  background: rgba(255, 255, 255, 0.045);
+  letter-spacing: 0.08em;
+  color: rgba(0, 213, 255, 0.62);
 }
 
 .standings-table td {
   font-size: 14px;
-  color: #f5f7fb;
-}
-
-.standings-table tbody tr {
-  transition: background 0.18s ease, transform 0.18s ease;
-}
-
-.standings-table tbody tr:hover {
-  background: rgba(255, 152, 0, 0.08);
+  color: rgb(251, 250, 245);
 }
 
 .standings-table th:nth-child(2),
@@ -880,48 +849,37 @@ textarea {
 }
 
 .team-name-cell {
-  font-weight: 900;
-  letter-spacing: 0.01em;
+  font-weight: 850;
+}
+
+.standings-table td:nth-child(3),
+.standings-table td:nth-child(4),
+.standings-table td:nth-child(5),
+.standings-table td:nth-child(6) {
+  color: rgb(238, 166, 32);
+  font-weight: 800;
 }
 
 .points-cell {
   color: #ff9800;
   font-weight: 950;
   font-size: 16px;
-  text-shadow: 0 0 14px rgba(255, 152, 0, 0.32);
-}
-
-.standings-table tbody tr:nth-child(1) td {
-  background: linear-gradient(90deg, rgba(255, 193, 7, 0.16), rgba(255, 255, 255, 0.02));
-}
-
-.standings-table tbody tr:nth-child(2) td {
-  background: linear-gradient(90deg, rgba(190, 205, 225, 0.12), rgba(255, 255, 255, 0.02));
-}
-
-.standings-table tbody tr:nth-child(3) td {
-  background: linear-gradient(90deg, rgba(205, 127, 50, 0.13), rgba(255, 255, 255, 0.02));
 }
 
 @media (max-width: 768px) {
-  .standings-controls {
-    justify-content: center;
-  }
-
   .standings-filter-btn {
     flex: 1;
     min-width: 130px;
-    padding: 10px 12px;
   }
 
   .standings-table {
-    min-width: 650px;
-    font-size: 12px;
+    min-width: 620px;
   }
 
   .standings-table th,
   .standings-table td {
-    padding: 10px 7px;
+    padding: 9px 6px;
+    font-size: 12px;
     white-space: nowrap;
   }
 
@@ -929,35 +887,26 @@ textarea {
   .standings-table td:first-child {
     position: sticky;
     left: 0;
-    z-index: 3;
+    z-index: 5;
+    min-width: 32px;
+    max-width: 32px;
     background: #101827;
-    min-width: 34px;
-    max-width: 34px;
-    padding-left: 6px;
-    padding-right: 4px;
   }
 
   .standings-table th:nth-child(2),
   .standings-table td:nth-child(2) {
     position: sticky;
-    left: 34px;
-    z-index: 3;
+    left: 32px;
+    z-index: 5;
+    min-width: 102px;
+    max-width: 102px;
     background: #101827;
-    min-width: 92px;
-    max-width: 92px;
-    padding-left: 6px;
-    padding-right: 6px;
-    text-align: left !important;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .standings-table th:first-child,
   .standings-table th:nth-child(2) {
-    z-index: 4;
-  }
-
-  .points-cell {
-    font-size: 14px;
+    z-index: 6;
   }
 }

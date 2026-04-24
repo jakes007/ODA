@@ -54,7 +54,9 @@ export default function StandingsPage() {
               {rows.map((row) => (
                 <tr key={`${division}-${row.teamName}`}>
                   <td>{row.position}</td>
-                  <td className="team-name-cell">{row.teamName}</td>
+                  <td className="team-name-cell">
+  {row.teamName.replace(/^BOO\b/i, 'Best Of Order')}
+</td>
                   <td>{row.played}</td>
                   <td>{row.won}</td>
                   <td>{row.drawn}</td>
