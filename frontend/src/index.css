@@ -963,24 +963,31 @@ textarea {
   }
 
   .standings-table th:first-child,
-  .standings-table td:first-child {
-    position: sticky;
-    left: 0;
-    z-index: 3;
-    background: #101827;
-    min-width: 44px;
-  }
+.standings-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: #101827;
+  min-width: 34px;
+  max-width: 34px;
+  padding-left: 6px;
+  padding-right: 4px;
+}
 
-  .standings-table th:nth-child(2),
-  .standings-table td:nth-child(2) {
-    position: sticky;
-    left: 44px;
-    z-index: 3;
-    background: #101827;
-    min-width: 128px;
-    max-width: 128px;
-    text-align: left !important;
-  }
+.standings-table th:nth-child(2),
+.standings-table td:nth-child(2) {
+  position: sticky;
+  left: 34px;
+  z-index: 3;
+  background: #101827;
+  min-width: 92px;
+  max-width: 92px;
+  padding-left: 6px;
+  padding-right: 6px;
+  text-align: left !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
   .standings-table th:first-child,
   .standings-table th:nth-child(2) {
