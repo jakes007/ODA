@@ -10,7 +10,7 @@ function formatNumber(value, decimals = 2) {
   return Number(value || 0).toFixed(decimals);
 }
 
-function RankingsTable({ rows, compact = false }) {
+function RankingsTable({ rows }) {
   if (!rows.length) {
     return <p className="muted-text">No rankings available.</p>;
   }
@@ -23,15 +23,15 @@ function RankingsTable({ rows, compact = false }) {
             <th>Pos</th>
             <th>Player</th>
             <th>Club</th>
-            <th>Total</th>
-            <th>Darts</th>
+            <th>T/S</th>
+            <th>D/U</th>
             <th>Ave</th>
             <th>Tons</th>
-            <th>180s</th>
-            <th>171s</th>
-            <th>High Close</th>
-            <th>Played</th>
-            <th>Won</th>
+            <th>180</th>
+            <th>170</th>
+            <th>H/C</th>
+            <th>P</th>
+            <th>W</th>
             <th>Win %</th>
             <th>Ranking</th>
             <th>POTM</th>
@@ -110,7 +110,7 @@ export default function RankingsPage() {
           <p>Players with less than 50% legs played.</p>
         </div>
 
-        <RankingsTable rows={divisionData.alsoPlayed} compact />
+        <RankingsTable rows={divisionData.alsoPlayed} />
       </section>
     </div>
   );

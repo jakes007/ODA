@@ -24,6 +24,18 @@ const outputPath = path.resolve(
   'importedRankingsData.js'
 );
 
+const PLAYER_NAME_CORRECTIONS = {
+  'Elwil Van Der Westhuizen': 'Herman V/D Westhuizen',
+  'Jade Talmarks': 'Jade Talmarkes',
+  'EBRAHIEM ISAACS': 'Ebrahiem Isaacs',
+  'EUGENE TALMARKES': 'Eugene Talmarkes'
+};
+
+function formatPlayerName(name) {
+  const cleanName = String(name || '').trim();
+  return PLAYER_NAME_CORRECTIONS[cleanName] || cleanName;
+}
+
 function readWorkbookSheetRows(workbookPath, sheetName) {
   const workbook = XLSX.readFile(workbookPath, { cellDates: false });
   const worksheet = workbook.Sheets[sheetName];
@@ -39,13 +51,23 @@ function readWorkbookSheetRows(workbookPath, sheetName) {
 }
 
 function toNumber(value) {
-  const cleaned = String(value ?? '').replace('%', '').replace(',', '').trim();
-  const numericValue = Number(cleaned);
+  const cleaned = String(value ?? '')
+    .replace('%', '')
+    .replace(',', '')
+    .trim();
+
+  const numericValue = parseFloat(cleaned);
   return Number.isFinite(numericValue) ? numericValue : 0;
 }
 
 function round(value, decimals = 2) {
   return Number(toNumber(value).toFixed(decimals));
+}
+
+function normalizeKey(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
 }
 
 function getRawFields(registry, row) {
@@ -57,15 +79,21 @@ function readRaw(rawFields, keys) {
   const rawKeys = Object.keys(rawFields || {});
 
   for (const wantedKey of keys) {
-    const matchingKey = rawKeys.find(
-      (rawKey) =>
-        rawKey.trim().toLowerCase() === wantedKey.trim().toLowerCase()
-    );
+    const wanted = normalizeKey(wantedKey);
+
+    const matchingKey = rawKeys.find((rawKey) => {
+      const actual = normalizeKey(rawKey);
+      return actual === wanted || actual.includes(wanted) || wanted.includes(actual);
+    });
 
     if (matchingKey) {
       const value = rawFields[matchingKey];
 
-      if (value !== undefined && value !== null && String(value).trim() !== '') {
+      if (
+        value !== undefined &&
+        value !== null &&
+        String(value).trim() !== ''
+      ) {
         return value;
       }
     }
@@ -91,11 +119,12 @@ function buildPlayerRankingRows(registry, division) {
     if (!players[key]) {
       players[key] = {
         playerId: row.playerId,
-        playerName:
-  player?.fullName ||
-  (player?.firstNames && player?.surname
-    ? `${player.firstNames} ${player.surname}`
-    : row.displayName || 'Unknown Player'),
+        playerName: formatPlayerName(
+          player?.fullName ||
+            (player?.firstNames && player?.surname
+              ? `${player.firstNames} ${player.surname}`
+              : row.displayName || 'Unknown Player')
+        ),
         clubName: row.clubName || player?.clubName || '',
         total: 0,
         dartsUsed: 0,
@@ -111,22 +140,53 @@ function buildPlayerRankingRows(registry, division) {
 
     const playerRow = players[key];
 
-    playerRow.total += toNumber(readRaw(rawFields, ['Total']));
-    playerRow.dartsUsed += toNumber(readRaw(rawFields, ['Darts Used']));
-    playerRow.noTons += toNumber(readRaw(rawFields, ['No Tons']));
-    playerRow.oneEighties += toNumber(readRaw(rawFields, ["180's"]));
-    playerRow.oneSeventyOnes += toNumber(readRaw(rawFields, ["171's"]));
+    playerRow.total += toNumber(
+      readRaw(rawFields, ['Total', 'T/S'])
+    );
+
+    playerRow.dartsUsed += toNumber(
+      readRaw(rawFields, ['Darts Used', 'D/U'])
+    );
+
+    playerRow.noTons += toNumber(
+      readRaw(rawFields, ['No Tons'])
+    );
+
+    playerRow.oneEighties += toNumber(
+      readRaw(rawFields, ["180's", '180s', '180'])
+    );
+
+    playerRow.oneSeventyOnes += toNumber(
+      readRaw(rawFields, ["171's", '171s', '171', '170'])
+    );
+
     playerRow.highestClose = Math.max(
       playerRow.highestClose,
-      toNumber(readRaw(rawFields, ['Highest Close']))
+      toNumber(
+        readRaw(rawFields, [
+          'Highest Close',
+          'Highest Close ',
+          'High Close',
+          'H/C',
+          'HC'
+        ])
+      )
     );
-    playerRow.singlesPlayed += toNumber(readRaw(rawFields, ['Singles Played']));
-    playerRow.singlesWon += toNumber(readRaw(rawFields, ['Singles Won']));
+
+    playerRow.singlesPlayed += toNumber(
+      readRaw(rawFields, ['Singles Played', 'Played', 'P'])
+    );
+
+    playerRow.singlesWon += toNumber(
+      readRaw(rawFields, ['Singles Won', 'Won', 'W'])
+    );
+
     playerRow.playerOfMatch += toNumber(
       readRaw(rawFields, [
         'Player Of Match',
-        'Player of Match',
+        'Player Of Match ',
         'Player Of The Match',
+        'Player of Match',
         'Player of the Match',
         'POTM',
         'POM'
@@ -136,14 +196,19 @@ function buildPlayerRankingRows(registry, division) {
 
   const rankingRows = Object.values(players).map((player) => {
     const chuckAverage =
-      player.dartsUsed > 0 ? round((player.total / player.dartsUsed) * 3, 2) : 0;
+      player.dartsUsed > 0
+        ? round((player.total / player.dartsUsed) * 3, 2)
+        : 0;
 
     const winPercentage =
       player.singlesPlayed > 0
         ? round((player.singlesWon / player.singlesPlayed) * 100, 1)
         : 0;
 
-    const rankingWeighted = round(chuckAverage * 0.7 + winPercentage * 0.3, 3);
+    const rankingWeighted = round(
+      chuckAverage * 0.7 + winPercentage * 0.3,
+      3
+    );
 
     return {
       ...player,
@@ -184,8 +249,15 @@ function buildPlayerRankingRows(registry, division) {
 }
 
 function main() {
-  const registryRows = readWorkbookSheetRows(registryWorkbookPath, 'Membership');
-  const statsRows = readWorkbookSheetRows(statsWorkbookPath, 'Stats Input');
+  const registryRows = readWorkbookSheetRows(
+    registryWorkbookPath,
+    'Membership'
+  );
+
+  const statsRows = readWorkbookSheetRows(
+    statsWorkbookPath,
+    'Stats Input'
+  );
 
   const registry = createEmptyRegistry();
 
