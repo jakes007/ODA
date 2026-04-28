@@ -1066,3 +1066,43 @@ textarea {
     z-index: 6;
   }
 }
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.insight-card {
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 152, 0, 0.16);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.insight-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.58);
+  margin-bottom: 8px;
+}
+
+.insight-value {
+  font-weight: 900;
+  color: #f5f7fb;
+  line-height: 1.25;
+}
+
+.insight-meta {
+  margin-top: 8px;
+  color: #ff9800;
+  font-weight: 900;
+}
+
+@media (max-width: 768px) {
+  .insight-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
