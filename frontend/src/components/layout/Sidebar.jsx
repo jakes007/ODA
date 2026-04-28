@@ -34,7 +34,7 @@ export default function Sidebar({ mobile = false, isOpen = false, onClose = null
   return (
     <aside className={sidebarClassName}>
       <div className="sidebar-brand-row">
-        <div className="sidebar-brand">ODA Manager</div>
+        <div className="sidebar-brand">Navigation Menu</div>
 
         {mobile ? (
           <button

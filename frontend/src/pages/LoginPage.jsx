@@ -47,15 +47,7 @@ export default function LoginPage() {
 
       <section className="panel auth-panel">
         <div className="muted-text" style={{ marginBottom: '16px' }}>
-          Demo accounts:
-          <br />
-          player@oda.com / 123456
-          <br />
-          captain@oda.com / 123456
-          <br />
-          captain2@oda.com / 123456
-          <br />
-          admin@oda.com / 123456
+          
         </div>
 
         <form className="auth-form" onSubmit={handleLogin}>
