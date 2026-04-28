@@ -1,25 +1,67 @@
+import { useMemo, useState } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
 import StatCard from '../components/common/StatCard';
 import { importedRankingsData } from '../data/importedRankingsData';
 
-function getAllPlayers() {
-  const players = [];
-
-  Object.entries(importedRankingsData.divisions || {}).forEach(([divisionName, division]) => {
-    [...(division.qualified || []), ...(division.alsoPlayed || [])].forEach((player) => {
-      players.push({
-        ...player,
-        division: divisionName
-      });
-    });
-  });
-
-  return players;
+function formatPercent(value) {
+  return `${Number(value || 0).toFixed(1)}%`;
 }
 
-function findPlayer(playerId) {
-  return getAllPlayers().find((player) => player.playerId === playerId) || null;
+function formatNumber(value, decimals = 2) {
+  return Number(value || 0).toFixed(decimals);
+}
+
+function getAllPlayerContexts() {
+  const contexts = [];
+
+  Object.entries(importedRankingsData.divisions || {}).forEach(
+    ([divisionName, division]) => {
+      [...(division.qualified || []), ...(division.alsoPlayed || [])].forEach(
+        (player) => {
+          contexts.push({
+            ...player,
+            competitionName: importedRankingsData.competitionName,
+            season: importedRankingsData.season,
+            division: divisionName,
+            contextKey: `${importedRankingsData.season}-${importedRankingsData.competitionName}-${divisionName}`
+          });
+        }
+      );
+    }
+  );
+
+  return contexts;
+}
+
+function getDirectoryPlayers() {
+  const playerMap = new Map();
+
+  getAllPlayerContexts().forEach((player) => {
+    const existing = playerMap.get(player.playerId);
+
+    if (existing) {
+      existing.contexts.push(player);
+      existing.divisions = [...new Set([...existing.divisions, player.division])];
+    } else {
+      playerMap.set(player.playerId, {
+        playerId: player.playerId,
+        playerName: player.playerName,
+        clubName: player.clubName,
+        divisions: [player.division],
+        contexts: [player]
+      });
+    }
+  });
+
+  return Array.from(playerMap.values()).map((player) => ({
+    ...player,
+    divisionLabel: player.divisions.join(' / ')
+  }));
+}
+
+function findPlayerContexts(playerId) {
+  return getAllPlayerContexts().filter((player) => player.playerId === playerId);
 }
 
 function groupPlayersByClub(players) {
@@ -35,16 +77,8 @@ function groupPlayersByClub(players) {
   }, {});
 }
 
-function formatPercent(value) {
-  return `${Number(value || 0).toFixed(1)}%`;
-}
-
-function formatNumber(value, decimals = 2) {
-  return Number(value || 0).toFixed(decimals);
-}
-
 function PlayerDirectory({ returnPath }) {
-  const players = getAllPlayers();
+  const players = getDirectoryPlayers();
   const clubs = groupPlayersByClub(players);
 
   return (
@@ -56,26 +90,30 @@ function PlayerDirectory({ returnPath }) {
 
       <div className="club-directory-grid">
         {Object.entries(clubs).map(([clubName, clubPlayers]) => (
-          <section key={clubName} className="panel premium-panel club-directory-card">
+          <section
+            key={clubName}
+            className="panel premium-panel club-directory-card"
+          >
             <h3 className="panel-title club-directory-title">
-  {clubName}
-  <span className="club-member-count">
-    ({clubPlayers.length})
-  </span>
-</h3>
+              {clubName}
+              <span className="club-member-count">({clubPlayers.length})</span>
+            </h3>
 
             <div className="club-player-list">
               {clubPlayers
                 .sort((a, b) => a.playerName.localeCompare(b.playerName))
                 .map((player) => (
                   <Link
-  key={player.playerId}
-  to={`/player/${player.playerId}`}
-  state={{ from: 'profiles', returnTo: returnPath }}
-  className="club-player-link"
->
+                    key={player.playerId}
+                    to={`/player/${player.playerId}`}
+                    state={{
+                      from: 'profiles',
+                      returnTo: returnPath
+                    }}
+                    className="club-player-link"
+                  >
                     <span>{player.playerName}</span>
-                    <span>{player.division}</span>
+                    <span>{player.divisionLabel}</span>
                   </Link>
                 ))}
             </div>
@@ -91,30 +129,62 @@ export default function PlayerProfilePage() {
   const location = useLocation();
 
   const cameFromRankings = location.state?.from === 'rankings';
-  const backLink = cameFromRankings
-  ? '/competition/rankings'
-  : location.state?.returnTo || '/player/player_jason';
 
-const backLabel = cameFromRankings
-  ? 'Back to rankings'
-  : 'Back to player profiles';
+  const backLink = cameFromRankings
+    ? '/competition/rankings'
+    : location.state?.returnTo || '/player/player_jason';
+
+  const backLabel = cameFromRankings
+    ? 'Back to rankings'
+    : 'Back to player profiles';
 
   if (!playerId) {
     return <PlayerDirectory returnPath={location.pathname} />;
   }
 
-  const player = findPlayer(playerId);
+  const playerContexts = useMemo(() => findPlayerContexts(playerId), [playerId]);
 
-  if (!player) {
-    return <PlayerDirectory />;
+  const [selectedContextKey, setSelectedContextKey] = useState(
+    playerContexts[0]?.contextKey || ''
+  );
+
+  if (!playerContexts.length) {
+    return <PlayerDirectory returnPath="/player/player_jason" />;
   }
+
+  const player =
+    playerContexts.find((context) => context.contextKey === selectedContextKey) ||
+    playerContexts[0];
 
   return (
     <div className="page-stack player-profile-page">
       <PageHeader
         title={player.playerName}
-        subtitle={`${player.clubName || 'No club'} • ${player.division} Division • ${importedRankingsData.season}`}
+        subtitle={`${player.clubName || 'No club'} • ${player.season}`}
       />
+
+      {playerContexts.length > 1 && (
+        <section className="panel premium-panel profile-context-panel">
+          <div className="panel-header">
+            <h3 className="panel-title">Select Competition / Division</h3>
+          </div>
+
+          <div className="profile-context-buttons">
+            {playerContexts.map((context) => (
+              <button
+                key={context.contextKey}
+                type="button"
+                className={`profile-context-btn ${
+                  selectedContextKey === context.contextKey ? 'active' : ''
+                }`}
+                onClick={() => setSelectedContextKey(context.contextKey)}
+              >
+                {context.competitionName} • {context.division}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="stats-grid">
         <StatCard label="Average" value={formatNumber(player.chuckAverage, 2)} />
@@ -125,10 +195,13 @@ const backLabel = cameFromRankings
 
       <section className="panel premium-panel">
         <div className="panel-header">
-          <h3 className="panel-title">Player Stats</h3>
+          <h3 className="panel-title">
+            {player.competitionName} • {player.division} Stats
+          </h3>
+
           <Link to={backLink} className="panel-link">
-  {backLabel}
-</Link>
+            {backLabel}
+          </Link>
         </div>
 
         <div className="profile-stat-grid">

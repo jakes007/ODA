@@ -11,6 +11,38 @@ function formatNumber(value, decimals = 2) {
   return Number(value || 0).toFixed(decimals);
 }
 
+function getPlayerHighlights(rows) {
+  if (!rows.length) return [];
+
+  const highestAverage = [...rows].sort((a, b) => b.chuckAverage - a.chuckAverage)[0];
+  const bestWinRate = [...rows].sort((a, b) => b.winPercentage - a.winPercentage)[0];
+  const mostTons = [...rows].sort((a, b) => b.noTons - a.noTons)[0];
+  const highClose = [...rows].sort((a, b) => b.highestClose - a.highestClose)[0];
+
+  return [
+    {
+      label: 'Highest Average',
+      value: highestAverage.playerName,
+      meta: formatNumber(highestAverage.chuckAverage, 2)
+    },
+    {
+      label: 'Best Win %',
+      value: bestWinRate.playerName,
+      meta: formatPercent(bestWinRate.winPercentage)
+    },
+    {
+      label: 'Most Tons',
+      value: mostTons.playerName,
+      meta: `${mostTons.noTons} tons`
+    },
+    {
+      label: 'High Close',
+      value: highClose.playerName,
+      meta: highClose.highestClose || 0
+    }
+  ];
+}
+
 function RankingsTable({ rows }) {
   if (!rows.length) {
     return <p className="muted-text">No rankings available.</p>;
@@ -44,13 +76,13 @@ function RankingsTable({ rows }) {
             <tr key={`${row.position}-${row.playerId}-${row.playerName}`}>
               <td>{row.position}</td>
               <td className="player-name-cell">
-              <Link
-  to={`/player/${row.playerId}`}
-  state={{ from: 'rankings' }}
-  className="player-profile-link"
->
-  {row.playerName}
-</Link>
+                <Link
+                  to={`/player/${row.playerId}`}
+                  state={{ from: 'rankings' }}
+                  className="player-profile-link"
+                >
+                  {row.playerName}
+                </Link>
               </td>
               <td>{row.clubName}</td>
               <td>{row.total}</td>
@@ -80,6 +112,8 @@ export default function RankingsPage() {
     qualified: [],
     alsoPlayed: []
   };
+
+  const highlights = getPlayerHighlights(divisionData.qualified);
 
   return (
     <div className="rankings-page">
@@ -113,6 +147,16 @@ export default function RankingsPage() {
         </div>
 
         <RankingsTable rows={divisionData.qualified} />
+
+        <div className="insight-grid">
+          {highlights.map((item) => (
+            <div key={item.label} className="insight-card">
+              <div className="insight-label">{item.label}</div>
+              <div className="insight-value">{item.value}</div>
+              <div className="insight-meta">{item.meta}</div>
+            </div>
+          ))}
+        </div>
 
         <div className="rankings-section-heading also-played-heading">
           <h3>Also Played</h3>
