@@ -5,22 +5,23 @@ import PageHeader from '../components/common/PageHeader';
 import StatCard from '../components/common/StatCard';
 import {
   getCompetitionOverview,
-  getCompetitionStandings,
-  getCompetitionRankings,
   getCompetitionFixtures
 } from '../services/competitionData';
+
+import { importedStandingsData } from '../data/importedStandingsData';
+import { importedRankingsData } from '../data/importedRankingsData';
 import { getPublicLiveFixtureData } from '../services/captainData';
 import './LandingPage.css';
 
 export default function LandingPage() {
   const overview = getCompetitionOverview();
-  const standings = getCompetitionStandings();
-  const rankings = getCompetitionRankings();
+  const standings = importedStandingsData.divisions?.Upper || [];
+const rankings = importedRankingsData.divisions?.Upper?.qualified || [];
   const fixtures = getCompetitionFixtures();
 
   const latestResults = fixtures.fixtures.slice(0, 5);
-  const standingsSnapshot = standings.standings.slice(0, 5);
-  const topPlayers = rankings.rankings.slice(0, 5);
+  const standingsSnapshot = standings.slice(0, 5);
+  const topPlayers = rankings.slice(0, 5);
 
   const featuredCompetitions = [
     {
@@ -201,7 +202,7 @@ export default function LandingPage() {
       <div className="content-grid landing-grid premium-grid">
         <section className="panel premium-panel premium-card-section">
           <div className="panel-header">
-            <h3 className="panel-title">Standings Snapshot</h3>
+          <h3 className="panel-title">Premier | Standings</h3>
             <Link to="/competition/standings" className="panel-link">
               Full table
             </Link>
@@ -221,7 +222,7 @@ export default function LandingPage() {
 
         <section className="panel premium-panel premium-card-section">
           <div className="panel-header">
-            <h3 className="panel-title">Top Players</h3>
+          <h3 className="panel-title">Premier | Top Players</h3>
             <Link to="/competition/rankings" className="panel-link">
               Full rankings
             </Link>
@@ -235,9 +236,9 @@ export default function LandingPage() {
                 className="premium-list-row premium-clickable-row"
               >
                 <span>
-                  {index + 1}. {player.displayName}
+                  {index + 1}. {player.playerName}
                 </span>
-                <span className="premium-average-value">{player.threeDartAverage}</span>
+                <span className="premium-average-value">{Number(player.chuckAverage || 0).toFixed(2)}</span>
               </Link>
             ))}
           </div>
