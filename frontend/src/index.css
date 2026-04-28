@@ -1107,13 +1107,9 @@ textarea {
   }
 }
 
-header,
-.topbar,
-.site-header,
-.main-header,
-.navbar {
+.topbar {
   position: sticky;
   top: 0;
-  z-index: 999;
+  z-index: 100;
   background: #0b1120;
 }
