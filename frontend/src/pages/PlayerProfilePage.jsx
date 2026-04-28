@@ -93,7 +93,7 @@ export default function PlayerProfilePage() {
   const cameFromRankings = location.state?.from === 'rankings';
   const backLink = cameFromRankings
   ? '/competition/rankings'
-  : location.state?.returnTo || '/player';
+  : location.state?.returnTo || '/player/player_jason';
 
 const backLabel = cameFromRankings
   ? 'Back to rankings'
