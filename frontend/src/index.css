@@ -1113,3 +1113,101 @@ textarea {
   z-index: 20;
   background: #0b1120;
 }
+
+.player-profile-link {
+  color: #f5f7fb;
+  text-decoration: none;
+  font-weight: 900;
+}
+
+.player-profile-link:hover {
+  color: #ff9800;
+}
+
+.profile-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profile-stat-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.profile-stat-row span {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.profile-stat-row strong {
+  color: #ff9800;
+}
+
+@media (max-width: 768px) {
+  .profile-stat-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.club-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.club-directory-card {
+  padding: 18px;
+}
+
+.club-player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.club-player-link {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.055);
+  color: #f5f7fb;
+  text-decoration: none;
+  font-weight: 750;
+}
+
+.club-player-link span:last-child {
+  color: #ff9800;
+  font-size: 12px;
+}
+
+.club-player-link:hover {
+  background: rgba(255, 152, 0, 0.12);
+}
+
+@media (max-width: 768px) {
+  .club-directory-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.club-directory-title {
+  color: #ff9800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 900;
+}
+
+.club-member-count {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 700;
+}
