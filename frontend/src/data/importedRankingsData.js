@@ -6,7 +6,7 @@ export const importedRankingsData = {
     "qualified": [
         {
             "position": 1,
-            "playerId": "player_1777157675188_77261",
+            "playerId": "player_1777371955460_97469",
             "playerName": "Warrick Scheffer",
             "clubName": "Best Of Order",
             "total": 15678,
@@ -24,7 +24,7 @@ export const importedRankingsData = {
         },
         {
             "position": 2,
-            "playerId": "player_1777157675178_74603",
+            "playerId": "player_1777371955454_82013",
             "playerName": "Daywin Adams",
             "clubName": "Best Of Order",
             "total": 15378,
@@ -42,7 +42,7 @@ export const importedRankingsData = {
         },
         {
             "position": 3,
-            "playerId": "player_1777157675182_36783",
+            "playerId": "player_1777371955457_15556",
             "playerName": "Jaden Erasmus",
             "clubName": "Guardians",
             "total": 15625,
@@ -60,7 +60,7 @@ export const importedRankingsData = {
         },
         {
             "position": 4,
-            "playerId": "player_1777157675188_53035",
+            "playerId": "player_1777371955460_28901",
             "playerName": "Jean-Pierre Smith",
             "clubName": "Guardians",
             "total": 15422,
@@ -78,7 +78,7 @@ export const importedRankingsData = {
         },
         {
             "position": 5,
-            "playerId": "player_1777157675185_62031",
+            "playerId": "player_1777371955459_88848",
             "playerName": "Garth May",
             "clubName": "Stallion",
             "total": 15638,
@@ -96,7 +96,7 @@ export const importedRankingsData = {
         },
         {
             "position": 6,
-            "playerId": "player_1777157675182_68797",
+            "playerId": "player_1777371955457_29721",
             "playerName": "Jason Erasmus",
             "clubName": "Guardians",
             "total": 11801,
@@ -114,7 +114,7 @@ export const importedRankingsData = {
         },
         {
             "position": 7,
-            "playerId": "player_1777157675181_25271",
+            "playerId": "player_1777371955457_62203",
             "playerName": "Gary Dowman",
             "clubName": "West Point",
             "total": 15482,
@@ -132,7 +132,7 @@ export const importedRankingsData = {
         },
         {
             "position": 8,
-            "playerId": "player_1777157675183_89840",
+            "playerId": "player_1777371955457_76337",
             "playerName": "Garth Henry",
             "clubName": "Best Of Order",
             "total": 15186,
@@ -150,7 +150,7 @@ export const importedRankingsData = {
         },
         {
             "position": 9,
-            "playerId": "player_1777157675189_74394",
+            "playerId": "player_1777371955460_77168",
             "playerName": "Craig Williams",
             "clubName": "Guardians",
             "total": 15385,
@@ -168,7 +168,7 @@ export const importedRankingsData = {
         },
         {
             "position": 10,
-            "playerId": "player_1777157675189_61686",
+            "playerId": "player_1777371955460_40837",
             "playerName": "Jade Talmarkes",
             "clubName": "Best Of Order",
             "total": 15596,
@@ -186,7 +186,7 @@ export const importedRankingsData = {
         },
         {
             "position": 11,
-            "playerId": "player_1777157675186_29944",
+            "playerId": "player_1777371955459_12383",
             "playerName": "Earl Pentolfe",
             "clubName": "Best Of Order",
             "total": 14845,
@@ -204,7 +204,7 @@ export const importedRankingsData = {
         },
         {
             "position": 12,
-            "playerId": "player_1777157675189_56004",
+            "playerId": "player_1777371955460_89827",
             "playerName": "Herman V/D Westhuizen",
             "clubName": "Best Of Order",
             "total": 14980,
@@ -222,7 +222,7 @@ export const importedRankingsData = {
         },
         {
             "position": 13,
-            "playerId": "player_1777157675189_90452",
+            "playerId": "player_1777371955460_87098",
             "playerName": "Clifford Stradling",
             "clubName": "Guardians",
             "total": 13441,
@@ -240,7 +240,7 @@ export const importedRankingsData = {
         },
         {
             "position": 14,
-            "playerId": "player_1777157675215_34536",
+            "playerId": "player_1777371955456_5032",
             "playerName": "Dale Daniels",
             "clubName": "Stallion",
             "total": 15552,
@@ -258,7 +258,7 @@ export const importedRankingsData = {
         },
         {
             "position": 15,
-            "playerId": "player_1777157675185_50802",
+            "playerId": "player_1777371955459_14780",
             "playerName": "Tyrone May",
             "clubName": "Stallion",
             "total": 14717,
@@ -276,7 +276,7 @@ export const importedRankingsData = {
         },
         {
             "position": 16,
-            "playerId": "player_1777157675181_85727",
+            "playerId": "player_1777371955456_23732",
             "playerName": "Jason De Vries",
             "clubName": "Guardians",
             "total": 15523,
@@ -294,7 +294,7 @@ export const importedRankingsData = {
         },
         {
             "position": 17,
-            "playerId": "player_1777157675188_65426",
+            "playerId": "player_1777371955460_11785",
             "playerName": "Wayne Smith",
             "clubName": "Guardians",
             "total": 9532,
@@ -312,7 +312,7 @@ export const importedRankingsData = {
         },
         {
             "position": 18,
-            "playerId": "player_1777157675184_17025",
+            "playerId": "player_1777371955458_77812",
             "playerName": "Elias Liedeman",
             "clubName": "Stallion",
             "total": 15245,
@@ -330,7 +330,7 @@ export const importedRankingsData = {
         },
         {
             "position": 19,
-            "playerId": "player_1777157675185_53900",
+            "playerId": "player_1777371955459_77168",
             "playerName": "Melvyn Mcbryne",
             "clubName": "Guardians",
             "total": 14672,
@@ -348,7 +348,7 @@ export const importedRankingsData = {
         },
         {
             "position": 20,
-            "playerId": "player_1777157675184_6191",
+            "playerId": "player_1777371955458_19834",
             "playerName": "Joshua Maneveldt",
             "clubName": "Cathkin",
             "total": 14636,
@@ -366,7 +366,7 @@ export const importedRankingsData = {
         },
         {
             "position": 21,
-            "playerId": "player_1777157675183_56623",
+            "playerId": "player_1777371955457_98856",
             "playerName": "Grant Ferrier",
             "clubName": "Best Of Order",
             "total": 14354,
@@ -384,7 +384,7 @@ export const importedRankingsData = {
         },
         {
             "position": 22,
-            "playerId": "player_1777157675184_8459",
+            "playerId": "player_1777371955458_90111",
             "playerName": "Hilton Jeftha",
             "clubName": "Best Of Order",
             "total": 14199,
@@ -402,7 +402,7 @@ export const importedRankingsData = {
         },
         {
             "position": 23,
-            "playerId": "player_1777157675179_86508",
+            "playerId": "player_1777371955455_2945",
             "playerName": "Ivan Beukes",
             "clubName": "Cathkin",
             "total": 14386,
@@ -420,7 +420,7 @@ export const importedRankingsData = {
         },
         {
             "position": 24,
-            "playerId": "player_1777157675180_75043",
+            "playerId": "player_1777371955456_26037",
             "playerName": "Waleed Clayton",
             "clubName": "Cathkin",
             "total": 10670,
@@ -438,7 +438,7 @@ export const importedRankingsData = {
         },
         {
             "position": 25,
-            "playerId": "player_1777157675187_47975",
+            "playerId": "player_1777371955459_918",
             "playerName": "Taswell Rayners",
             "clubName": "Guardians",
             "total": 10602,
@@ -456,7 +456,7 @@ export const importedRankingsData = {
         },
         {
             "position": 26,
-            "playerId": "player_1777157675183_87326",
+            "playerId": "player_1777371955458_48169",
             "playerName": "Alan Jack",
             "clubName": "Cathkin",
             "total": 14485,
@@ -474,7 +474,7 @@ export const importedRankingsData = {
         },
         {
             "position": 27,
-            "playerId": "player_1777157675179_69353",
+            "playerId": "player_1777371955455_95215",
             "playerName": "Sedick Bassadien",
             "clubName": "Stallion",
             "total": 14218,
@@ -492,7 +492,7 @@ export const importedRankingsData = {
         },
         {
             "position": 28,
-            "playerId": "player_1777157675183_91167",
+            "playerId": "player_1777371955458_74008",
             "playerName": "Ebrahiem Isaacs",
             "clubName": "Stallion",
             "total": 13662,
@@ -510,7 +510,7 @@ export const importedRankingsData = {
         },
         {
             "position": 29,
-            "playerId": "player_1777157675185_3434",
+            "playerId": "player_1777371955459_48641",
             "playerName": "Cherie May",
             "clubName": "Stallion",
             "total": 13552,
@@ -528,7 +528,7 @@ export const importedRankingsData = {
         },
         {
             "position": 30,
-            "playerId": "player_1777157675187_95829",
+            "playerId": "player_1777371955459_4417",
             "playerName": "Andre Poole",
             "clubName": "West Point",
             "total": 13132,
@@ -546,7 +546,7 @@ export const importedRankingsData = {
         },
         {
             "position": 31,
-            "playerId": "player_1777157675187_24394",
+            "playerId": "player_1777371955459_48401",
             "playerName": "Ryan Pieterse",
             "clubName": "West Point",
             "total": 12497,
@@ -564,7 +564,7 @@ export const importedRankingsData = {
         },
         {
             "position": 32,
-            "playerId": "player_1777157675186_4422",
+            "playerId": "player_1777371955459_96414",
             "playerName": "Trevor Oliphant",
             "clubName": "West Point",
             "total": 7427,
@@ -582,7 +582,7 @@ export const importedRankingsData = {
         },
         {
             "position": 33,
-            "playerId": "player_1777157675184_53758",
+            "playerId": "player_1777371955458_6766",
             "playerName": "Osman Jacobus",
             "clubName": "Stallion",
             "total": 13482,
@@ -602,7 +602,7 @@ export const importedRankingsData = {
     "alsoPlayed": [
         {
             "position": 1,
-            "playerId": "player_1777157675189_66970",
+            "playerId": "player_1777371955460_40972",
             "playerName": "Shaheen Swanepoel",
             "clubName": "West Point",
             "total": 3378,
@@ -620,7 +620,7 @@ export const importedRankingsData = {
         },
         {
             "position": 2,
-            "playerId": "player_1777157675185_86427",
+            "playerId": "player_1777371955458_77188",
             "playerName": "Kevin Maneveldt",
             "clubName": "Cathkin",
             "total": 3801,
@@ -638,7 +638,7 @@ export const importedRankingsData = {
         },
         {
             "position": 3,
-            "playerId": "player_1777157675178_31919",
+            "playerId": "player_1777371955455_37392",
             "playerName": "Dennis Alexander",
             "clubName": "West Point",
             "total": 3036,
@@ -661,7 +661,7 @@ export const importedRankingsData = {
     "qualified": [
         {
             "position": 1,
-            "playerId": "player_1777157675183_57001",
+            "playerId": "player_1777371955458_72676",
             "playerName": "Nizaam Isaacs",
             "clubName": "Seagulls",
             "total": 4008,
@@ -679,7 +679,7 @@ export const importedRankingsData = {
         },
         {
             "position": 2,
-            "playerId": "player_1777157675179_3429",
+            "playerId": "player_1777371955455_78200",
             "playerName": "Magmoed Alexander",
             "clubName": "Best Of Order",
             "total": 5465,
@@ -697,7 +697,7 @@ export const importedRankingsData = {
         },
         {
             "position": 3,
-            "playerId": "player_1777157675188_89766",
+            "playerId": "player_1777371955454_188",
             "playerName": "Osman Abrahams",
             "clubName": "Best Of Order",
             "total": 5924,
@@ -715,7 +715,7 @@ export const importedRankingsData = {
         },
         {
             "position": 4,
-            "playerId": "player_1777157675183_25230",
+            "playerId": "player_1777371955458_77699",
             "playerName": "Deon Jacobs",
             "clubName": "Seagulls",
             "total": 5884,
@@ -733,7 +733,7 @@ export const importedRankingsData = {
         },
         {
             "position": 5,
-            "playerId": "player_1777157675183_12582",
+            "playerId": "player_1777371955458_8408",
             "playerName": "Jason Isaacs",
             "clubName": "Guardians",
             "total": 3991,
@@ -751,7 +751,7 @@ export const importedRankingsData = {
         },
         {
             "position": 6,
-            "playerId": "player_1777157675184_42255",
+            "playerId": "player_1777371955458_20896",
             "playerName": "Jayd Maneveldt",
             "clubName": "Cathkin",
             "total": 5960,
@@ -769,7 +769,7 @@ export const importedRankingsData = {
         },
         {
             "position": 7,
-            "playerId": "player_1777157675190_28243",
+            "playerId": "player_1777371955460_13973",
             "playerName": "Chesley Roberts",
             "clubName": "Stallion",
             "total": 4004,
@@ -787,7 +787,7 @@ export const importedRankingsData = {
         },
         {
             "position": 8,
-            "playerId": "player_1777157675184_18590",
+            "playerId": "player_1777371955458_49267",
             "playerName": "Andre Layters",
             "clubName": "Brisdel",
             "total": 5873,
@@ -805,7 +805,7 @@ export const importedRankingsData = {
         },
         {
             "position": 9,
-            "playerId": "player_1777157675185_86427",
+            "playerId": "player_1777371955458_77188",
             "playerName": "Kevin Maneveldt",
             "clubName": "Cathkin",
             "total": 3914,
@@ -823,8 +823,8 @@ export const importedRankingsData = {
         },
         {
             "position": 10,
-            "playerId": "player_1777157675189_26593",
-            "playerName": "Carl Willoughby",
+            "playerId": "player_1777371955505_51118",
+            "playerName": "C.Willoughby",
             "clubName": "Best Of Order",
             "total": 5865,
             "dartsUsed": 330,
@@ -841,7 +841,7 @@ export const importedRankingsData = {
         },
         {
             "position": 11,
-            "playerId": "player_1777157675186_80279",
+            "playerId": "player_1777371955459_77986",
             "playerName": "Jowellyn Ontong",
             "clubName": "Best Of Order",
             "total": 5893,
@@ -859,7 +859,7 @@ export const importedRankingsData = {
         },
         {
             "position": 12,
-            "playerId": "player_1777157675183_55028",
+            "playerId": "player_1777371955458_72573",
             "playerName": "Ashley Jacobs",
             "clubName": "Seagulls",
             "total": 3947,
@@ -877,7 +877,7 @@ export const importedRankingsData = {
         },
         {
             "position": 13,
-            "playerId": "player_1777157675185_11158",
+            "playerId": "player_1777371955458_16260",
             "playerName": "Anthony May",
             "clubName": "Stallion",
             "total": 3934,
@@ -895,8 +895,8 @@ export const importedRankingsData = {
         },
         {
             "position": 14,
-            "playerId": "player_1777157675266_43205",
-            "playerName": "F.Olivier",
+            "playerId": "player_1777371955460_69148",
+            "playerName": "Fernando Olivier",
             "clubName": "West Point",
             "total": 5572,
             "dartsUsed": 353,
@@ -913,7 +913,7 @@ export const importedRankingsData = {
         },
         {
             "position": 15,
-            "playerId": "player_1777157675184_52104",
+            "playerId": "player_1777371955458_39636",
             "playerName": "Jayden Jacobs",
             "clubName": "West Point",
             "total": 5881,
@@ -931,7 +931,7 @@ export const importedRankingsData = {
         },
         {
             "position": 16,
-            "playerId": "player_1777157675180_28667",
+            "playerId": "player_1777371955456_48096",
             "playerName": "Yazeed Boyce",
             "clubName": "West Point",
             "total": 3971,
@@ -949,7 +949,7 @@ export const importedRankingsData = {
         },
         {
             "position": 17,
-            "playerId": "player_1777157675229_27063",
+            "playerId": "player_1777371955486_90437",
             "playerName": "N.Kannemeyer",
             "clubName": "Cathkin",
             "total": 3900,
@@ -967,7 +967,7 @@ export const importedRankingsData = {
         },
         {
             "position": 18,
-            "playerId": "player_1777157675187_78080",
+            "playerId": "player_1777371955459_7814",
             "playerName": "Peter Reisenberg",
             "clubName": "Guardians",
             "total": 3931,
@@ -985,7 +985,7 @@ export const importedRankingsData = {
         },
         {
             "position": 19,
-            "playerId": "player_1777157675177_34750",
+            "playerId": "player_1777371955454_8091",
             "playerName": "Ash Adams",
             "clubName": "Best Of Order",
             "total": 5692,
@@ -1003,7 +1003,7 @@ export const importedRankingsData = {
         },
         {
             "position": 20,
-            "playerId": "player_1777157675192_70377",
+            "playerId": "player_1777371955455_69341",
             "playerName": "Sayt Boyce",
             "clubName": "West Point",
             "total": 4606,
@@ -1021,7 +1021,7 @@ export const importedRankingsData = {
         },
         {
             "position": 21,
-            "playerId": "player_1777157675189_60978",
+            "playerId": "player_1777371955460_53619",
             "playerName": "Nasser Williams",
             "clubName": "Stallion",
             "total": 5874,
@@ -1039,7 +1039,7 @@ export const importedRankingsData = {
         },
         {
             "position": 22,
-            "playerId": "player_1777157675189_55988",
+            "playerId": "player_1777371955460_5368",
             "playerName": "Wima Veldsman",
             "clubName": "Brisdel",
             "total": 3928,
@@ -1057,7 +1057,7 @@ export const importedRankingsData = {
         },
         {
             "position": 23,
-            "playerId": "player_1777157675187_3973",
+            "playerId": "player_1777371955459_13619",
             "playerName": "Donovan Pickering",
             "clubName": "Best Of Order",
             "total": 5686,
@@ -1075,8 +1075,8 @@ export const importedRankingsData = {
         },
         {
             "position": 24,
-            "playerId": "player_1777157675250_91874",
-            "playerName": "G.Dowes",
+            "playerId": "player_1777371955457_73745",
+            "playerName": "Glynn Dowes",
             "clubName": "Stallion",
             "total": 5525,
             "dartsUsed": 367,
@@ -1093,7 +1093,7 @@ export const importedRankingsData = {
         },
         {
             "position": 25,
-            "playerId": "player_1777157675178_14018",
+            "playerId": "player_1777371955455_46476",
             "playerName": "Shamiel Adams",
             "clubName": "Guardians",
             "total": 3781,
@@ -1111,7 +1111,7 @@ export const importedRankingsData = {
         },
         {
             "position": 26,
-            "playerId": "player_1777157675186_40766",
+            "playerId": "player_1777371955459_52639",
             "playerName": "Denver Mitchell",
             "clubName": "East Side",
             "total": 3183,
@@ -1129,7 +1129,7 @@ export const importedRankingsData = {
         },
         {
             "position": 27,
-            "playerId": "player_1777157675184_10911",
+            "playerId": "player_1777371955458_71525",
             "playerName": "Richard Jeftha",
             "clubName": "Brisdel",
             "total": 3921,
@@ -1147,7 +1147,7 @@ export const importedRankingsData = {
         },
         {
             "position": 28,
-            "playerId": "player_1777157675180_11938",
+            "playerId": "player_1777371955456_66008",
             "playerName": "Joseph Cloete",
             "clubName": "Seagulls",
             "total": 3964,
@@ -1165,8 +1165,8 @@ export const importedRankingsData = {
         },
         {
             "position": 29,
-            "playerId": "player_1777157675253_52453",
-            "playerName": "M.Dooling",
+            "playerId": "player_1777371955460_21471",
+            "playerName": "Micheal Dooling",
             "clubName": "Stallion",
             "total": 5728,
             "dartsUsed": 371,
@@ -1183,7 +1183,7 @@ export const importedRankingsData = {
         },
         {
             "position": 30,
-            "playerId": "player_1777157675189_1318",
+            "playerId": "player_1777371955460_72264",
             "playerName": "Eugene Talmarkes",
             "clubName": "Stallion",
             "total": 3703,
@@ -1201,7 +1201,7 @@ export const importedRankingsData = {
         },
         {
             "position": 31,
-            "playerId": "player_1777157675183_52285",
+            "playerId": "player_1777371955457_340",
             "playerName": "Andrew Herman",
             "clubName": "Seagulls",
             "total": 2892,
@@ -1219,7 +1219,7 @@ export const importedRankingsData = {
         },
         {
             "position": 32,
-            "playerId": "player_1777157675189_68597",
+            "playerId": "player_1777371955460_7036",
             "playerName": "Keith Theron",
             "clubName": "East Side",
             "total": 5455,
@@ -1237,7 +1237,7 @@ export const importedRankingsData = {
         },
         {
             "position": 33,
-            "playerId": "player_1777157675185_52156",
+            "playerId": "player_1777371955459_71072",
             "playerName": "Gershon May",
             "clubName": "East Side",
             "total": 3616,
@@ -1255,7 +1255,7 @@ export const importedRankingsData = {
         },
         {
             "position": 34,
-            "playerId": "player_1777157675180_34028",
+            "playerId": "player_1777371955456_97156",
             "playerName": "Roger Damon",
             "clubName": "Best Of Order",
             "total": 4462,
@@ -1273,7 +1273,7 @@ export const importedRankingsData = {
         },
         {
             "position": 35,
-            "playerId": "player_1777157675180_84214",
+            "playerId": "player_1777371955456_90392",
             "playerName": "Bradley Cairns",
             "clubName": "Best Of Order",
             "total": 5614,
@@ -1291,7 +1291,7 @@ export const importedRankingsData = {
         },
         {
             "position": 36,
-            "playerId": "player_1777157675184_12220",
+            "playerId": "player_1777371955458_86937",
             "playerName": "Nigel Maart",
             "clubName": "Cathkin",
             "total": 3551,
@@ -1309,8 +1309,8 @@ export const importedRankingsData = {
         },
         {
             "position": 37,
-            "playerId": "player_1777157675263_37187",
-            "playerName": "C.Hartnick",
+            "playerId": "player_1777371955457_61443",
+            "playerName": "Cheslin Hartnick",
             "clubName": "East Side",
             "total": 3233,
             "dartsUsed": 226,
@@ -1327,7 +1327,7 @@ export const importedRankingsData = {
         },
         {
             "position": 38,
-            "playerId": "player_1777157675184_31984",
+            "playerId": "player_1777371955458_96665",
             "playerName": "Llewellen Johnson",
             "clubName": "Cathkin",
             "total": 3872,
@@ -1345,7 +1345,7 @@ export const importedRankingsData = {
         },
         {
             "position": 39,
-            "playerId": "player_1777157675180_58099",
+            "playerId": "player_1777371955456_94324",
             "playerName": "Muzammil Clayton",
             "clubName": "Cathkin",
             "total": 5506,
@@ -1363,8 +1363,8 @@ export const importedRankingsData = {
         },
         {
             "position": 40,
-            "playerId": "player_1777157675273_92502",
-            "playerName": "I.Boyce",
+            "playerId": "player_1777371955455_23",
+            "playerName": "Igshaan Boyce",
             "clubName": "West Point",
             "total": 5419,
             "dartsUsed": 370,
@@ -1381,7 +1381,7 @@ export const importedRankingsData = {
         },
         {
             "position": 41,
-            "playerId": "player_1777157675315_81406",
+            "playerId": "player_1777371955456_49966",
             "playerName": "Denucia Daniels",
             "clubName": "Stallion",
             "total": 3664,
@@ -1399,7 +1399,7 @@ export const importedRankingsData = {
         },
         {
             "position": 42,
-            "playerId": "player_1777157675188_11835",
+            "playerId": "player_1777371955460_34799",
             "playerName": "Denver Seas",
             "clubName": "West Point",
             "total": 5747,
@@ -1417,7 +1417,7 @@ export const importedRankingsData = {
         },
         {
             "position": 43,
-            "playerId": "player_1777157675183_84146",
+            "playerId": "player_1777371955457_63350",
             "playerName": "Aakifah Hoosain",
             "clubName": "Seagulls",
             "total": 2895,
@@ -1435,7 +1435,7 @@ export const importedRankingsData = {
         },
         {
             "position": 44,
-            "playerId": "player_1777157675184_95561",
+            "playerId": "player_1777371955458_96510",
             "playerName": "Christie Jansen",
             "clubName": "Cathkin",
             "total": 3752,
@@ -1453,7 +1453,7 @@ export const importedRankingsData = {
         },
         {
             "position": 45,
-            "playerId": "player_1777157675184_20148",
+            "playerId": "player_1777371955458_28853",
             "playerName": "Lee-Ann Joshua",
             "clubName": "Seagulls",
             "total": 5170,
@@ -1471,7 +1471,7 @@ export const importedRankingsData = {
         },
         {
             "position": 46,
-            "playerId": "player_1777157675183_22953",
+            "playerId": "player_1777371955457_75308",
             "playerName": "Jerome Hendricks",
             "clubName": "West Point",
             "total": 3917,
@@ -1489,7 +1489,7 @@ export const importedRankingsData = {
         },
         {
             "position": 47,
-            "playerId": "player_1777157675187_72858",
+            "playerId": "player_1777371955459_37783",
             "playerName": "Aisha Raziet",
             "clubName": "Brisdel",
             "total": 5799,
@@ -1507,7 +1507,7 @@ export const importedRankingsData = {
         },
         {
             "position": 48,
-            "playerId": "player_1777157675186_70135",
+            "playerId": "player_1777371955459_23628",
             "playerName": "Emile Orgill",
             "clubName": "Brisdel",
             "total": 3496,
@@ -1525,8 +1525,8 @@ export const importedRankingsData = {
         },
         {
             "position": 49,
-            "playerId": "player_1777157675270_57955",
-            "playerName": "M.Boyce",
+            "playerId": "player_1777371955455_44425",
+            "playerName": "Mussammil Boyce",
             "clubName": "West Point",
             "total": 4453,
             "dartsUsed": 335,
@@ -1543,8 +1543,8 @@ export const importedRankingsData = {
         },
         {
             "position": 50,
-            "playerId": "player_1777157675244_19534",
-            "playerName": "G.Damonse",
+            "playerId": "player_1777371955460_4311",
+            "playerName": "Georgie Damonse",
             "clubName": "Seagulls",
             "total": 5189,
             "dartsUsed": 414,
@@ -1561,8 +1561,8 @@ export const importedRankingsData = {
         },
         {
             "position": 51,
-            "playerId": "player_1777157675181_82191",
-            "playerName": "Mark DeLong",
+            "playerId": "player_1777371955456_52899",
+            "playerName": "Mark De Long",
             "clubName": "Cathkin",
             "total": 5406,
             "dartsUsed": 432,
@@ -1579,7 +1579,7 @@ export const importedRankingsData = {
         },
         {
             "position": 52,
-            "playerId": "player_1777157675185_30396",
+            "playerId": "player_1777371955458_30368",
             "playerName": "Desiree Martin",
             "clubName": "Cathkin",
             "total": 5295,
@@ -1599,7 +1599,7 @@ export const importedRankingsData = {
     "alsoPlayed": [
         {
             "position": 1,
-            "playerId": "player_1777157675181_97735",
+            "playerId": "player_1777371955456_90299",
             "playerName": "Craig Davids",
             "clubName": "Best Of Order",
             "total": 501,
@@ -1617,7 +1617,7 @@ export const importedRankingsData = {
         },
         {
             "position": 2,
-            "playerId": "player_1777157675187_11539",
+            "playerId": "player_1777371955459_10344",
             "playerName": "Deon Rossouw",
             "clubName": "East Side",
             "total": 2004,
@@ -1635,7 +1635,7 @@ export const importedRankingsData = {
         },
         {
             "position": 3,
-            "playerId": "player_1777157675178_31919",
+            "playerId": "player_1777371955455_37392",
             "playerName": "Dennis Alexander",
             "clubName": "West Point",
             "total": 1918,
@@ -1653,7 +1653,7 @@ export const importedRankingsData = {
         },
         {
             "position": 4,
-            "playerId": "player_1777157675180_62023",
+            "playerId": "player_1777371955456_89628",
             "playerName": "Jeff Brown",
             "clubName": "Stallion",
             "total": 2000,
@@ -1671,7 +1671,7 @@ export const importedRankingsData = {
         },
         {
             "position": 5,
-            "playerId": "player_1777157675181_4533",
+            "playerId": "player_1777371955457_61119",
             "playerName": "Johnniel Du Toit",
             "clubName": "Seagulls",
             "total": 1971,
@@ -1689,7 +1689,7 @@ export const importedRankingsData = {
         },
         {
             "position": 6,
-            "playerId": "player_1777157675185_74298",
+            "playerId": "player_1777371955459_90536",
             "playerName": "Keith May",
             "clubName": "Stallion",
             "total": 1654,
@@ -1707,7 +1707,7 @@ export const importedRankingsData = {
         },
         {
             "position": 7,
-            "playerId": "player_1777157675189_8190",
+            "playerId": "player_1777371955460_70852",
             "playerName": "Gavin Theron",
             "clubName": "Cathkin",
             "total": 1854,
@@ -1725,7 +1725,7 @@ export const importedRankingsData = {
         },
         {
             "position": 8,
-            "playerId": "player_1777157675184_30036",
+            "playerId": "player_1777371955458_75863",
             "playerName": "Brent Kannemeyer",
             "clubName": "Stallion",
             "total": 1765,
@@ -1743,8 +1743,8 @@ export const importedRankingsData = {
         },
         {
             "position": 9,
-            "playerId": "player_1777157675260_84429",
-            "playerName": "R.Solomon",
+            "playerId": "player_1777371955460_48315",
+            "playerName": "Raymond Solomon",
             "clubName": "East Side",
             "total": 2341,
             "dartsUsed": 147,
@@ -1761,7 +1761,7 @@ export const importedRankingsData = {
         },
         {
             "position": 10,
-            "playerId": "player_1777157675184_58827",
+            "playerId": "player_1777371955458_9407",
             "playerName": "Charles Jansen",
             "clubName": "Guardians",
             "total": 1952,
@@ -1779,7 +1779,7 @@ export const importedRankingsData = {
         },
         {
             "position": 11,
-            "playerId": "player_1777157675189_39358",
+            "playerId": "player_1777371955460_72891",
             "playerName": "Zulfigger Vollenhoven",
             "clubName": "Guardians",
             "total": 1943,
@@ -1797,7 +1797,7 @@ export const importedRankingsData = {
         },
         {
             "position": 12,
-            "playerId": "player_1777157675189_23930",
+            "playerId": "player_1777371955460_78037",
             "playerName": "Eldridge Titus",
             "clubName": "East Side",
             "total": 2301,
@@ -1815,8 +1815,8 @@ export const importedRankingsData = {
         },
         {
             "position": 13,
-            "playerId": "player_1777157675233_17178",
-            "playerName": "M.Adams",
+            "playerId": "player_1777371955455_66164",
+            "playerName": "Melvin Adams",
             "clubName": "Cathkin",
             "total": 1862,
             "dartsUsed": 155,
@@ -1833,7 +1833,7 @@ export const importedRankingsData = {
         },
         {
             "position": 14,
-            "playerId": "player_1777157675181_71578",
+            "playerId": "player_1777371955457_61683",
             "playerName": "Meagan Du Plessis",
             "clubName": "West Point",
             "total": 1736,
@@ -1851,7 +1851,7 @@ export const importedRankingsData = {
         },
         {
             "position": 15,
-            "playerId": "player_1777157675187_31377",
+            "playerId": "player_1777371955459_1393",
             "playerName": "Zac Pieterse",
             "clubName": "West Point",
             "total": 1531,
@@ -1869,8 +1869,8 @@ export const importedRankingsData = {
         },
         {
             "position": 16,
-            "playerId": "player_1777157675240_70434",
-            "playerName": "G.Rippenaar",
+            "playerId": "player_1777371955459_56988",
+            "playerName": "Godfrey Rippenaar",
             "clubName": "Seagulls",
             "total": 1691,
             "dartsUsed": 147,
@@ -1887,7 +1887,7 @@ export const importedRankingsData = {
         },
         {
             "position": 17,
-            "playerId": "player_1777157675180_46429",
+            "playerId": "player_1777371955456_95818",
             "playerName": "Ganief Coglan",
             "clubName": "Best Of Order",
             "total": 965,

@@ -7,11 +7,19 @@ import {
   getCompetitionOverview,
   getCompetitionFixtures
 } from '../services/competitionData';
-
+import { importedLandingData } from '../data/importedLandingData';
 import { importedStandingsData } from '../data/importedStandingsData';
 import { importedRankingsData } from '../data/importedRankingsData';
 import { getPublicLiveFixtureData } from '../services/captainData';
 import './LandingPage.css';
+
+const upperStandings = importedStandingsData.divisions?.Upper || [];
+const lowerStandings = importedStandingsData.divisions?.Lower || [];
+const upperPlayers = importedRankingsData.divisions?.Upper?.qualified || [];
+const lowerPlayers = importedRankingsData.divisions?.Lower?.qualified || [];
+
+const realTeamsCount = upperStandings.length + lowerStandings.length;
+const realPlayersCount = upperPlayers.length + lowerPlayers.length;
 
 export default function LandingPage() {
   const overview = getCompetitionOverview();
@@ -19,18 +27,11 @@ export default function LandingPage() {
 const rankings = importedRankingsData.divisions?.Upper?.qualified || [];
   const fixtures = getCompetitionFixtures();
 
-  const latestResults = fixtures.fixtures.slice(0, 5);
+  const latestResults = importedLandingData.latestResults.slice(0, 5);
   const standingsSnapshot = standings.slice(0, 5);
   const topPlayers = rankings.slice(0, 5);
 
-  const featuredCompetitions = [
-    {
-      competitionId: overview.competition.competitionId,
-      name: overview.competition.name,
-      season: overview.competition.season,
-      status: overview.competition.status
-    }
-  ];
+  const featuredCompetitions = importedLandingData.featuredCompetitions;
 
   const liveFixtures = ['fixture_001', 'fixture_002', 'fixture_003']
     .map((fixtureId) => getPublicLiveFixtureData(fixtureId))
@@ -61,10 +62,10 @@ const rankings = importedRankingsData.divisions?.Upper?.qualified || [];
         </div>
 
         <div className="landing-hero-stats premium-hero-stats">
-          <StatCard label="Clubs" value={overview.summary.totalTeams} />
-          <StatCard label="Teams" value={overview.summary.totalTeams} />
-          <StatCard label="Players" value={overview.summary.totalRankedPlayers} />
-          <StatCard label="Fixtures" value={overview.summary.totalFixtures} />
+        <StatCard label="Clubs" value={importedLandingData.summary.clubs} />
+<StatCard label="Teams" value={importedLandingData.summary.teams} />
+<StatCard label="Players" value={importedLandingData.summary.players} />
+<StatCard label="Fixtures" value={importedLandingData.summary.fixtures} />
         </div>
       </section>
 
@@ -212,7 +213,7 @@ const rankings = importedRankingsData.divisions?.Upper?.qualified || [];
             {standingsSnapshot.map((team, index) => (
               <div key={team.teamId} className="premium-list-row">
                 <span>
-                  {index + 1}. {team.teamName}
+                  {index + 1}. {formatTeamDisplayName(team.teamName)}
                 </span>
                 <span className="premium-points-value">{team.leaguePoints} pts</span>
               </div>
@@ -299,6 +300,10 @@ const rankings = importedRankingsData.divisions?.Upper?.qualified || [];
       </footer>
     </div>
   );
+}
+
+function formatTeamDisplayName(teamName) {
+  return String(teamName || '').replace(/^BOO\b/i, 'Best Of Order');
 }
 
 function formatCompetitionStatus(status) {
