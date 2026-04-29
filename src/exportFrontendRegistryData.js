@@ -48,6 +48,25 @@ function buildPlayerId(row, index) {
     .replace(/[^a-z0-9]+/g, '_');
 }
 
+function normalizeClubName(value) {
+  const club = String(value || '').trim();
+
+  if (!club) return '';
+
+  const normalized = club
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    normalized.toLowerCase() === 'boo' ||
+    normalized.toLowerCase() === 'best of order'
+  ) {
+    return 'Best Of Order';
+  }
+
+  return normalized;
+}
+
 function buildFullName(row) {
   const surname = clean(row['Surname']);
   const firstNames = clean(row['First Names (as per ID)']);
@@ -67,7 +86,7 @@ function main() {
       const firstNames = clean(row['First Names (as per ID)']);
       const callingName = clean(row['Calling  Name']);
       const initials = clean(row['Initials']);
-      const clubName = clean(row['Club']);
+      const clubName = normalizeClubName(row['Club']);
       const membershipNo = clean(row['Membership No.']);
       const dsaNumber = membershipNo.replace(/^DSA-?/i, '');
 
@@ -94,12 +113,18 @@ function main() {
     .filter(Boolean)
     .sort((a, b) => a.fullName.localeCompare(b.fullName));
 
-  const clubs = [...new Set(players.map((player) => player.clubName).filter(Boolean))]
-    .sort()
-    .map((clubName) => ({
-      clubName,
-      playerCount: players.filter((player) => player.clubName === clubName).length
-    }));
+    const clubs = [...new Set(
+      players
+        .map((player) => player.clubName)
+        .filter(Boolean)
+    )]
+      .sort((a, b) => a.localeCompare(b))
+      .map((clubName) => ({
+        clubName,
+        playerCount: players.filter(
+          (player) => player.clubName === clubName
+        ).length
+      }));
 
   const output = {
     generatedAt: new Date().toISOString(),
