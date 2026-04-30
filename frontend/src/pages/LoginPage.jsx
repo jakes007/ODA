@@ -63,10 +63,17 @@ export default function LoginPage() {
         </div>
 
         <section className="panel premium-panel auth-panel login-card">
-          <div className="login-card-header">
-            <h3 className="panel-title">Sign in</h3>
-            <p className="muted-text">Enter your account details below.</p>
-          </div>
+        <div className="login-card-header">
+  <div className="login-header-row">
+    <h3 className="panel-title">Sign in</h3>
+
+    <Link to="/register" className="login-request-link">
+      Request Access
+    </Link>
+  </div>
+
+  <p className="muted-text">Enter your account details below.</p>
+</div>
 
           <form className="auth-form" onSubmit={handleLogin}>
             <div className="form-row">
@@ -117,12 +124,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="auth-footer login-footer">
-            <span className="muted-text">Need access?</span>
-            <Link to="/register" className="text-link">
-              Request Access
-            </Link>
-          </div>
+    
         </section>
       </section>
     </div>
