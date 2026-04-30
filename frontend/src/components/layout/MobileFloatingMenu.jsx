@@ -9,13 +9,17 @@ const menuItems = [
   { to: '/player/player_jason', label: 'Players' }
 ];
 
-export default function MobileFloatingMenu() {
+export default function MobileFloatingMenu({ hidden = false }) {
   const [open, setOpen] = useState(false);
 
   function closeMenu() {
     setOpen(false);
   }
 
+  if (hidden) {
+    return null;
+  }
+  
   return (
     <div className={`mobile-floating-menu ${open ? 'open' : ''}`}>
       {open && (

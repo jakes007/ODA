@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import PageHeader from '../components/common/PageHeader';
 import { useAuth } from '../context/AuthContext';
@@ -6,14 +6,16 @@ import { useAuth } from '../context/AuthContext';
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [resetMessage, setResetMessage] = useState('');
 
   function handleLogin(event) {
     event.preventDefault();
+    setErrorMessage('');
+    setResetMessage('');
 
     const result = login(email, password);
 
@@ -23,7 +25,6 @@ export default function LoginPage() {
     }
 
     const role = result.user.role;
-    
 
     if (role === 'admin') {
       navigate('/admin', { replace: true });
@@ -38,62 +39,91 @@ export default function LoginPage() {
     navigate('/dashboard', { replace: true });
   }
 
+  function handleForgotPassword() {
+    setErrorMessage('');
+    setResetMessage(
+      'Password reset is not connected yet. Please contact your association admin to reset your access.'
+    );
+  }
+
   return (
-    <div className="page-stack">
-      <PageHeader
-        title="Login"
-        subtitle="Player, captain, and admin access"
-      />
+    <div className="page-stack login-page">
+      <section className="login-shell">
+        <div className="login-hero-panel">
+          <PageHeader
+            title="Welcome Back"
+            subtitle="Player, captain, and admin access for the ODA Darts Management System."
+          />
 
-      <section className="panel auth-panel">
-        <div className="muted-text" style={{ marginBottom: '16px' }}>
-          
+          <div className="login-feature-list">
+            <div className="login-feature-item">Live competition access</div>
+            <div className="login-feature-item">Captain and admin dashboards</div>
+            <div className="login-feature-item">Player profiles and match stats</div>
+          </div>
         </div>
 
-        <form className="auth-form" onSubmit={handleLogin}>
-          <div className="form-row">
-            <label className="form-label" htmlFor="email">
-              Email Address
-            </label>
-            <input
-              id="email"
-              className="form-input"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
+        <section className="panel premium-panel auth-panel login-card">
+          <div className="login-card-header">
+            <h3 className="panel-title">Sign in</h3>
+            <p className="muted-text">Enter your account details below.</p>
           </div>
 
-          <div className="form-row">
-            <label className="form-label" htmlFor="password">
-              Password
-            </label>
-            <input
-              id="password"
-              className="form-input"
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
+          <form className="auth-form" onSubmit={handleLogin}>
+            <div className="form-row">
+              <label className="form-label" htmlFor="email">
+                Email Address
+              </label>
+              <input
+                id="email"
+                className="form-input"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+              />
+            </div>
+
+            <div className="form-row">
+              <div className="login-password-row">
+                <label className="form-label" htmlFor="password">
+                  Password
+                </label>
+
+                <button
+                  type="button"
+                  className="forgot-password-link"
+                  onClick={handleForgotPassword}
+                >
+                  Forgot password?
+                </button>
+              </div>
+
+              <input
+                id="password"
+                className="form-input"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+            </div>
+
+            {errorMessage ? <div className="form-error">{errorMessage}</div> : null}
+
+            {resetMessage ? <div className="form-success">{resetMessage}</div> : null}
+
+            <button type="submit" className="primary-btn auth-submit-btn login-submit-btn">
+              Login
+            </button>
+          </form>
+
+          <div className="auth-footer login-footer">
+            <span className="muted-text">Need access?</span>
+            <Link to="/register" className="text-link">
+              Request Access
+            </Link>
           </div>
-
-          {errorMessage ? (
-            <div className="form-error">{errorMessage}</div>
-          ) : null}
-
-          <button type="submit" className="primary-btn auth-submit-btn">
-            Login
-          </button>
-        </form>
-
-        <div className="auth-footer">
-          <span className="muted-text">Need access?</span>
-          <Link to="/register" className="text-link">
-            Request Access
-          </Link>
-        </div>
+        </section>
       </section>
     </div>
   );

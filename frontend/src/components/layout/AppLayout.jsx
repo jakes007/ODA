@@ -25,7 +25,7 @@ export default function AppLayout({ children }) {
       <div className="app-main">
         <Topbar onMenuClick={openMobileNav} />
         <main className="app-content">{children}</main>
-<MobileFloatingMenu />
+        <MobileFloatingMenu hidden={mobileNavOpen} />
       </div>
     </div>
   );
