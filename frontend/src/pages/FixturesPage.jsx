@@ -1,29 +1,54 @@
+import { useState } from 'react';
 import PageHeader from '../components/common/PageHeader';
-import { getCompetitionFixtures } from '../services/competitionData';
+import { importedFixturesData } from '../data/importedFixturesData';
 
 export default function FixturesPage() {
-  const data = getCompetitionFixtures();
+  const [division, setDivision] = useState('Upper');
+
+  const fixtures = (importedFixturesData.divisions[division] || [])
+  .slice()
+  .sort((a, b) => new Date(b.date) - new Date(a.date));
 
   return (
-    <div className="page-stack">
+    <div className="page-stack fixtures-page">
       <PageHeader
-        title="Fixtures"
-        subtitle={`${data.competition.name} • ${data.competition.season}`}
+        title="Fixtures & Results"
+        subtitle={`${importedFixturesData.competitionName} • ${importedFixturesData.season} • ${division} Division`}
       />
 
-      <div className="card-list">
-        {data.fixtures.map((fixture) => (
-          <div key={fixture.id} className="panel">
-            <div className="fixture-card-header">
-              <h3 className="panel-title">{fixture.fixtureName}</h3>
-              <span className="fixture-score">{fixture.scoreText}</span>
+      <section className="panel premium-panel fixtures-panel">
+        <div className="standings-controls">
+          <button
+            type="button"
+            className={`standings-filter-btn ${division === 'Upper' ? 'active' : ''}`}
+            onClick={() => setDivision('Upper')}
+          >
+            Upper Division
+          </button>
+
+          <button
+            type="button"
+            className={`standings-filter-btn ${division === 'Lower' ? 'active' : ''}`}
+            onClick={() => setDivision('Lower')}
+          >
+            Lower Division
+          </button>
+        </div>
+
+        <div className="fixtures-list">
+          {fixtures.map((fixture) => (
+            <div key={fixture.id} className="fixture-result-card">
+              <div>
+                <div className="fixture-result-date">{fixture.date}</div>
+                <h3 className="fixture-result-title">{fixture.fixtureName}</h3>
+                <div className="muted-text">Completed • {fixture.division} Division</div>
+              </div>
+
+              <div className="fixture-result-score">{fixture.scoreText}</div>
             </div>
-            <div className="muted-text">
-              Status: {fixture.complete ? 'Completed' : 'Pending'}
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

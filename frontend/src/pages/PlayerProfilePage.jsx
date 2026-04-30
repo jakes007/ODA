@@ -128,7 +128,7 @@ function PlayerDirectory({ returnPath }) {
                   className="club-player-link"
                 >
                   <span>{player.fullName}</span>
-                  <span>{player.divisionLabel}</span>
+                  <span>{player.contexts.length ? 'View Stats' : 'No Stats'}</span>
                 </Link>
               ))}
             </div>

@@ -1243,3 +1243,61 @@ textarea {
     min-width: 140px;
   }
 }
+
+.fixtures-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fixtures-panel {
+  overflow: hidden;
+}
+
+.fixtures-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fixture-result-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.fixture-result-date {
+  color: #ff9800;
+  font-weight: 900;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+
+.fixture-result-title {
+  margin: 0;
+  color: #f5f7fb;
+}
+
+.fixture-result-score {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: #ff9800;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .fixture-result-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .fixture-result-score {
+    font-size: 22px;
+  }
+}
