@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
 
 const menuItems = [
@@ -10,15 +11,18 @@ const menuItems = [
 ];
 
 export default function MobileFloatingMenu({ hidden = false }) {
+  const location = useLocation();
   const [open, setOpen] = useState(false);
 
   function closeMenu() {
     setOpen(false);
   }
 
-  if (hidden) {
-    return null;
-  }
+  const hideOnRoutes = ['/login', '/register'];
+
+if (hidden || hideOnRoutes.includes(location.pathname)) {
+  return null;
+}
   
   return (
     <div className={`mobile-floating-menu ${open ? 'open' : ''}`}>
