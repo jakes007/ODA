@@ -15,42 +15,61 @@ function formatAverage(value) {
   return Number(value || 0).toFixed(2);
 }
 
+function groupRowsByPlayer(rows) {
+  const map = new Map();
+
+  rows.forEach((row) => {
+    const key = row.playerId || row.playerName;
+
+    if (!map.has(key)) {
+      map.set(key, {
+        playerName: row.playerName,
+        rows: []
+      });
+    }
+
+    map.get(key).rows.push(row);
+  });
+
+  return Array.from(map.values()).sort((a, b) =>
+    a.playerName.localeCompare(b.playerName)
+  );
+}
+
 function groupPlayersByTeam(fixture) {
-  const homePlayers = [];
-  const awayPlayers = [];
+  const homeRows = [];
+  const awayRows = [];
 
   (fixture.playerRows || []).forEach((row) => {
     if (row.teamName === fixture.homeTeamDisplay || row.teamName === fixture.homeTeam) {
-      homePlayers.push(row);
+      homeRows.push(row);
     } else if (row.teamName === fixture.awayTeamDisplay || row.teamName === fixture.awayTeam) {
-      awayPlayers.push(row);
+      awayRows.push(row);
     }
   });
 
-  return { homePlayers, awayPlayers };
+  return {
+    homePlayers: groupRowsByPlayer(homeRows),
+    awayPlayers: groupRowsByPlayer(awayRows)
+  };
 }
 
-function PlayerMatchCard({ row }) {
+function OpponentRow({ row }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="fixture-player-card">
+    <div className="fixture-opponent-card">
       <button
         type="button"
-        className="fixture-player-summary"
+        className="fixture-opponent-summary"
         onClick={() => setOpen((current) => !current)}
       >
-        <span>{row.playerName}</span>
-        <span>{open ? 'Hide details' : 'View details'}</span>
+        <span>vs {row.opponentName || 'Unknown Opponent'}</span>
+        <span>{open ? 'Hide' : 'Details'}</span>
       </button>
 
       {open && (
         <div className="fixture-player-details">
-          <div className="fixture-detail-stat">
-            <span>Opponent</span>
-            <strong>{row.opponentName || 'Unknown'}</strong>
-          </div>
-
           <div className="fixture-detail-stat">
             <span>Total</span>
             <strong>{row.total}</strong>
@@ -91,6 +110,34 @@ function PlayerMatchCard({ row }) {
   );
 }
 
+function PlayerGroupCard({ player }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="fixture-player-card">
+      <button
+        type="button"
+        className="fixture-player-summary"
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span>{player.playerName}</span>
+        <span>{open ? 'Hide opponents' : 'View opponents'}</span>
+      </button>
+
+      {open && (
+        <div className="fixture-opponent-list">
+          {player.rows.map((row, index) => (
+            <OpponentRow
+              key={`${player.playerName}-${row.opponentName}-${index}`}
+              row={row}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TeamPlayerList({ title, players }) {
   return (
     <section className="fixture-team-player-panel">
@@ -100,8 +147,8 @@ function TeamPlayerList({ title, players }) {
         <p className="muted-text">No player rows found for this team.</p>
       ) : (
         <div className="fixture-team-player-list">
-          {players.map((row, index) => (
-            <PlayerMatchCard key={`${row.playerName}-${index}`} row={row} />
+          {players.map((player) => (
+            <PlayerGroupCard key={player.playerName} player={player} />
           ))}
         </div>
       )}

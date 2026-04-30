@@ -98,6 +98,14 @@ function groupPlayersByClub(players) {
 function PlayerDirectory({ returnPath }) {
   const players = getDirectoryPlayers();
   const clubs = groupPlayersByClub(players);
+  const [openClubs, setOpenClubs] = useState({});
+
+  function toggleClub(clubName) {
+    setOpenClubs((current) => ({
+      ...current,
+      [clubName]: !current[clubName]
+    }));
+  }
 
   return (
     <div className="page-stack player-profile-page">
@@ -110,14 +118,25 @@ function PlayerDirectory({ returnPath }) {
       {Object.entries(clubs)
   .sort(([clubA], [clubB]) => clubA.localeCompare(clubB))
   .map(([clubName, clubPlayers]) => (
-          <section key={clubName} className="panel premium-panel club-directory-card">
-            <h3 className="panel-title club-directory-title">
-              {clubName}
-              <span className="club-member-count">({clubPlayers.length})</span>
-            </h3>
-
-            <div className="club-player-list">
-              {clubPlayers.map((player) => (
+    <section key={clubName} className="panel premium-panel club-directory-card">
+    <button
+      type="button"
+      className="club-directory-toggle"
+      onClick={() => toggleClub(clubName)}
+    >
+      <span className="panel-title club-directory-title">
+        {clubName}
+        <span className="club-member-count">({clubPlayers.length})</span>
+      </span>
+  
+      <span className="club-toggle-text">
+        {openClubs[clubName] ? 'Hide players' : 'View players'}
+      </span>
+    </button>
+  
+    {openClubs[clubName] && (
+      <div className="club-player-list">
+        {clubPlayers.map((player) => (
                 <Link
                   key={player.playerId}
                   to={`/player/${player.playerId}`}
@@ -130,9 +149,10 @@ function PlayerDirectory({ returnPath }) {
                   <span>{player.fullName}</span>
                   <span>{player.contexts.length ? 'View Stats' : 'No Stats'}</span>
                 </Link>
-              ))}
-            </div>
-          </section>
+                            ))}
+                            </div>
+                          )}
+                        </section>
         ))}
       </div>
     </div>

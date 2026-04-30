@@ -5,7 +5,6 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import RoleRoute from './components/auth/RoleRoute';
 import LandingPage from './pages/LandingPage';
 import PublicLiveFixturePage from './pages/PublicLiveFixturePage';
-import CompetitionOverviewPage from './pages/CompetitionOverviewPage';
 import StandingsPage from './pages/StandingsPage';
 import RankingsPage from './pages/RankingsPage';
 import FixturesPage from './pages/FixturesPage';
@@ -29,7 +28,6 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/competition/overview" element={<CompetitionOverviewPage />} />
         <Route path="/competition/standings" element={<StandingsPage />} />
         <Route path="/competition/rankings" element={<RankingsPage />} />
         <Route path="/competition/fixtures" element={<FixturesPage />} />

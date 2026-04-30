@@ -3,7 +3,6 @@ import { useAuth } from '../../context/AuthContext';
 
 const publicNavItems = [
   { to: '/', label: 'Home' },
-  { to: '/competition/overview', label: 'Overview' },
   { to: '/competition/standings', label: 'Standings' },
   { to: '/competition/rankings', label: 'Rankings' },
   { to: '/competition/fixtures', label: 'Fixtures' },
