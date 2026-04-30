@@ -36,7 +36,7 @@ function getPlayerHighlights(rows) {
       meta: `${mostTons.noTons} tons`
     },
     {
-      label: 'High Close',
+      label: 'Highest Close',
       value: highClose.playerName,
       meta: highClose.highestClose || 0
     }

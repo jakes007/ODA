@@ -1,13 +1,19 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
 import { importedFixturesData } from '../data/importedFixturesData';
+
+function parseDate(value) {
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+}
 
 export default function FixturesPage() {
   const [division, setDivision] = useState('Upper');
 
   const fixtures = (importedFixturesData.divisions[division] || [])
-  .slice()
-  .sort((a, b) => new Date(b.date) - new Date(a.date));
+    .slice()
+    .sort((a, b) => parseDate(b.date) - parseDate(a.date));
 
   return (
     <div className="page-stack fixtures-page">
@@ -37,7 +43,11 @@ export default function FixturesPage() {
 
         <div className="fixtures-list">
           {fixtures.map((fixture) => (
-            <div key={fixture.id} className="fixture-result-card">
+            <Link
+              key={fixture.id}
+              to={`/competition/fixtures/${fixture.id}`}
+              className="fixture-result-card fixture-result-link"
+            >
               <div>
                 <div className="fixture-result-date">{fixture.date}</div>
                 <h3 className="fixture-result-title">{fixture.fixtureName}</h3>
@@ -45,7 +55,7 @@ export default function FixturesPage() {
               </div>
 
               <div className="fixture-result-score">{fixture.scoreText}</div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>

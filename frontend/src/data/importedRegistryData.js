@@ -1,7 +1,7 @@
 export const importedRegistryData = {
-  "generatedAt": "2026-04-30T11:23:50.098Z",
+  "generatedAt": "2026-04-30T12:31:48.928Z",
   "summary": {
-    "players": 112,
+    "players": 111,
     "clubs": 8
   },
   "clubs": [
@@ -31,7 +31,7 @@ export const importedRegistryData = {
     },
     {
       "clubName": "Stallion",
-      "playerCount": 19
+      "playerCount": 18
     },
     {
       "clubName": "West Point",
@@ -588,21 +588,6 @@ export const importedRegistryData = {
       "callingName": "",
       "initials": "E",
       "surname": "Isaacs",
-      "clubName": "Stallion",
-      "status": "Active",
-      "category": "PDM",
-      "associationName": "Observatory",
-      "provinceName": "Western Cape"
-    },
-    {
-      "playerId": "registry_DSA-210316",
-      "membershipNo": "DSA-210316",
-      "dsaNumber": "210316",
-      "fullName": "Ebrahim Jassiem",
-      "firstNames": "Ebrahim",
-      "callingName": "Ebrahim Jassiem",
-      "initials": "E",
-      "surname": "Jassiem",
       "clubName": "Stallion",
       "status": "Active",
       "category": "PDM",
