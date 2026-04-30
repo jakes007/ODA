@@ -1,7 +1,7 @@
 export const importedRegistryData = {
-  "generatedAt": "2026-04-29T06:55:21.226Z",
+  "generatedAt": "2026-04-30T10:45:26.478Z",
   "summary": {
-    "players": 113,
+    "players": 112,
     "clubs": 8
   },
   "clubs": [
@@ -11,7 +11,7 @@ export const importedRegistryData = {
     },
     {
       "clubName": "Brisdel",
-      "playerCount": 6
+      "playerCount": 5
     },
     {
       "clubName": "Cathkin",
@@ -19,7 +19,7 @@ export const importedRegistryData = {
     },
     {
       "clubName": "East Side",
-      "playerCount": 7
+      "playerCount": 8
     },
     {
       "clubName": "Guardians",
@@ -31,7 +31,7 @@ export const importedRegistryData = {
     },
     {
       "clubName": "Stallion",
-      "playerCount": 21
+      "playerCount": 20
     },
     {
       "clubName": "West Point",
@@ -295,13 +295,13 @@ export const importedRegistryData = {
       "provinceName": "Western Cape"
     },
     {
-      "playerId": "registry_DSA-100000",
-      "membershipNo": "DSA-100000",
-      "dsaNumber": "100000",
+      "playerId": "registry_DSA-260509",
+      "membershipNo": "DSA-260509",
+      "dsaNumber": "260509",
       "fullName": "Chesley Roberts",
       "firstNames": "Chesley",
       "callingName": "",
-      "initials": "C",
+      "initials": "CG",
       "surname": "Roberts",
       "clubName": "Stallion",
       "status": "Active",
@@ -313,8 +313,8 @@ export const importedRegistryData = {
       "playerId": "registry_DSA-260221",
       "membershipNo": "DSA-260221",
       "dsaNumber": "260221",
-      "fullName": "Cheslin Hartnick",
-      "firstNames": "Cheslin",
+      "fullName": "Cheslyn Hartnick",
+      "firstNames": "Cheslyn",
       "callingName": "Cheezy",
       "initials": "C",
       "surname": "Hartnick",
@@ -595,21 +595,6 @@ export const importedRegistryData = {
       "provinceName": "Western Cape"
     },
     {
-      "playerId": "registry_DSA-250222",
-      "membershipNo": "DSA-250222",
-      "dsaNumber": "250222",
-      "fullName": "Eldridge Titus",
-      "firstNames": "Eldridge",
-      "callingName": "Neville",
-      "initials": "N",
-      "surname": "Titus",
-      "clubName": "East Side",
-      "status": "Active",
-      "category": "PDF",
-      "associationName": "Observatory",
-      "provinceName": "Western Cape"
-    },
-    {
       "playerId": "registry_DSA-130755",
       "membershipNo": "DSA-130755",
       "dsaNumber": "130755",
@@ -730,15 +715,15 @@ export const importedRegistryData = {
       "provinceName": "Western Cape"
     },
     {
-      "playerId": "registry_DSA-500000",
-      "membershipNo": "DSA-500000",
-      "dsaNumber": "500000",
-      "fullName": "Georgie Damonse",
-      "firstNames": "Georgie",
+      "playerId": "registry_DSA-220380",
+      "membershipNo": "DSA-220380",
+      "dsaNumber": "220380",
+      "fullName": "Georgina Damonse",
+      "firstNames": "Georgina",
       "callingName": "",
       "initials": "G",
       "surname": "Damonse",
-      "clubName": "Stallion",
+      "clubName": "Seagulls",
       "status": "Active",
       "category": "PDF",
       "associationName": "Observatory",
@@ -790,9 +775,9 @@ export const importedRegistryData = {
       "provinceName": "Western Cape"
     },
     {
-      "playerId": "registry_DSA-300000",
-      "membershipNo": "DSA-300000",
-      "dsaNumber": "300000",
+      "playerId": "registry_DSA-260220",
+      "membershipNo": "DSA-260220",
+      "dsaNumber": "260220",
       "fullName": "Glynn Dowes",
       "firstNames": "Glynn",
       "callingName": "",
@@ -898,11 +883,11 @@ export const importedRegistryData = {
       "playerId": "registry_DSA-123058",
       "membershipNo": "DSA-123058",
       "dsaNumber": "123058",
-      "fullName": "Jade Talmarks",
+      "fullName": "Jade Talmarkes",
       "firstNames": "Jade",
       "callingName": "",
       "initials": "J",
-      "surname": "Talmarks",
+      "surname": "Talmarkes",
       "clubName": "Best Of Order",
       "status": "Active",
       "category": "PDM",
@@ -1039,21 +1024,6 @@ export const importedRegistryData = {
       "initials": "J",
       "surname": "Hendricks",
       "clubName": "West Point",
-      "status": "Active",
-      "category": "PDM",
-      "associationName": "Observatory",
-      "provinceName": "Western Cape"
-    },
-    {
-      "playerId": "registry_DSA-120408",
-      "membershipNo": "DSA-120408",
-      "dsaNumber": "120408",
-      "fullName": "Joe Brown",
-      "firstNames": "Joe",
-      "callingName": "Joe",
-      "initials": "J",
-      "surname": "Brown",
-      "clubName": "Brisdel",
       "status": "Active",
       "category": "PDM",
       "associationName": "Observatory",
@@ -1285,11 +1255,11 @@ export const importedRegistryData = {
       "provinceName": "Western Cape"
     },
     {
-      "playerId": "registry_DSA-400000",
-      "membershipNo": "DSA-400000",
-      "dsaNumber": "400000",
-      "fullName": "Micheal Dooling",
-      "firstNames": "Micheal",
+      "playerId": "registry_DSA-260508",
+      "membershipNo": "DSA-260508",
+      "dsaNumber": "260508",
+      "fullName": "Michael Dooling",
+      "firstNames": "Michael",
       "callingName": "",
       "initials": "M",
       "surname": "Dooling",
@@ -1341,6 +1311,21 @@ export const importedRegistryData = {
       "clubName": "Stallion",
       "status": "Active",
       "category": "PDM",
+      "associationName": "Observatory",
+      "provinceName": "Western Cape"
+    },
+    {
+      "playerId": "registry_DSA-250222",
+      "membershipNo": "DSA-250222",
+      "dsaNumber": "250222",
+      "fullName": "Neville Titus",
+      "firstNames": "Neville",
+      "callingName": "",
+      "initials": "N",
+      "surname": "Titus",
+      "clubName": "East Side",
+      "status": "Active",
+      "category": "PDF",
       "associationName": "Observatory",
       "provinceName": "Western Cape"
     },
@@ -1420,15 +1405,15 @@ export const importedRegistryData = {
       "provinceName": "Western Cape"
     },
     {
-      "playerId": "registry_DSA-600000",
-      "membershipNo": "DSA-600000",
-      "dsaNumber": "600000",
+      "playerId": "registry_DSA-230265",
+      "membershipNo": "DSA-230265",
+      "dsaNumber": "230265",
       "fullName": "Raymond Solomon",
       "firstNames": "Raymond",
       "callingName": "",
       "initials": "R",
       "surname": "Solomon",
-      "clubName": "Seagulls",
+      "clubName": "East Side",
       "status": "Active",
       "category": "PDM",
       "associationName": "Observatory",

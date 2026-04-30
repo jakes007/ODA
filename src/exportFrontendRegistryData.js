@@ -20,6 +20,20 @@ function clean(value) {
   return String(value || '').trim();
 }
 
+function normalizeClubName(value) {
+  const club = clean(value).replace(/\s+/g, ' ');
+
+  if (!club) return '';
+
+  const lower = club.toLowerCase();
+
+  if (lower === 'boo' || lower === 'best of order') {
+    return 'Best Of Order';
+  }
+
+  return club;
+}
+
 function readWorkbookSheetRows(workbookPath, sheetName) {
   const workbook = XLSX.readFile(workbookPath, { cellDates: false });
   const worksheet = workbook.Sheets[sheetName];
@@ -46,25 +60,6 @@ function buildPlayerId(row, index) {
   return `registry_${surname}_${firstNames}_${index}`
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '_');
-}
-
-function normalizeClubName(value) {
-  const club = String(value || '').trim();
-
-  if (!club) return '';
-
-  const normalized = club
-    .replace(/\s+/g, ' ')
-    .trim();
-
-  if (
-    normalized.toLowerCase() === 'boo' ||
-    normalized.toLowerCase() === 'best of order'
-  ) {
-    return 'Best Of Order';
-  }
-
-  return normalized;
 }
 
 function buildFullName(row) {
@@ -113,18 +108,14 @@ function main() {
     .filter(Boolean)
     .sort((a, b) => a.fullName.localeCompare(b.fullName));
 
-    const clubs = [...new Set(
-      players
-        .map((player) => player.clubName)
-        .filter(Boolean)
-    )]
-      .sort((a, b) => a.localeCompare(b))
-      .map((clubName) => ({
-        clubName,
-        playerCount: players.filter(
-          (player) => player.clubName === clubName
-        ).length
-      }));
+  const clubs = [
+    ...new Set(players.map((player) => player.clubName).filter(Boolean))
+  ]
+    .sort((a, b) => a.localeCompare(b))
+    .map((clubName) => ({
+      clubName,
+      playerCount: players.filter((player) => player.clubName === clubName).length
+    }));
 
   const output = {
     generatedAt: new Date().toISOString(),

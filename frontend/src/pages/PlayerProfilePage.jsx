@@ -64,9 +64,21 @@ function getDirectoryPlayers() {
 }
 
 function findRegistryPlayer(playerId) {
+  const statContext = getAllStatContexts().find(
+    (context) => context.playerId === playerId
+  );
+
   return (
-    (importedRegistryData.players || []).find((player) => player.playerId === playerId) ||
-    null
+    (importedRegistryData.players || []).find((player) => {
+      const registryDsa = normalizeDsa(player.dsaNumber);
+      const statDsa = normalizeDsa(statContext?.dsaNumber);
+
+      return (
+        player.playerId === playerId ||
+        (registryDsa && statDsa && registryDsa === statDsa) ||
+        player.fullName === statContext?.playerName
+      );
+    }) || null
   );
 }
 
@@ -95,7 +107,9 @@ function PlayerDirectory({ returnPath }) {
       />
 
       <div className="club-directory-grid">
-        {Object.entries(clubs).map(([clubName, clubPlayers]) => (
+      {Object.entries(clubs)
+  .sort(([clubA], [clubB]) => clubA.localeCompare(clubB))
+  .map(([clubName, clubPlayers]) => (
           <section key={clubName} className="panel premium-panel club-directory-card">
             <h3 className="panel-title club-directory-title">
               {clubName}
@@ -135,7 +149,7 @@ export default function PlayerProfilePage() {
     ? '/competition/rankings'
     : location.state?.returnTo || '/player/player_jason';
 
-  const backLabel = cameFromRankings ? 'Back to rankings' : 'Back to player profiles';
+  const backLabel = cameFromRankings ? 'Rankings' : 'Player Profiles';
 
   if (!playerId) {
     return <PlayerDirectory returnPath={location.pathname} />;
