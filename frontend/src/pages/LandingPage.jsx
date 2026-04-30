@@ -160,9 +160,9 @@ const rankings = importedRankingsData.divisions?.Upper?.qualified || [];
         <section className="panel premium-panel premium-card-section">
           <div className="panel-header">
             <h3 className="panel-title">Featured Competitions</h3>
-            <Link to="/competition/overview" className="panel-link">
-              View all
-            </Link>
+            <Link to="/competition/fixtures" className="panel-link">
+  View all
+</Link>
           </div>
 
           {featuredCompetitions.map((competition) => (
