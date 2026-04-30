@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import MobileFloatingMenu from './MobileFloatingMenu';
 
 export default function AppLayout({ children }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -24,6 +25,7 @@ export default function AppLayout({ children }) {
       <div className="app-main">
         <Topbar onMenuClick={openMobileNav} />
         <main className="app-content">{children}</main>
+<MobileFloatingMenu />
       </div>
     </div>
   );
