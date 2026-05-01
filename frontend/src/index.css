@@ -1824,3 +1824,9 @@ textarea {
 .login-request-link:hover {
   opacity: 0.7;
 }
+
+@media (max-width: 768px) {
+  .app-content {
+    padding-bottom: 110px;
+  }
+}
