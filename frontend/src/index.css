@@ -2015,3 +2015,86 @@ textarea {
     font-size: 24px;
   }
 }
+
+.admin-workflow-steps {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-workflow-step {
+  position: relative;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-workflow-step span {
+  color: #ff9800;
+  font-size: 26px;
+  font-weight: 950;
+}
+
+.admin-workflow-step strong {
+  display: block;
+  margin-top: 8px;
+  color: #f5f7fb;
+}
+
+.admin-workflow-step p {
+  margin: 4px 0 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+}
+
+@media (max-width: 1000px) {
+  .admin-workflow-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-workflow-steps {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-module-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-module-card {
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-module-card strong {
+  display: block;
+  color: #f5f7fb;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.admin-module-card p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+  .admin-module-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-module-grid {
+    grid-template-columns: 1fr;
+  }
+}
