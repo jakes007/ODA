@@ -2352,7 +2352,19 @@ textarea {
     border-radius: 18px;
   }
 
-
+  @media (max-width: 640px) {
+    .login-page,
+    .register-page {
+      padding: 16px;
+    }
+  
+    .login-page .auth-panel,
+    .register-page .auth-panel {
+      max-width: 100%;
+      margin: 0;
+      border-radius: 18px;
+    }
+  }
 }
 
 .admin-stats-grid {
