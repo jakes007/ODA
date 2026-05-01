@@ -37,6 +37,31 @@ const rankings = importedRankingsData.divisions?.Upper?.qualified || [];
     .map((fixtureId) => getPublicLiveFixtureData(fixtureId))
     .filter((fixture) => fixture && fixture.status === 'active');
 
+    function normalizeFixtureName(value) {
+      return String(value || '')
+        .replace(/^BOO\b/i, 'Best Of Order')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+    }
+    
+    function getLatestResultFixtureLink(result) {
+      const allFixtures = Array.isArray(fixtures) ? fixtures : [];
+    
+      const matchingFixture = allFixtures.find((fixture) => {
+        return (
+          normalizeFixtureName(fixture.fixtureName) === normalizeFixtureName(result.fixtureName) &&
+          fixture.date === result.date
+        );
+      });
+    
+      if (!matchingFixture) {
+        return '/competition/fixtures';
+      }
+    
+      return `/competition/fixtures/${matchingFixture.id}`;
+    }
+
   return (
     <div className="page-stack landing-page premium-landing">
       <section className="landing-hero panel premium-hero">
@@ -186,7 +211,11 @@ const rankings = importedRankingsData.divisions?.Upper?.qualified || [];
           </div>
 
           {latestResults.map((fixture) => (
-            <div key={fixture.id} className="premium-info-card">
+  <Link
+  key={fixture.id}
+  to={getLatestResultFixtureLink(fixture)}
+  className="premium-info-card premium-clickable-row"
+>
               <div>
                 <div className="premium-card-title">{fixture.fixtureName}</div>
                 <div className="muted-text">
@@ -195,8 +224,8 @@ const rankings = importedRankingsData.divisions?.Upper?.qualified || [];
               </div>
 
               <div className="premium-result-score">{fixture.scoreText}</div>
-            </div>
-          ))}
+              </Link>
+))}
         </section>
       </div>
 
