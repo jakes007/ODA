@@ -2355,14 +2355,14 @@ textarea {
   @media (max-width: 640px) {
     .login-page,
     .register-page {
-      padding: 16px;
+      padding: 18px;
     }
   
     .login-page .auth-panel,
     .register-page .auth-panel {
       max-width: 100%;
       margin: 0;
-      border-radius: 18px;
+      border-radius: 20px;
     }
   }
 }
