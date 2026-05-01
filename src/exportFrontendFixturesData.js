@@ -148,44 +148,23 @@ function buildFixtures(registry, division) {
   });
 
   fixtureMap.forEach((fixture) => {
-    const homeTeamRowsForDate = statRows.filter(
-      (row) =>
-        clean(row.matchDate) === fixture.date &&
-        clean(row.teamName) === fixture.homeTeam
-    );
-  
-    const awayTeamRowsForDate = statRows.filter(
-      (row) =>
-        clean(row.matchDate) === fixture.date &&
-        clean(row.teamName) === fixture.awayTeam
-    );
-  
-    const homePlayerSignatures = new Set(
-      homeTeamRowsForDate.map((row) => getNameSignature(row.displayName))
-    );
-  
-    const awayPlayerSignatures = new Set(
-      awayTeamRowsForDate.map((row) => getNameSignature(row.displayName))
-    );
-  
     const rowsForFixture = statRows.filter((row) => {
+      const rawFields = getRawFields(registry, row);
+  
       const teamName = clean(row.teamName);
+      const opponentTeamName = clean(
+        readRaw(rawFields, ['Opponent_1', 'Opponent Team', 'Opponent Team Name'])
+      );
       const date = clean(row.matchDate);
-      const opponentSignature = getNameSignature(row.opponentPlayerName);
   
       if (date !== fixture.date) {
         return false;
       }
   
-      if (teamName === fixture.homeTeam) {
-        return awayPlayerSignatures.has(opponentSignature);
-      }
-  
-      if (teamName === fixture.awayTeam) {
-        return homePlayerSignatures.has(opponentSignature);
-      }
-  
-      return false;
+      return (
+        (teamName === fixture.homeTeam && opponentTeamName === fixture.awayTeam) ||
+        (teamName === fixture.awayTeam && opponentTeamName === fixture.homeTeam)
+      );
     });
   
     fixture.playerRows = rowsForFixture.map((row) => {
