@@ -2062,41 +2062,74 @@ textarea {
 
 .admin-module-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .admin-module-card {
-  padding: 18px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.045);
+  min-height: 138px;
+  padding: 16px;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(0, 213, 255, 0.08), transparent 32%),
+    rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .admin-module-card strong {
   display: block;
   color: #f5f7fb;
-  font-size: 16px;
+  font-size: 14px;
   margin-bottom: 8px;
 }
 
 .admin-module-card p {
   margin: 0;
   color: rgba(255, 255, 255, 0.62);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.45;
+  max-width: 150px;
 }
 
-@media (max-width: 900px) {
-  .admin-module-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.premium-module {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s ease;
 }
 
-@media (max-width: 640px) {
-  .admin-module-grid {
-    grid-template-columns: 1fr;
-  }
+.premium-module:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 152, 0, 0.4);
+  box-shadow: 0 8px 30px rgba(255, 152, 0, 0.12);
+}
+
+.admin-module-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.admin-module-icon svg {
+  width: 44px;
+  height: 44px;
+}
+
+.admin-module-icon.orange {
+  color: #ff9800;
+  background: rgba(255, 152, 0, 0.08);
+  border: 1px solid rgba(255, 152, 0, 0.25);
+  box-shadow: 0 0 26px rgba(255, 152, 0, 0.25);
+}
+
+.admin-module-icon.blue {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 0 26px rgba(56, 189, 248, 0.22);
 }
 
 .admin-dashboard-grid {
@@ -2127,3 +2160,16 @@ textarea {
   color: rgba(255, 255, 255, 0.62);
   font-size: 13px;
 }
+
+@media (max-width: 1200px) {
+  .admin-module-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-module-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

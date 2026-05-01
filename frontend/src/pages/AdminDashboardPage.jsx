@@ -2,6 +2,15 @@ import PageHeader from '../components/common/PageHeader';
 import StatCard from '../components/common/StatCard';
 import { useAuth } from '../context/AuthContext';
 import { importedLandingData } from '../data/importedLandingData';
+import {
+  FiUsers,
+  FiShield,
+  FiCalendar,
+  FiTarget,
+  FiInbox,
+  FiEdit
+} from 'react-icons/fi';
+
 
 export default function AdminDashboardPage() {
   const { currentUser } = useAuth();
@@ -85,32 +94,50 @@ export default function AdminDashboardPage() {
   </div>
 
   <div className="admin-module-grid">
-    <div className="admin-module-card">
+    <div className="admin-module-card premium-module">
+      <div className="admin-module-icon blue">
+        <FiUsers />
+      </div>
       <strong>Registry & Players</strong>
       <p>Manage player records and registry-linked profiles.</p>
     </div>
 
-    <div className="admin-module-card">
+    <div className="admin-module-card premium-module">
+      <div className="admin-module-icon orange">
+        <FiShield />
+      </div>
       <strong>Teams & Captains</strong>
       <p>Assign players, captains, and team memberships.</p>
     </div>
 
-    <div className="admin-module-card">
+    <div className="admin-module-card premium-module">
+      <div className="admin-module-icon blue">
+        <FiCalendar />
+      </div>
       <strong>Fixture Generator</strong>
       <p>Create fixtures, board allocations, and match nights.</p>
     </div>
 
-    <div className="admin-module-card">
+    <div className="admin-module-card premium-module">
+      <div className="admin-module-icon orange">
+        <FiTarget />
+      </div>
       <strong>Live Scoring Control</strong>
       <p>Start scoring sessions and monitor live fixtures.</p>
     </div>
 
-    <div className="admin-module-card">
+    <div className="admin-module-card premium-module">
+      <div className="admin-module-icon blue">
+        <FiInbox />
+      </div>
       <strong>Access Requests</strong>
       <p>Review registrations and approve account access.</p>
     </div>
 
-    <div className="admin-module-card">
+    <div className="admin-module-card premium-module">
+      <div className="admin-module-icon orange">
+        <FiEdit />
+      </div>
       <strong>Results & Corrections</strong>
       <p>Review scores, fix mistakes, and verify final results.</p>
     </div>
