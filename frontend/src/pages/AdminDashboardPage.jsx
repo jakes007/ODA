@@ -116,6 +116,54 @@ export default function AdminDashboardPage() {
     </div>
   </div>
 </section>
+
+<div className="content-grid admin-dashboard-grid">
+  <section className="panel premium-panel">
+    <div className="panel-header">
+      <h3 className="panel-title">Recent Admin Activity</h3>
+    </div>
+
+    <div className="admin-activity-list">
+      <div className="admin-activity-row">
+        <strong>Competition data imported</strong>
+        <span>Placements 2026</span>
+      </div>
+
+      <div className="admin-activity-row">
+        <strong>Fixture data verified</strong>
+        <span>Upper & Lower divisions</span>
+      </div>
+
+      <div className="admin-activity-row">
+        <strong>Registry linked</strong>
+        <span>Players matched to DSA records</span>
+      </div>
+    </div>
+  </section>
+
+  <section className="panel premium-panel">
+    <div className="panel-header">
+      <h3 className="panel-title">Upcoming Admin Work</h3>
+    </div>
+
+    <div className="admin-activity-list">
+      <div className="admin-activity-row">
+        <strong>Season setup</strong>
+        <span>Create/manage seasons inside admin</span>
+      </div>
+
+      <div className="admin-activity-row">
+        <strong>Competition builder</strong>
+        <span>Replace Excel import workflow</span>
+      </div>
+
+      <div className="admin-activity-row">
+        <strong>Fixture generator</strong>
+        <span>Use templates, boards, and formats</span>
+      </div>
+    </div>
+  </section>
+</div>
     </div>
   );
 }

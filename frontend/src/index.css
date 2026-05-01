@@ -2098,3 +2098,32 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+.admin-dashboard-grid {
+  align-items: stretch;
+}
+
+.admin-activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-activity-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-activity-row strong {
+  color: #f5f7fb;
+}
+
+.admin-activity-row span {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 13px;
+}
