@@ -2643,3 +2643,14 @@ textarea {
     text-align: left;
   }
 }
+
+@media (max-width: 640px) {
+    .fixture-card-title,
+      .premium-card-title {
+          font-size: 15px;       /* ↓ slightly smaller */
+              line-height: 1.2;
+                  white-space: nowrap;   /* 🚫 prevents wrapping */
+                      overflow: hidden;
+                          text-overflow: ellipsis; /* ... if too long */
+                            }
+                            }
