@@ -19,6 +19,7 @@ import CaptainLiveScoringPage from './pages/CaptainLiveScoringPage';
 import CaptainMatchupScoringPage from './pages/CaptainMatchupScoringPage';
 import FixtureDetailPage from './pages/FixtureDetailPage';
 import ClubRankingsPage from './pages/ClubRankingsPage';
+import AdminSeasonsPage from './pages/AdminSeasonsPage';
 
 export default function App() {
   return (
@@ -94,6 +95,17 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
+<Route
+  path="/admin/seasons"
+  element={
+    <ProtectedRoute>
+      <RoleRoute allowedRoles={['admin']}>
+        <AdminSeasonsPage />
+      </RoleRoute>
+    </ProtectedRoute>
+  }
+/>
 
         <Route
           path="/admin"

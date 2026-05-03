@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import PageHeader from '../components/common/PageHeader';
 import StatCard from '../components/common/StatCard';
 import { useAuth } from '../context/AuthContext';
@@ -16,10 +17,39 @@ import {
   FiSettings,
 FiChevronRight
 } from 'react-icons/fi';
+import { createSeason, getSeasons } from '../services/adminSeasonService';
+import { Link } from 'react-router-dom';
 
 
 export default function AdminDashboardPage() {
   const { currentUser } = useAuth();
+
+  const [seasons, setSeasons] = useState([]);
+const [seasonName, setSeasonName] = useState('');
+const [seasonMessage, setSeasonMessage] = useState('');
+
+useEffect(() => {
+  async function loadSeasons() {
+    const loadedSeasons = await getSeasons();
+    setSeasons(loadedSeasons);
+  }
+
+  loadSeasons();
+}, []);
+
+async function handleCreateSeason(event) {
+  event.preventDefault();
+
+  try {
+    const newSeason = await createSeason({ seasonName });
+
+    setSeasons((current) => [newSeason, ...current]);
+    setSeasonName('');
+    setSeasonMessage('Season created successfully.');
+  } catch (error) {
+    setSeasonMessage(error.message || 'Could not create season.');
+  }
+}
 
   return (
     <div className="page-stack admin-dashboard-page">
@@ -113,34 +143,78 @@ export default function AdminDashboardPage() {
   </div>
 </section>
 
+
 <section className="panel premium-panel admin-workflow-panel">
   <div className="panel-header">
     <h3 className="panel-title">Setup & Management Workflow</h3>
   </div>
 
   <div className="admin-workflow-track">
-    {[
-      ['01', 'Season', 'Create & manage', <FiFlag />],
-      ['02', 'Competition', 'Create & manage', <FiAward />],
-      ['03', 'Divisions', 'Setup divisions', <FiLayers />],
-      ['04', 'Teams', 'Manage teams', <FiUsers />],
-      ['05', 'Fixtures', 'Create & generate', <FiCalendar />],
-      ['06', 'Match Formats', 'Configure rules', <FiSettings />]
-    ].map(([number, title, text, icon], index) => (
-      <div key={number} className="admin-workflow-step">
-        <div className="admin-workflow-icon">{icon}</div>
-        <div className="admin-workflow-number">{number}</div>
+  {[
+  {
+    number: '01',
+    title: 'Season',
+    text: 'Create & manage',
+    icon: <FiFlag />,
+    link: '/admin/seasons'
+  },
+  {
+    number: '02',
+    title: 'Competition',
+    text: 'Create & manage',
+    icon: <FiAward />
+  },
+  {
+    number: '03',
+    title: 'Divisions',
+    text: 'Setup divisions',
+    icon: <FiLayers />
+  },
+  {
+    number: '04',
+    title: 'Teams',
+    text: 'Manage teams',
+    icon: <FiUsers />
+  },
+  {
+    number: '05',
+    title: 'Fixtures',
+    text: 'Create & generate',
+    icon: <FiCalendar />
+  },
+  {
+    number: '06',
+    title: 'Match Formats',
+    text: 'Configure rules',
+    icon: <FiSettings />
+  }
+].map((item, index) => {
+  const content = (
+    <>
+      <div className="admin-workflow-icon">{item.icon}</div>
+      <div className="admin-workflow-number">{item.number}</div>
 
-        {index < 5 ? (
-          <div className="admin-workflow-arrow">
-            <FiChevronRight />
-          </div>
-        ) : null}
+      {index < 5 ? (
+        <div className="admin-workflow-arrow">
+          <FiChevronRight />
+        </div>
+      ) : null}
 
-        <strong>{title}</strong>
-        <p>{text}</p>
-      </div>
-    ))}
+      <strong>{item.title}</strong>
+      <p>{item.text}</p>
+    </>
+  );
+
+  return item.link ? (
+    <Link key={item.number} to={item.link} className="admin-workflow-step admin-workflow-link">
+      {content}
+    </Link>
+  ) : (
+    <div key={item.number} className="admin-workflow-step">
+      {content}
+    </div>
+  );
+})}
   </div>
 </section>
 <section className="panel premium-panel admin-modules-panel">
