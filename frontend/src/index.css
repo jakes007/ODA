@@ -2714,4 +2714,62 @@ text-overflow: ellipsis; /* ... if too long */
     justify-content: flex-start;
   }
 }
-                                                     
+  
+.head-to-head-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.head-to-head-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.head-to-head-title {
+  color: #f5f7fb;
+  font-weight: 900;
+}
+
+.head-to-head-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.head-to-head-stats span {
+  font-size: 12px;
+  font-weight: 850;
+  color: rgba(255, 255, 255, 0.78);
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.head-to-head-stats .result-win {
+  color: #22c55e;
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.head-to-head-stats .result-loss {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+@media (max-width: 640px) {
+  .head-to-head-row {
+    grid-template-columns: 1fr;
+  }
+
+  .head-to-head-stats {
+    justify-content: flex-start;
+  }
+}

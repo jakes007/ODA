@@ -121,6 +121,50 @@ function getRecentMatchesForPlayer(player) {
     .slice(0, 8);
 }
 
+function getHeadToHeadForPlayer(player) {
+  const matches = getRecentMatchesForPlayer(player);
+
+  const opponentMap = new Map();
+
+  matches.forEach((match) => {
+    const opponentName = match.opponentName || 'Unknown Opponent';
+
+    if (!opponentMap.has(opponentName)) {
+      opponentMap.set(opponentName, {
+        opponentName,
+        played: 0,
+        won: 0,
+        lost: 0,
+        totalAverage: 0
+      });
+    }
+
+    const opponent = opponentMap.get(opponentName);
+
+    opponent.played += 1;
+    opponent.totalAverage += Number(match.average || 0);
+
+    if (match.result === 'Won') {
+      opponent.won += 1;
+    } else {
+      opponent.lost += 1;
+    }
+  });
+
+  return Array.from(opponentMap.values())
+    .map((opponent) => ({
+      ...opponent,
+      winPercentage: opponent.played
+        ? (opponent.won / opponent.played) * 100
+        : 0,
+      averageVsOpponent: opponent.played
+        ? opponent.totalAverage / opponent.played
+        : 0
+    }))
+    .sort((a, b) => b.played - a.played || b.winPercentage - a.winPercentage)
+    .slice(0, 5);
+}
+
 function groupPlayersByClub(players) {
   return players.reduce((groups, player) => {
     const club = player.clubName || 'No Club';
@@ -234,6 +278,8 @@ export default function PlayerProfilePage() {
     playerContexts[0];
 
     const recentMatches = getRecentMatchesForPlayer(player || registryPlayer);
+
+    const headToHead = getHeadToHeadForPlayer(player || registryPlayer);
 
   return (
     <div className="page-stack player-profile-page">
@@ -381,9 +427,41 @@ export default function PlayerProfilePage() {
       ))}
     </div>
   )}
-</section>
-</>
-)}
+          </section>
+
+          <section className="panel premium-panel">
+            <div className="panel-header">
+              <h3 className="panel-title">Head-to-Head</h3>
+            </div>
+
+            {!headToHead.length ? (
+              <p className="muted-text">No head-to-head data found for this player.</p>
+            ) : (
+              <div className="head-to-head-list">
+                {headToHead.map((opponent) => (
+                  <div key={opponent.opponentName} className="head-to-head-row">
+                    <div>
+                      <div className="head-to-head-title">
+                        vs {opponent.opponentName}
+                      </div>
+                      <div className="muted-text">
+                        {opponent.played} matches played
+                      </div>
+                    </div>
+
+                    <div className="head-to-head-stats">
+                      <span className="result-win">W {opponent.won}</span>
+                      <span className="result-loss">L {opponent.lost}</span>
+                      <span>{formatPercent(opponent.winPercentage)}</span>
+                      <span>Avg {formatNumber(opponent.averageVsOpponent, 2)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </>
+      )}
     </div>
   );
 }
