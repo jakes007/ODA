@@ -7,7 +7,8 @@ import { getCompetitions } from '../services/adminCompetitionService';
 import {
   createDivision,
   deleteDivision,
-  getDivisions
+  getDivisions,
+  updateDivision
 } from '../services/adminDivisionService';
 
 export default function AdminDivisionsPage() {
@@ -20,6 +21,11 @@ export default function AdminDivisionsPage() {
   const [divisionName, setDivisionName] = useState('');
   const [message, setMessage] = useState('');
   const [divisionToDelete, setDivisionToDelete] = useState(null);
+
+  const [editingDivisionId, setEditingDivisionId] = useState('');
+  const [editingDivisionName, setEditingDivisionName] = useState('');
+  const [editingSeasonId, setEditingSeasonId] = useState('');
+  const [editingCompetitionId, setEditingCompetitionId] = useState('');
 
   useEffect(() => {
     loadPageData();
@@ -39,30 +45,29 @@ export default function AdminDivisionsPage() {
       (competition) => competition.status === 'active'
     );
 
-    if (activeSeason) {
-      setSeasonId(activeSeason.id);
-    }
+    if (activeSeason) setSeasonId(activeSeason.id);
+    if (activeCompetition) setCompetitionId(activeCompetition.id);
+  }
 
-    if (activeCompetition) {
-      setCompetitionId(activeCompetition.id);
-    }
+  function getSeasonNameById(targetSeasonId) {
+    return seasons.find((season) => season.id === targetSeasonId)?.name || 'No season';
+  }
+
+  function getCompetitionNameById(targetCompetitionId) {
+    return (
+      competitions.find((competition) => competition.id === targetCompetitionId)?.name ||
+      'No competition'
+    );
   }
 
   async function handleCreateDivision(event) {
     event.preventDefault();
 
-    const selectedSeason = seasons.find((season) => season.id === seasonId);
-    const selectedCompetition = competitions.find(
-      (competition) => competition.id === competitionId
-    );
-
     try {
       const newDivision = await createDivision({
         divisionName,
         seasonId,
-        seasonName: selectedSeason?.name,
-        competitionId,
-        competitionName: selectedCompetition?.name
+        competitionId
       });
 
       setDivisions((current) => [newDivision, ...current]);
@@ -70,6 +75,38 @@ export default function AdminDivisionsPage() {
       setMessage('Division created successfully.');
     } catch (error) {
       setMessage(error.message || 'Could not create division.');
+    }
+  }
+
+  function startEditingDivision(division) {
+    setEditingDivisionId(division.id);
+    setEditingDivisionName(division.name);
+    setEditingSeasonId(division.seasonId || '');
+    setEditingCompetitionId(division.competitionId || '');
+    setMessage('');
+  }
+
+  function cancelEditingDivision() {
+    setEditingDivisionId('');
+    setEditingDivisionName('');
+    setEditingSeasonId('');
+    setEditingCompetitionId('');
+  }
+
+  async function handleSaveDivision(divisionId) {
+    try {
+      await updateDivision({
+        divisionId,
+        divisionName: editingDivisionName,
+        seasonId: editingSeasonId,
+        competitionId: editingCompetitionId
+      });
+
+      setMessage('Division updated.');
+      cancelEditingDivision();
+      await loadPageData();
+    } catch (error) {
+      setMessage(error.message || 'Could not update division.');
     }
   }
 
@@ -126,7 +163,7 @@ export default function AdminDivisionsPage() {
                 onChange={setCompetitionId}
                 options={competitions.map((competition) => ({
                   value: competition.id,
-                  label: `${competition.name} • ${competition.seasonName || 'No season'}`
+                  label: `${competition.name} • ${getSeasonNameById(competition.seasonId)}`
                 }))}
                 placeholder="Select competition"
               />
@@ -168,27 +205,90 @@ export default function AdminDivisionsPage() {
             divisions.map((division) => (
               <div key={division.id} className="admin-season-row">
                 <div className="admin-season-main competition-main-stacked">
-                  <strong>{division.name}</strong>
+                  {editingDivisionId === division.id ? (
+                    <>
+                      <input
+                        className="form-input admin-season-edit-input"
+                        type="text"
+                        value={editingDivisionName}
+                        onChange={(event) => setEditingDivisionName(event.target.value)}
+                      />
 
-                  <div className="competition-tags-row">
-                    <span className="admin-season-status inactive">
-                      {division.seasonName || 'No season'}
-                    </span>
+                      <CustomSelect
+                        value={editingSeasonId}
+                        onChange={setEditingSeasonId}
+                        options={seasons.map((season) => ({
+                          value: season.id,
+                          label: season.name
+                        }))}
+                        placeholder="Select season"
+                      />
 
-                    <span className="admin-season-status inactive">
-                      {division.competitionName || 'No competition'}
-                    </span>
-                  </div>
+                      <CustomSelect
+                        value={editingCompetitionId}
+                        onChange={setEditingCompetitionId}
+                        options={competitions.map((competition) => ({
+                          value: competition.id,
+                          label: `${competition.name} • ${getSeasonNameById(competition.seasonId)}`
+                        }))}
+                        placeholder="Select competition"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <strong>{division.name}</strong>
+
+                      <div className="competition-tags-row">
+                        <span className="admin-season-status inactive">
+                          {getSeasonNameById(division.seasonId)}
+                        </span>
+
+                        <span className="admin-season-status inactive">
+                          {getCompetitionNameById(division.competitionId)}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="admin-season-actions">
-                  <button
-                    type="button"
-                    className="secondary-btn danger-btn"
-                    onClick={() => setDivisionToDelete(division)}
-                  >
-                    Delete
-                  </button>
+                  {editingDivisionId === division.id ? (
+                    <>
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={() => handleSaveDivision(division.id)}
+                      >
+                        Save
+                      </button>
+
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={cancelEditingDivision}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={() => startEditingDivision(division)}
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        className="secondary-btn danger-btn"
+                        onClick={() => setDivisionToDelete(division)}
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))

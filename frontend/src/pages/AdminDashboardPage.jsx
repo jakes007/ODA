@@ -176,7 +176,8 @@ async function handleCreateSeason(event) {
     number: '04',
     title: 'Teams',
     text: 'Manage teams',
-    icon: <FiUsers />
+    icon: <FiUsers />,
+    link: '/admin/teams'
   },
   {
     number: '05',

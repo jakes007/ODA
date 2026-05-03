@@ -3004,12 +3004,19 @@ text-overflow: ellipsis; /* ... if too long */
   left: 0;
   width: 100%;
   border-radius: 14px;
+
+  /* 🔥 FIX: remove transparency bleed */
+  background: #0b0f1a;
+
+  /* Optional subtle gradient (still solid) */
   background:
-    radial-gradient(circle at top left, rgba(255, 152, 0, 0.12), transparent 40%),
-    rgba(10, 10, 12, 0.95);
+    radial-gradient(circle at top left, rgba(255, 152, 0, 0.08), transparent 40%),
+    #0b0f1a;
+
   border: 1px solid rgba(255, 152, 0, 0.25);
   box-shadow: 0 0 30px rgba(255, 152, 0, 0.15);
-  z-index: 50;
+
+  z-index: 99999;
   overflow: hidden;
 }
 
@@ -3070,4 +3077,78 @@ text-overflow: ellipsis; /* ... if too long */
 
 .admin-divisions-page .custom-select-dropdown {
   z-index: 999;
+}
+
+.admin-teams-page .premium-panel,
+.admin-teams-page .panel,
+.admin-teams-page .admin-season-row {
+  overflow: visible;
+}
+
+.admin-teams-page .custom-select {
+  z-index: 100;
+}
+
+.admin-teams-page .custom-select-dropdown {
+  z-index: 999;
+}
+
+.custom-select {
+  position: relative;
+  z-index: 1000;
+}
+
+.custom-select.open {
+  z-index: 99999;
+}
+
+.custom-select-dropdown {
+  z-index: 99999;
+}
+
+.form-row {
+  overflow: visible;
+}
+
+.register-form-grid {
+  overflow: visible;
+}
+
+.admin-teams-page .panel,
+.admin-teams-page .premium-panel,
+.admin-teams-page .admin-season-row {
+  overflow: visible;
+}
+
+
+.custom-select-option {
+  background: transparent;
+  transition: background 0.15s ease;
+}
+
+.custom-select-option:hover {
+  background: rgba(255, 152, 0, 0.12);
+}
+
+/* Keep any panel with an open dropdown above the panels below it */
+.panel:has(.custom-select.open),
+.premium-panel:has(.custom-select.open) {
+  position: relative;
+  z-index: 9999;
+  overflow: visible !important;
+}
+
+/* Keep normal panels lower */
+.panel,
+.premium-panel {
+  position: relative;
+}
+
+/* Dropdown itself */
+.custom-select.open {
+  z-index: 10000;
+}
+
+.custom-select-dropdown {
+  z-index: 10001;
 }

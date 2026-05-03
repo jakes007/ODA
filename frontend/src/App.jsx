@@ -22,6 +22,7 @@ import ClubRankingsPage from './pages/ClubRankingsPage';
 import AdminSeasonsPage from './pages/AdminSeasonsPage';
 import AdminCompetitionsPage from './pages/AdminCompetitionsPage';
 import AdminDivisionsPage from './pages/AdminDivisionsPage';
+import AdminTeamsPage from './pages/AdminTeamsPage';
 
 export default function App() {
   return (
@@ -126,6 +127,17 @@ export default function App() {
     <ProtectedRoute>
       <RoleRoute allowedRoles={['admin']}>
         <AdminDivisionsPage />
+      </RoleRoute>
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/teams"
+  element={
+    <ProtectedRoute>
+      <RoleRoute allowedRoles={['admin']}>
+        <AdminTeamsPage />
       </RoleRoute>
     </ProtectedRoute>
   }

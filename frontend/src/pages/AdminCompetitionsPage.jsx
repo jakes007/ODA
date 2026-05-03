@@ -6,7 +6,8 @@ import {
   createCompetition,
   deleteCompetition,
   getCompetitions,
-  updateCompetitionStatus
+  updateCompetitionStatus,
+  updateCompetitionNameAndSeason
 } from '../services/adminCompetitionService';
 import CustomSelect from '../components/common/CustomSelect';
 
@@ -41,17 +42,14 @@ const [editingSeasonId, setEditingSeasonId] = useState('');
 
   async function handleCreateCompetition(event) {
     event.preventDefault();
-
-    const selectedSeason = seasons.find((season) => season.id === seasonId);
-
+  
     try {
       const newCompetition = await createCompetition({
         competitionName,
         seasonId,
-        seasonName: selectedSeason?.name,
         status: 'upcoming'
       });
-
+  
       setCompetitions((current) => [newCompetition, ...current]);
       setCompetitionName('');
       setMessage('Competition created successfully.');
@@ -88,26 +86,10 @@ const [editingSeasonId, setEditingSeasonId] = useState('');
   
   async function handleSaveCompetition(competitionId) {
     try {
-      const selectedSeason = seasons.find(
-        (season) => season.id === editingSeasonId
-      );
-  
-      await updateCompetitionStatus({
-        competitionId,
-        status: 'upcoming' // keep status unchanged logic later if needed
-      });
-  
-      // Update name + season
-      await updateCompetitionStatus({
-        competitionId,
-        status: competitions.find(c => c.id === competitionId)?.status
-      });
-  
       await updateCompetitionNameAndSeason({
         competitionId,
         name: editingCompetitionName,
-        seasonId: editingSeasonId,
-        seasonName: selectedSeason?.name
+        seasonId: editingSeasonId
       });
   
       setMessage('Competition updated.');
@@ -131,6 +113,13 @@ const [editingSeasonId, setEditingSeasonId] = useState('');
     }
   }
 
+  function getSeasonNameById(targetSeasonId) {
+    return (
+      seasons.find((season) => season.id === targetSeasonId)?.name ||
+      'No season'
+    );
+  }
+  
   return (
     <div className="page-stack admin-competitions-page">
       <PageHeader
@@ -226,9 +215,9 @@ const [editingSeasonId, setEditingSeasonId] = useState('');
       <strong>{competition.name}</strong>
 
       <div className="competition-tags-row">
-        <span className="admin-season-status inactive">
-          {competition.seasonName || 'No season'}
-        </span>
+      <span className="admin-season-status inactive">
+  {getSeasonNameById(competition.seasonId)}
+</span>
 
         <span
           className={`admin-season-status ${
