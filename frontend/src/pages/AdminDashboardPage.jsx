@@ -162,13 +162,15 @@ async function handleCreateSeason(event) {
     number: '02',
     title: 'Competition',
     text: 'Create & manage',
-    icon: <FiAward />
+    icon: <FiAward />,
+    link: '/admin/competitions'
   },
   {
     number: '03',
     title: 'Divisions',
     text: 'Setup divisions',
-    icon: <FiLayers />
+    icon: <FiLayers />,
+    link: '/admin/divisions'
   },
   {
     number: '04',

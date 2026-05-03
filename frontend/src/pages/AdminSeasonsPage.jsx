@@ -7,6 +7,7 @@ import {
   setActiveSeason,
   updateSeasonName
 } from '../services/adminSeasonService';
+import { Link } from 'react-router-dom';
 
 export default function AdminSeasonsPage() {
   const [seasons, setSeasons] = useState([]);
@@ -14,6 +15,7 @@ export default function AdminSeasonsPage() {
   const [seasonMessage, setSeasonMessage] = useState('');
   const [editingSeasonId, setEditingSeasonId] = useState('');
   const [editingSeasonName, setEditingSeasonName] = useState('');
+  const [seasonToDelete, setSeasonToDelete] = useState(null);
 
   useEffect(() => {
     loadSeasons();
@@ -70,20 +72,21 @@ export default function AdminSeasonsPage() {
     }
   }
 
-  async function handleDeleteSeason(season) {
+  function requestDeleteSeason(season) {
     if (season.status === 'active') {
       setSeasonMessage('You cannot delete the active season. Set another season active first.');
       return;
     }
 
-    const confirmed = window.confirm(`Delete season "${season.name}"?`);
+    setSeasonToDelete(season);
+  }
 
-    if (!confirmed) {
-      return;
-    }
+  async function confirmDeleteSeason() {
+    if (!seasonToDelete) return;
 
     try {
-      await deleteSeason(season.id);
+      await deleteSeason(seasonToDelete.id);
+      setSeasonToDelete(null);
       setSeasonMessage('Season deleted.');
       await loadSeasons();
     } catch (error) {
@@ -99,9 +102,13 @@ export default function AdminSeasonsPage() {
       />
 
       <section className="panel premium-panel admin-season-panel">
-        <div className="panel-header">
-          <h3 className="panel-title">Create Season</h3>
-        </div>
+      <div className="panel-header">
+  <h3 className="panel-title">Create Season</h3>
+
+  <Link to="/admin" className="panel-link">
+    Dashboard
+  </Link>
+</div>
 
         <form className="auth-form" onSubmit={handleCreateSeason}>
           <div className="form-row">
@@ -202,7 +209,7 @@ export default function AdminSeasonsPage() {
                       <button
                         type="button"
                         className="secondary-btn danger-btn"
-                        onClick={() => handleDeleteSeason(season)}
+                        onClick={() => requestDeleteSeason(season)}
                       >
                         Delete
                       </button>
@@ -214,6 +221,38 @@ export default function AdminSeasonsPage() {
           )}
         </div>
       </section>
+
+      {seasonToDelete ? (
+        <div className="premium-confirm-backdrop">
+          <div className="premium-confirm-modal">
+            <div className="premium-confirm-kicker">Confirm Delete</div>
+
+            <h3>Delete Season?</h3>
+
+            <p>
+              You are about to delete <strong>{seasonToDelete.name}</strong>. This action cannot be undone.
+            </p>
+
+            <div className="premium-confirm-actions">
+              <button
+                type="button"
+                className="secondary-btn"
+                onClick={() => setSeasonToDelete(null)}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="secondary-btn danger-btn"
+                onClick={confirmDeleteSeason}
+              >
+                Delete Season
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

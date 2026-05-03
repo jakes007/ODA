@@ -20,6 +20,8 @@ import CaptainMatchupScoringPage from './pages/CaptainMatchupScoringPage';
 import FixtureDetailPage from './pages/FixtureDetailPage';
 import ClubRankingsPage from './pages/ClubRankingsPage';
 import AdminSeasonsPage from './pages/AdminSeasonsPage';
+import AdminCompetitionsPage from './pages/AdminCompetitionsPage';
+import AdminDivisionsPage from './pages/AdminDivisionsPage';
 
 export default function App() {
   return (
@@ -102,6 +104,28 @@ export default function App() {
     <ProtectedRoute>
       <RoleRoute allowedRoles={['admin']}>
         <AdminSeasonsPage />
+      </RoleRoute>
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/competitions"
+  element={
+    <ProtectedRoute>
+      <RoleRoute allowedRoles={['admin']}>
+        <AdminCompetitionsPage />
+      </RoleRoute>
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/divisions"
+  element={
+    <ProtectedRoute>
+      <RoleRoute allowedRoles={['admin']}>
+        <AdminDivisionsPage />
       </RoleRoute>
     </ProtectedRoute>
   }

@@ -2899,3 +2899,175 @@ text-overflow: ellipsis; /* ... if too long */
     justify-content: flex-start;
   }
 }
+
+.premium-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.premium-confirm-modal {
+  width: min(440px, 100%);
+  border-radius: 22px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 152, 0, 0.16), transparent 34%),
+    rgba(10, 10, 12, 0.96);
+  border: 1px solid rgba(255, 152, 0, 0.28);
+  box-shadow: 0 0 42px rgba(255, 152, 0, 0.16);
+}
+
+.premium-confirm-kicker {
+  color: #ff9800;
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+}
+
+.premium-confirm-modal h3 {
+  margin: 8px 0 8px;
+  color: #f5f7fb;
+  font-size: 26px;
+  font-weight: 950;
+}
+
+.premium-confirm-modal p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+  line-height: 1.5;
+}
+
+.premium-confirm-modal p strong {
+  color: #ffffff;
+}
+
+.premium-confirm-actions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 520px) {
+  .premium-confirm-actions {
+    flex-direction: column;
+  }
+
+  .premium-confirm-actions button {
+    width: 100%;
+  }
+}
+
+.custom-select {
+  position: relative;
+}
+
+.custom-select-trigger {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f5f7fb;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.custom-select-trigger:hover {
+  border-color: rgba(255, 152, 0, 0.35);
+}
+
+.custom-select-arrow {
+  font-size: 18px;
+  color: #ff9800;
+  transition: transform 0.2s ease;
+}
+
+.custom-select.open .custom-select-arrow {
+  transform: rotate(180deg);
+}
+
+.custom-select-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 152, 0, 0.12), transparent 40%),
+    rgba(10, 10, 12, 0.95);
+  border: 1px solid rgba(255, 152, 0, 0.25);
+  box-shadow: 0 0 30px rgba(255, 152, 0, 0.15);
+  z-index: 50;
+  overflow: hidden;
+}
+
+.custom-select-option {
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  color: #f5f7fb;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.custom-select-option:hover {
+  background: rgba(255, 152, 0, 0.12);
+}
+
+.custom-select-option.selected {
+  color: #ff9800;
+}
+
+.competition-main-stacked {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.competition-tags-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.admin-competitions-page .premium-panel,
+.admin-competitions-page .panel,
+.admin-competitions-page .admin-season-row {
+  overflow: visible;
+}
+
+.admin-competitions-page .custom-select {
+  z-index: 100;
+}
+
+.admin-competitions-page .custom-select-dropdown {
+  z-index: 999;
+}
+
+.admin-divisions-page .premium-panel,
+.admin-divisions-page .panel,
+.admin-divisions-page .admin-season-row {
+  overflow: visible;
+}
+
+.admin-divisions-page .custom-select {
+  z-index: 100;
+}
+
+.admin-divisions-page .custom-select-dropdown {
+  z-index: 999;
+}
