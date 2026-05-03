@@ -3152,3 +3152,7 @@ text-overflow: ellipsis; /* ... if too long */
 .custom-select-dropdown {
   z-index: 10001;
 }
+
+.admin-actions-spaced {
+  margin-top: 12px;
+}

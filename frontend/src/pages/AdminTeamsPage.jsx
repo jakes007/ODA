@@ -56,37 +56,41 @@ export default function AdminTeamsPage() {
     setDivisions(loadedDivisions);
     setTeams(loadedTeams);
 
-    const activeSeason = loadedSeasons.find((season) => season.status === 'active');
+    const activeSeason = loadedSeasons.find((s) => s.status === 'active');
     const activeCompetition = loadedCompetitions.find(
-      (competition) => competition.status === 'active'
+      (c) => c.status === 'active'
     );
 
     if (activeSeason) setSeasonId(activeSeason.id);
     if (activeCompetition) setCompetitionId(activeCompetition.id);
   }
 
-  async function handleCreateTeam(event) {
-    event.preventDefault();
+  // 🔥 LOOKUP HELPERS
+  function getSeasonName(id) {
+    return seasons.find((s) => s.id === id)?.name || 'No season';
+  }
 
-    const selectedSeason = seasons.find((season) => season.id === seasonId);
-    const selectedCompetition = competitions.find(
-      (competition) => competition.id === competitionId
-    );
-    const selectedDivision = divisions.find((division) => division.id === divisionId);
+  function getCompetitionName(id) {
+    return competitions.find((c) => c.id === id)?.name || 'No competition';
+  }
+
+  function getDivisionName(id) {
+    return divisions.find((d) => d.id === id)?.name || 'No division';
+  }
+
+  async function handleCreateTeam(e) {
+    e.preventDefault();
 
     try {
       const newTeam = await createTeam({
         teamName,
         clubName,
         seasonId,
-        seasonName: selectedSeason?.name,
         competitionId,
-        competitionName: selectedCompetition?.name,
-        divisionId,
-        divisionName: selectedDivision?.name
+        divisionId
       });
 
-      setTeams((current) => [newTeam, ...current]);
+      setTeams((cur) => [newTeam, ...cur]);
       setTeamName('');
       setMessage('Team created successfully.');
     } catch (error) {
@@ -101,38 +105,21 @@ export default function AdminTeamsPage() {
     setEditingSeasonId(team.seasonId || '');
     setEditingCompetitionId(team.competitionId || '');
     setEditingDivisionId(team.divisionId || '');
-    setMessage('');
   }
 
   function cancelEditingTeam() {
     setEditingTeamId('');
-    setEditingTeamName('');
-    setEditingClubName('');
-    setEditingSeasonId('');
-    setEditingCompetitionId('');
-    setEditingDivisionId('');
   }
 
   async function handleSaveTeam(teamId) {
-    const selectedSeason = seasons.find((season) => season.id === editingSeasonId);
-    const selectedCompetition = competitions.find(
-      (competition) => competition.id === editingCompetitionId
-    );
-    const selectedDivision = divisions.find(
-      (division) => division.id === editingDivisionId
-    );
-
     try {
       await updateTeam({
         teamId,
         teamName: editingTeamName,
         clubName: editingClubName,
         seasonId: editingSeasonId,
-        seasonName: selectedSeason?.name,
         competitionId: editingCompetitionId,
-        competitionName: selectedCompetition?.name,
-        divisionId: editingDivisionId,
-        divisionName: selectedDivision?.name
+        divisionId: editingDivisionId
       });
 
       setMessage('Team updated.');
@@ -160,67 +147,55 @@ export default function AdminTeamsPage() {
 
   return (
     <div className="page-stack admin-teams-page">
-      <PageHeader
-        title="Team Manager"
-        subtitle="Create and manage teams inside divisions."
-      />
-
+      <PageHeader title="Team Manager" />
+  
       <section className="panel premium-panel">
         <div className="panel-header">
           <h3 className="panel-title">Create Team</h3>
-
-          <Link to="/admin" className="panel-link">
-            Dashboard
-          </Link>
+          <Link to="/admin" className="panel-link">Dashboard</Link>
         </div>
-
-        <form className="auth-form" onSubmit={handleCreateTeam}>
+  
+        <form onSubmit={handleCreateTeam} className="auth-form">
           <div className="register-form-grid">
+  
             <div className="form-row">
               <label className="form-label">Season</label>
-
               <CustomSelect
                 value={seasonId}
                 onChange={setSeasonId}
-                options={seasons.map((season) => ({
-                  value: season.id,
-                  label: season.name
-                }))}
+                options={seasons.map(s => ({ value: s.id, label: s.name }))}
                 placeholder="Select season"
               />
             </div>
-
+  
             <div className="form-row">
               <label className="form-label">Competition</label>
-
               <CustomSelect
                 value={competitionId}
                 onChange={setCompetitionId}
-                options={competitions.map((competition) => ({
-                  value: competition.id,
-                  label: `${competition.name} • ${competition.seasonName || 'No season'}`
+                options={competitions.map(c => ({
+                  value: c.id,
+                  label: `${c.name} • ${getSeasonName(c.seasonId)}`
                 }))}
                 placeholder="Select competition"
               />
             </div>
-
+  
             <div className="form-row">
               <label className="form-label">Division</label>
-
               <CustomSelect
                 value={divisionId}
                 onChange={setDivisionId}
-                options={divisions.map((division) => ({
-                  value: division.id,
-                  label: `${division.name} • ${division.competitionName || 'No competition'}`
+                options={divisions.map(d => ({
+                  value: d.id,
+                  label: `${d.name} • ${getCompetitionName(d.competitionId)}`
                 }))}
                 placeholder="Select division"
               />
             </div>
-
+  
             <div className="form-row">
               <label className="form-label">Club</label>
-
               <CustomSelect
                 value={clubName}
                 onChange={setClubName}
@@ -228,36 +203,32 @@ export default function AdminTeamsPage() {
                 placeholder="Select club"
               />
             </div>
-
+  
             <div className="form-row">
-              <label className="form-label" htmlFor="teamName">
-                Team Name
-              </label>
-
+              <label className="form-label">Team Name</label>
               <input
-                id="teamName"
                 className="form-input"
-                type="text"
                 placeholder="Example: Guardians 1"
                 value={teamName}
-                onChange={(event) => setTeamName(event.target.value)}
+                onChange={(e) => setTeamName(e.target.value)}
               />
             </div>
+  
           </div>
-
-          {message ? <div className="form-success">{message}</div> : null}
-
+  
+          {message && <div className="form-success">{message}</div>}
+  
           <button type="submit" className="primary-btn auth-submit-btn">
             Create Team
           </button>
         </form>
       </section>
-
+  
       <section className="panel premium-panel">
         <div className="panel-header">
           <h3 className="panel-title">Existing Teams</h3>
         </div>
-
+  
         <div className="admin-season-list">
           {teams.length === 0 ? (
             <p className="muted-text">No teams created yet.</p>
@@ -265,78 +236,50 @@ export default function AdminTeamsPage() {
             teams.map((team) => (
               <div key={team.id} className="admin-season-row">
                 <div className="admin-season-main competition-main-stacked">
+  
                   {editingTeamId === team.id ? (
                     <>
                       <input
                         className="form-input admin-season-edit-input"
-                        type="text"
                         value={editingTeamName}
-                        onChange={(event) => setEditingTeamName(event.target.value)}
+                        onChange={(e) => setEditingTeamName(e.target.value)}
                       />
-
-                      <CustomSelect
-                        value={editingClubName}
-                        onChange={setEditingClubName}
-                        options={clubOptions}
-                        placeholder="Select club"
-                      />
-
-                      <CustomSelect
-                        value={editingSeasonId}
-                        onChange={setEditingSeasonId}
-                        options={seasons.map((season) => ({
-                          value: season.id,
-                          label: season.name
-                        }))}
-                        placeholder="Select season"
-                      />
-
-                      <CustomSelect
-                        value={editingCompetitionId}
-                        onChange={setEditingCompetitionId}
-                        options={competitions.map((competition) => ({
-                          value: competition.id,
-                          label: `${competition.name} • ${competition.seasonName || 'No season'}`
-                        }))}
-                        placeholder="Select competition"
-                      />
-
+  
                       <CustomSelect
                         value={editingDivisionId}
                         onChange={setEditingDivisionId}
-                        options={divisions.map((division) => ({
-                          value: division.id,
-                          label: `${division.name} • ${division.competitionName || 'No competition'}`
+                        options={divisions.map(d => ({
+                          value: d.id,
+                          label: d.name
                         }))}
-                        placeholder="Select division"
                       />
                     </>
                   ) : (
                     <>
                       <strong>{team.name}</strong>
-
+  
                       <div className="competition-tags-row">
                         <span className="admin-season-status inactive">
-                          {team.clubName || 'No club'}
+                          {team.clubName}
                         </span>
-
+  
                         <span className="admin-season-status inactive">
-                          {team.divisionName || 'No division'}
+                          {getDivisionName(team.divisionId)}
                         </span>
-
+  
                         <span className="admin-season-status inactive">
-                          {team.competitionName || 'No competition'}
+                          {getCompetitionName(team.competitionId)}
                         </span>
-
-                        <span className="admin-season-status active">
-                          {team.status || 'active'}
+  
+                        <span className="admin-season-status inactive">
+                          {getSeasonName(team.seasonId)}
                         </span>
                       </div>
                     </>
                   )}
                 </div>
-
-                <div className="admin-season-actions">
+  
+                <div className="admin-season-actions admin-actions-spaced">
                   {editingTeamId === team.id ? (
                     <>
                       <button
@@ -346,7 +289,7 @@ export default function AdminTeamsPage() {
                       >
                         Save
                       </button>
-
+  
                       <button
                         type="button"
                         className="secondary-btn"
@@ -364,7 +307,7 @@ export default function AdminTeamsPage() {
                       >
                         Edit
                       </button>
-
+  
                       <button
                         type="button"
                         className="secondary-btn danger-btn"
@@ -380,39 +323,6 @@ export default function AdminTeamsPage() {
           )}
         </div>
       </section>
-
-      {teamToDelete ? (
-        <div className="premium-confirm-backdrop">
-          <div className="premium-confirm-modal">
-            <div className="premium-confirm-kicker">Confirm Delete</div>
-
-            <h3>Delete Team?</h3>
-
-            <p>
-              You are about to delete <strong>{teamToDelete.name}</strong>.
-              This action cannot be undone.
-            </p>
-
-            <div className="premium-confirm-actions">
-              <button
-                type="button"
-                className="secondary-btn"
-                onClick={() => setTeamToDelete(null)}
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                className="secondary-btn danger-btn"
-                onClick={confirmDeleteTeam}
-              >
-                Delete Team
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }
