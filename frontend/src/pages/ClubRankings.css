@@ -124,20 +124,26 @@
 
   .club-ranking-table {
     width: max-content;
-    min-width: 780px;
+    min-width: 780px; /* 👈 slightly tighter for mobile */
     table-layout: auto;
     border-collapse: separate;
     border-spacing: 0;
   }
-
+  
   .club-ranking-table th,
   .club-ranking-table td {
     padding: 11px 10px;
     font-size: 12px;
   }
-
+  
+  /* 👇 THIS is the missing piece */
+  .sticky-player {
+    max-width: 140px; /* 👈 controls column width */
+  }
+  
+  /* 👇 THIS is correct but needs full control */
   .sticky-player a {
-    display: inline-block;
+    display: block;              /* 👈 better than inline-block */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
