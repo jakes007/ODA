@@ -2593,17 +2593,27 @@ textarea {
 
 @media (max-width: 640px) {
   .admin-stat-card {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: flex-start;
   }
 
+  /* LEFT SIDE (number) */
+  .admin-stat-value {
+    text-align: left;
+  }
+
+  /* RIGHT SIDE (text container) */
   .admin-stat-main {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
     flex: 1;
   }
 
-  .admin-stat-label,
-  .admin-stat-value {
-    text-align: left;
+  .admin-stat-label {
+    text-align: right;
   }
 
   .admin-stat-subtext {
