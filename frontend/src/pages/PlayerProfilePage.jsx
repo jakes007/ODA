@@ -4,6 +4,7 @@ import PageHeader from '../components/common/PageHeader';
 import StatCard from '../components/common/StatCard';
 import { importedRankingsData } from '../data/importedRankingsData';
 import { importedRegistryData } from '../data/importedRegistryData';
+import { importedFixturesData } from '../data/importedFixturesData';
 
 function formatPercent(value) {
   return `${Number(value || 0).toFixed(1)}%`;
@@ -80,6 +81,44 @@ function findRegistryPlayer(playerId) {
       );
     }) || null
   );
+}
+
+function getRecentMatchesForPlayer(player) {
+  const allFixtures = [
+    ...(importedFixturesData.divisions?.Upper || []),
+    ...(importedFixturesData.divisions?.Lower || [])
+  ];
+
+  const playerName = player?.playerName || player?.fullName || '';
+  const playerId = player?.playerId || '';
+
+  return allFixtures
+    .flatMap((fixture) =>
+      (fixture.playerRows || [])
+        .filter((row) => {
+          return (
+            row.playerId === playerId ||
+            row.playerName === playerName
+          );
+        })
+        .map((row) => ({
+          fixtureId: fixture.id,
+          date: fixture.date,
+          competitionName: importedFixturesData.competitionName,
+          season: importedFixturesData.season,
+          division: fixture.division,
+          fixtureName: fixture.fixtureName,
+          opponentName: row.opponentName,
+          average: row.average,
+          tons: row.tons,
+          oneEighties: row.oneEighties,
+          highestClose: row.highestClose,
+          result: row.singlesWon ? 'Won' : 'Lost'
+        }))
+    )
+    .slice()
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 8);
 }
 
 function groupPlayersByClub(players) {
@@ -194,6 +233,8 @@ export default function PlayerProfilePage() {
     playerContexts.find((context) => context.contextKey === selectedContextKey) ||
     playerContexts[0];
 
+    const recentMatches = getRecentMatchesForPlayer(player || registryPlayer);
+
   return (
     <div className="page-stack player-profile-page">
       <PageHeader
@@ -301,9 +342,48 @@ export default function PlayerProfilePage() {
                 <strong>{player.playerOfMatch}</strong>
               </div>
             </div>
-          </section>
-        </>
-      )}
+            </section>
+
+<section className="panel premium-panel">
+  <div className="panel-header">
+    <h3 className="panel-title">Recent Matches</h3>
+  </div>
+
+  {!recentMatches.length ? (
+    <p className="muted-text">No recent match data found for this player.</p>
+  ) : (
+    <div className="recent-matches-list">
+      {recentMatches.map((match, index) => (
+        <Link
+          key={`${match.fixtureId}-${match.opponentName}-${index}`}
+          to={`/competition/fixtures/${match.fixtureId}`}
+          className="recent-match-row"
+        >
+          <div>
+            <div className="recent-match-title">
+              vs {match.opponentName || 'Unknown Opponent'}
+            </div>
+            <div className="muted-text">
+              {match.date} • {match.competitionName} • {match.division}
+            </div>
+          </div>
+
+          <div className="recent-match-stats">
+            <span className={match.result === 'Won' ? 'result-win' : 'result-loss'}>
+              {match.result}
+            </span>
+            <span>Avg {formatNumber(match.average, 2)}</span>
+            <span>Tons {match.tons}</span>
+            <span>180s {match.oneEighties}</span>
+            <span>H/C {match.highestClose}</span>
+          </div>
+        </Link>
+      ))}
+    </div>
+  )}
+</section>
+</>
+)}
     </div>
   );
 }

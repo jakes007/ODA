@@ -2655,5 +2655,63 @@ text-overflow: ellipsis; /* ... if too long */
 }
 }
 
+.recent-matches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
+.recent-match-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 14px;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.recent-match-title {
+  color: rgb(228, 176, 7);
+  font-weight: 900;
+}
+
+.recent-match-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.recent-match-stats span {
+  font-size: 12px;
+  font-weight: 850;
+  color: rgba(255, 255, 255, 0.78);
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.recent-match-stats .result-win {
+  color: #22c55e;
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.recent-match-stats .result-loss {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+@media (max-width: 640px) {
+  .recent-match-row {
+    grid-template-columns: 1fr;
+  }
+
+  .recent-match-stats {
+    justify-content: flex-start;
+  }
+}
                                                      
