@@ -18,6 +18,7 @@ import CaptainFixtureSetupPage from './pages/CaptainFixtureSetupPage';
 import CaptainLiveScoringPage from './pages/CaptainLiveScoringPage';
 import CaptainMatchupScoringPage from './pages/CaptainMatchupScoringPage';
 import FixtureDetailPage from './pages/FixtureDetailPage';
+import ClubRankingsPage from './pages/ClubRankingsPage';
 
 export default function App() {
   return (
@@ -33,7 +34,7 @@ export default function App() {
         <Route path="/competition/fixtures" element={<FixturesPage />} />
         <Route path="/competition/fixtures/:fixtureId" element={<FixtureDetailPage />} />
         <Route path="/player/:playerId" element={<PlayerProfilePage />} />
-
+        <Route path="/competition/club-rankings" element={<ClubRankingsPage />} />
         <Route
           path="/dashboard"
           element={

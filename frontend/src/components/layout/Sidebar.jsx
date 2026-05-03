@@ -5,6 +5,7 @@ const publicNavItems = [
   { to: '/', label: 'Home' },
   { to: '/competition/standings', label: 'Standings' },
   { to: '/competition/rankings', label: 'Rankings' },
+  { to: '/competition/club-rankings', label: 'Club Rankings' },
   { to: '/competition/fixtures', label: 'Fixtures' },
   { to: '/player/player_jason', label: 'Player Profile' }
 ];

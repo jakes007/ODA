@@ -803,3 +803,137 @@
     justify-content: center;
   }
 }
+
+.featured-competitions-wide {
+  width: 100%;
+}
+
+.featured-competition-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.featured-competition-card {
+  min-height: 74px;
+}
+
+.club-top-three-panel {
+  max-height: 430px;
+  overflow: hidden;
+}
+
+.club-top-three-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.club-top-three-card {
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.club-top-three-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.club-top-three-header strong {
+  color: #f5f7fb;
+  font-size: 14px;
+}
+
+.club-top-three-header span {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+}
+
+.club-top-three-player {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  color: #f5f7fb;
+  text-decoration: none;
+  font-size: 13px;
+  border-top: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.club-top-three-player span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.club-top-three-player strong {
+  color: #ff9800;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .featured-competition-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .club-top-three-panel {
+    max-height: none;
+  }
+
+  .club-top-three-list {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+}
+
+.club-top-three-panel,
+.latest-results-panel {
+  height: 430px;
+  display: flex;
+  flex-direction: column;
+}
+
+.club-top-three-list,
+.latest-results-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.club-top-three-list::-webkit-scrollbar,
+.latest-results-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.club-top-three-list::-webkit-scrollbar-track,
+.latest-results-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+}
+
+.club-top-three-list::-webkit-scrollbar-thumb,
+.latest-results-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #ff9800, #38bdf8);
+  border-radius: 999px;
+}
+
+@media (max-width: 768px) {
+  .club-top-three-panel,
+  .latest-results-panel {
+    height: auto;
+  }
+
+  .club-top-three-list,
+  .latest-results-list {
+    overflow: visible;
+    padding-right: 0;
+  }
+}
