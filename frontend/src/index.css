@@ -2783,3 +2783,22 @@ text-overflow: ellipsis; /* ... if too long */
     justify-content: flex-start;
   }
 }
+
+@media (max-width: 640px) {
+  .fixture-result-title {
+    font-size: clamp(15px, 4.2vw, 20px);
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .fixture-result-card {
+    min-width: 0;
+  }
+
+  .fixture-result-card > div:first-child {
+    min-width: 0;
+  }
+}
