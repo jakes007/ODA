@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
 import EmptyState from '../components/common/EmptyState';
 import { importedFixturesData } from '../data/importedFixturesData';
+import { resolvePlayerDisplayName } from '../utils/playerNameResolver';
 
 function getAllFixtures() {
   return [
@@ -85,7 +86,7 @@ function OpponentRow({ row }) {
         className="fixture-opponent-summary"
         onClick={() => setOpen((current) => !current)}
       >
-        <span>vs {row.opponentName || 'Unknown Opponent'}</span>
+        <span>vs {resolvePlayerDisplayName(row.opponentName) || 'Unknown Opponent'}</span>
         <span>{open ? 'Hide' : 'Details'}</span>
       </button>
 
@@ -141,7 +142,7 @@ function PlayerGroupCard({ player }) {
         className="fixture-player-summary"
         onClick={() => setOpen((current) => !current)}
       >
-        <span>{player.playerName}</span>
+        <span>{resolvePlayerDisplayName(player.playerName)}</span>
         <span>{open ? 'Hide opponents' : 'View opponents'}</span>
       </button>
 

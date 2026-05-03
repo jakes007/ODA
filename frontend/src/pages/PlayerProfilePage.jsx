@@ -5,6 +5,7 @@ import StatCard from '../components/common/StatCard';
 import { importedRankingsData } from '../data/importedRankingsData';
 import { importedRegistryData } from '../data/importedRegistryData';
 import { importedFixturesData } from '../data/importedFixturesData';
+import { resolvePlayerDisplayName } from '../utils/playerNameResolver';
 
 function formatPercent(value) {
   return `${Number(value || 0).toFixed(1)}%`;
@@ -246,13 +247,21 @@ export default function PlayerProfilePage() {
   const { playerId } = useParams();
   const location = useLocation();
 
-  const cameFromRankings = location.state?.from === 'rankings';
+  const from = location.state?.from;
 
-  const backLink = cameFromRankings
+const backLink =
+  from === 'rankings'
     ? '/competition/rankings'
-    : location.state?.returnTo || '/player/player_jason';
+    : from === 'club-rankings'
+      ? '/competition/club-rankings'
+      : location.state?.returnTo || '/player/player_jason';
 
-  const backLabel = cameFromRankings ? 'Rankings' : 'Player Profiles';
+const backLabel =
+  from === 'rankings'
+    ? 'Rankings'
+    : from === 'club-rankings'
+      ? 'Club Rankings'
+      : 'Player Profiles';
 
   if (!playerId) {
     return <PlayerDirectory returnPath={location.pathname} />;
@@ -407,7 +416,7 @@ export default function PlayerProfilePage() {
         >
           <div>
             <div className="recent-match-title">
-              vs {match.opponentName || 'Unknown Opponent'}
+            vs {resolvePlayerDisplayName(match.opponentName) || 'Unknown Opponent'}
             </div>
             <div className="muted-text">
               {match.date} • {match.competitionName} • {match.division}
@@ -442,7 +451,7 @@ export default function PlayerProfilePage() {
                   <div key={opponent.opponentName} className="head-to-head-row">
                     <div>
                       <div className="head-to-head-title">
-                        vs {opponent.opponentName}
+                      vs {resolvePlayerDisplayName(opponent.opponentName)}
                       </div>
                       <div className="muted-text">
                         {opponent.played} matches played

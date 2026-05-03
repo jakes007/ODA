@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import PageHeader from '../components/common/PageHeader';
 import { importedRankingsData } from '../data/importedRankingsData';
 import './ClubRankings.css';
+import { Link } from 'react-router-dom';
 
 function getAllRankingPlayers() {
   const divisions = importedRankingsData.divisions || {};
@@ -79,7 +80,18 @@ export default function ClubRankingsPage() {
                   {club.players.map((player, index) => (
                     <tr key={`${club.clubName}-${player.playerId}`}>
                       <td className="sticky-col sticky-pos">{index + 1}</td>
-                      <td className="sticky-col sticky-player">{player.playerName}</td>
+                      <td className="sticky-col sticky-player">
+  <Link
+    to={`/player/${player.playerId}`}
+    state={{
+      from: 'club-rankings',
+      returnTo: '/competition/club-rankings'
+    }}
+    className="club-ranking-player-link"
+  >
+    {player.playerName}
+  </Link>
+</td>
                       <td className="orange-stat">{formatNumber(player.chuckAverage)}</td>
                       <td>{formatNumber(player.rankingWeighted)}</td>
                       <td>{player.singlesPlayed}</td>
