@@ -183,7 +183,8 @@ async function handleCreateSeason(event) {
     number: '05',
     title: 'Fixtures',
     text: 'Create & generate',
-    icon: <FiCalendar />
+    icon: <FiCalendar />,
+    link: '/admin/fixtures'
   },
   {
     number: '06',

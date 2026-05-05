@@ -3156,3 +3156,18 @@ text-overflow: ellipsis; /* ... if too long */
 .admin-actions-spaced {
   margin-top: 12px;
 }
+
+.admin-fixtures-page .premium-panel,
+.admin-fixtures-page .panel,
+.admin-fixtures-page .admin-season-row {
+  overflow: visible;
+}
+
+.admin-fixtures-page .custom-select {
+  z-index: 100;
+}
+
+.admin-fixtures-page .custom-select.open,
+.admin-fixtures-page .custom-select-dropdown {
+  z-index: 99999;
+}
