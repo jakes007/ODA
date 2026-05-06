@@ -8,6 +8,7 @@ import {
   getMatchFormats,
   updateMatchFormat
 } from '../services/adminMatchFormatService';
+import AdminStepNavigation from '../components/admin/AdminStepNavigation';
 
 const gameTypes = [
   { value: 'singles', label: 'Singles' },
@@ -187,6 +188,13 @@ export default function AdminMatchFormatsPage() {
         title="Match Formats"
         subtitle="Create reusable fixture formats for singles, doubles, and team games."
       />
+
+<AdminStepNavigation
+  previousTo="/admin/teams"
+  previousLabel="Previous: Teams"
+  nextTo="/admin/fixtures"
+  nextLabel="Next: Fixtures"
+/>
 
       <section className="panel premium-panel">
         <div className="panel-header">

@@ -152,10 +152,10 @@ export default function AdminTeamsPage() {
       <PageHeader title="Team Manager" />
 
       <AdminStepNavigation
-  previousTo="/admin/teams"
-  previousLabel="Previous: Teams"
-  nextTo="/admin/fixtures"
-  nextLabel="Next: Fixtures"
+  previousTo="/admin/divisions"
+  previousLabel="Previous: Divisions"
+  nextTo="/admin/match-formats"
+  nextLabel="Next: Match Formats"
 />
   
       <section className="panel premium-panel">
@@ -332,6 +332,38 @@ export default function AdminTeamsPage() {
           )}
         </div>
       </section>
+      {teamToDelete ? (
+  <div className="premium-confirm-backdrop">
+    <div className="premium-confirm-modal">
+      <div className="premium-confirm-kicker">Confirm Delete</div>
+
+      <h3>Delete Team?</h3>
+
+      <p>
+        You are about to delete <strong>{teamToDelete.name}</strong>. This action
+        cannot be undone.
+      </p>
+
+      <div className="premium-confirm-actions">
+        <button
+          type="button"
+          className="secondary-btn"
+          onClick={() => setTeamToDelete(null)}
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          className="secondary-btn danger-btn"
+          onClick={confirmDeleteTeam}
+        >
+          Delete Team
+        </button>
+      </div>
+    </div>
+  </div>
+) : null}
     </div>
   );
 }
