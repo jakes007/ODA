@@ -190,7 +190,8 @@ async function handleCreateSeason(event) {
     number: '06',
     title: 'Match Formats',
     text: 'Configure rules',
-    icon: <FiSettings />
+    icon: <FiSettings />,
+    link: '/admin/match-formats'
   }
 ].map((item, index) => {
   const content = (

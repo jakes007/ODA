@@ -3171,3 +3171,29 @@ text-overflow: ellipsis; /* ... if too long */
 .admin-fixtures-page .custom-select-dropdown {
   z-index: 99999;
 }
+
+.admin-match-formats-page .premium-panel,
+.admin-match-formats-page .panel,
+.admin-match-formats-page .admin-season-row,
+.admin-match-formats-page .admin-format-game-card {
+  overflow: visible;
+}
+
+.admin-format-games {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.admin-format-game-card {
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-match-formats-page .custom-select.open,
+.admin-match-formats-page .custom-select-dropdown {
+  z-index: 99999;
+}

@@ -24,6 +24,7 @@ import AdminCompetitionsPage from './pages/AdminCompetitionsPage';
 import AdminDivisionsPage from './pages/AdminDivisionsPage';
 import AdminTeamsPage from './pages/AdminTeamsPage';
 import AdminFixturesPage from './pages/AdminFixturesPage';
+import AdminMatchFormatsPage from './pages/AdminMatchFormatsPage';
 
 export default function App() {
   return (
@@ -150,6 +151,17 @@ export default function App() {
     <ProtectedRoute>
       <RoleRoute allowedRoles={['admin']}>
         <AdminFixturesPage />
+      </RoleRoute>
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/match-formats"
+  element={
+    <ProtectedRoute>
+      <RoleRoute allowedRoles={['admin']}>
+        <AdminMatchFormatsPage />
       </RoleRoute>
     </ProtectedRoute>
   }
