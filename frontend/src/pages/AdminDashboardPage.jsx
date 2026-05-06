@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import PageHeader from '../components/common/PageHeader';
 import StatCard from '../components/common/StatCard';
 import { useAuth } from '../context/AuthContext';
@@ -17,14 +17,80 @@ import {
   FiSettings,
 FiChevronRight
 } from 'react-icons/fi';
-import { createSeason, getSeasons } from '../services/adminSeasonService';
+import { createSeason } from '../services/adminSeasonService';
 import { Link } from 'react-router-dom';
+import { getSeasons } from '../services/adminSeasonService';
+import { getCompetitions } from '../services/adminCompetitionService';
+import { getDivisions } from '../services/adminDivisionService';
+import { getTeams } from '../services/adminTeamService';
+import { getAdminFixtures } from '../services/adminFixtureService';
 
 
 export default function AdminDashboardPage() {
   const { currentUser } = useAuth();
 
   const [seasons, setSeasons] = useState([]);
+const [competitions, setCompetitions] = useState([]);
+const [divisions, setDivisions] = useState([]);
+const [teams, setTeams] = useState([]);
+const [fixtures, setFixtures] = useState([]);
+
+
+useEffect(() => {
+  async function loadAdminDashboardData() {
+    const [
+      loadedSeasons,
+      loadedCompetitions,
+      loadedDivisions,
+      loadedTeams,
+      loadedFixtures
+    ] = await Promise.all([
+      getSeasons(),
+      getCompetitions(),
+      getDivisions(),
+      getTeams(),
+      getAdminFixtures()
+    ]);
+
+    setSeasons(loadedSeasons);
+    setCompetitions(loadedCompetitions);
+    setDivisions(loadedDivisions);
+    setTeams(loadedTeams);
+    setFixtures(loadedFixtures);
+  }
+
+  loadAdminDashboardData();
+}, []);
+
+function getSeasonName(id) {
+  return seasons.find((season) => season.id === id)?.name || 'No season';
+}
+
+function getDivisionName(id) {
+  return divisions.find((division) => division.id === id)?.name || 'No division';
+}
+
+function getTeamName(id) {
+  return teams.find((team) => team.id === id)?.name || 'No team';
+}
+
+const activeCompetition =
+  competitions.find((competition) => competition.status === 'active') ||
+  competitions[0] ||
+  null;
+
+const upcomingAdminFixtures = useMemo(() => {
+  return fixtures
+    .filter((fixture) => fixture.status === 'upcoming' && !fixture.complete)
+    .sort((a, b) => {
+      const dateA = `${a.fixtureDate || ''} ${a.fixtureTime || ''}`;
+      const dateB = `${b.fixtureDate || ''} ${b.fixtureTime || ''}`;
+      return dateA.localeCompare(dateB);
+    })
+    .slice(0, 3);
+}, [fixtures]);
+
+
 const [seasonName, setSeasonName] = useState('');
 const [seasonMessage, setSeasonMessage] = useState('');
 
@@ -126,14 +192,22 @@ async function handleCreateSeason(event) {
       </div>
 
       <div>
-        <div className="admin-section-kicker">Current Competition</div>
-        <h3 className="admin-competition-title">Placements</h3>
+  <div className="admin-section-kicker">Current Competition</div>
 
-        <div className="admin-competition-meta">
-          <span>Season 2026</span>
-          <span>Active</span>
-        </div>
-      </div>
+  <h3 className="admin-competition-title">
+    {activeCompetition?.name || 'No active competition'}
+  </h3>
+
+  <div className="admin-competition-meta">
+    <span>
+      {activeCompetition ? getSeasonName(activeCompetition.seasonId) : 'No season'}
+    </span>
+
+    <span>
+      {activeCompetition?.status || 'Not active'}
+    </span>
+  </div>
+</div>
     </div>
 
     <button type="button" className="admin-manage-competition-btn">
@@ -344,68 +418,35 @@ async function handleCreateSeason(event) {
     </div>
 
     <div className="admin-fixtures-list">
-
-      <div className="admin-fixture-row">
+  {upcomingAdminFixtures.length === 0 ? (
+    <p className="muted-text">No upcoming fixtures created yet.</p>
+  ) : (
+    upcomingAdminFixtures.map((fixture) => (
+      <div key={fixture.id} className="admin-fixture-row">
         <div className="admin-fixture-date">
-          <strong>13</strong>
-          <span>May</span>
+          <strong>{fixture.fixtureDate?.slice(8, 10) || '--'}</strong>
+          <span>{fixture.fixtureDate?.slice(5, 7) || '--'}</span>
         </div>
 
         <div className="admin-fixture-main">
-          <strong>Best Of Order 1</strong>
+          <strong>{getTeamName(fixture.homeTeamId)}</strong>
           <span>vs</span>
-          <strong>Guardians 1</strong>
+          <strong>{getTeamName(fixture.awayTeamId)}</strong>
         </div>
 
         <div className="admin-fixture-meta">
-          <span className="fixture-badge upper">Upper Division</span>
+          <span className="fixture-badge upper">
+            {getDivisionName(fixture.divisionId)}
+          </span>
+
           <span className="fixture-status">
-            Scheduled<br />19:30
+            Scheduled<br />{fixture.fixtureTime || '19:30'}
           </span>
         </div>
       </div>
-
-      <div className="admin-fixture-row">
-        <div className="admin-fixture-date">
-          <strong>20</strong>
-          <span>May</span>
-        </div>
-
-        <div className="admin-fixture-main">
-          <strong>Stallion 1</strong>
-          <span>vs</span>
-          <strong>Cathkin 1</strong>
-        </div>
-
-        <div className="admin-fixture-meta">
-          <span className="fixture-badge upper">Upper Division</span>
-          <span className="fixture-status">
-            Scheduled<br />19:30
-          </span>
-        </div>
-      </div>
-
-      <div className="admin-fixture-row">
-        <div className="admin-fixture-date">
-          <strong>27</strong>
-          <span>May</span>
-        </div>
-
-        <div className="admin-fixture-main">
-          <strong>Guardians 2</strong>
-          <span>vs</span>
-          <strong>West Point 1</strong>
-        </div>
-
-        <div className="admin-fixture-meta">
-          <span className="fixture-badge lower">Lower Division</span>
-          <span className="fixture-status">
-            Scheduled<br />19:30
-          </span>
-        </div>
-      </div>
-
-    </div>
+    ))
+  )}
+</div>
 
   </section>
 
