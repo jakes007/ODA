@@ -181,17 +181,17 @@ async function handleCreateSeason(event) {
   },
   {
     number: '05',
-    title: 'Fixtures',
-    text: 'Create & generate',
-    icon: <FiCalendar />,
-    link: '/admin/fixtures'
-  },
-  {
-    number: '06',
     title: 'Match Formats',
     text: 'Configure rules',
     icon: <FiSettings />,
     link: '/admin/match-formats'
+  },
+  {
+    number: '06',
+    title: 'Fixtures',
+    text: 'Create & generate',
+    icon: <FiCalendar />,
+    link: '/admin/fixtures'
   }
 ].map((item, index) => {
   const content = (

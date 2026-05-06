@@ -3197,3 +3197,26 @@ text-overflow: ellipsis; /* ... if too long */
 .admin-match-formats-page .custom-select-dropdown {
   z-index: 99999;
 }
+
+.admin-step-navigation {
+  padding: 14px;
+}
+
+.admin-step-nav-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .admin-step-nav-actions {
+    flex-direction: column;
+  }
+
+  .admin-step-nav-actions a {
+    width: 100%;
+    justify-content: center;
+  }
+}

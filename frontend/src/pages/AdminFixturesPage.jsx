@@ -6,18 +6,21 @@ import { getSeasons } from '../services/adminSeasonService';
 import { getCompetitions } from '../services/adminCompetitionService';
 import { getDivisions } from '../services/adminDivisionService';
 import { getTeams } from '../services/adminTeamService';
+import { getMatchFormats } from '../services/adminMatchFormatService';
 import {
   createAdminFixture,
   deleteAdminFixture,
-  getAdminFixtures
+  getAdminFixtures,
+  updateAdminFixture
 } from '../services/adminFixtureService';
-import { adminFixtureTemplates } from '../data/adminFixtureTemplates';
+import AdminStepNavigation from '../components/admin/AdminStepNavigation';
 
 export default function AdminFixturesPage() {
   const [seasons, setSeasons] = useState([]);
   const [competitions, setCompetitions] = useState([]);
   const [divisions, setDivisions] = useState([]);
   const [teams, setTeams] = useState([]);
+  const [matchFormats, setMatchFormats] = useState([]);
   const [fixtures, setFixtures] = useState([]);
 
   const [seasonId, setSeasonId] = useState('');
@@ -27,10 +30,20 @@ export default function AdminFixturesPage() {
   const [awayTeamId, setAwayTeamId] = useState('');
   const [fixtureDate, setFixtureDate] = useState('');
   const [fixtureTime, setFixtureTime] = useState('19:30');
-  const [templateId, setTemplateId] = useState('oda_32_point_standard');
+  const [matchFormatId, setMatchFormatId] = useState('');
 
   const [message, setMessage] = useState('');
   const [fixtureToDelete, setFixtureToDelete] = useState(null);
+
+  const [editingFixtureId, setEditingFixtureId] = useState('');
+  const [editingSeasonId, setEditingSeasonId] = useState('');
+  const [editingCompetitionId, setEditingCompetitionId] = useState('');
+  const [editingDivisionId, setEditingDivisionId] = useState('');
+  const [editingHomeTeamId, setEditingHomeTeamId] = useState('');
+  const [editingAwayTeamId, setEditingAwayTeamId] = useState('');
+  const [editingFixtureDate, setEditingFixtureDate] = useState('');
+  const [editingFixtureTime, setEditingFixtureTime] = useState('19:30');
+  const [editingMatchFormatId, setEditingMatchFormatId] = useState('');
 
   useEffect(() => {
     loadPageData();
@@ -41,12 +54,14 @@ export default function AdminFixturesPage() {
     const loadedCompetitions = await getCompetitions();
     const loadedDivisions = await getDivisions();
     const loadedTeams = await getTeams();
+    const loadedFormats = await getMatchFormats();
     const loadedFixtures = await getAdminFixtures();
 
     setSeasons(loadedSeasons);
     setCompetitions(loadedCompetitions);
     setDivisions(loadedDivisions);
     setTeams(loadedTeams);
+    setMatchFormats(loadedFormats);
     setFixtures(loadedFixtures);
 
     const activeSeason = loadedSeasons.find((season) => season.status === 'active');
@@ -56,6 +71,7 @@ export default function AdminFixturesPage() {
 
     if (activeSeason) setSeasonId(activeSeason.id);
     if (activeCompetition) setCompetitionId(activeCompetition.id);
+    if (loadedFormats[0]) setMatchFormatId(loadedFormats[0].id);
   }
 
   function getSeasonName(id) {
@@ -72,6 +88,10 @@ export default function AdminFixturesPage() {
 
   function getTeamName(id) {
     return teams.find((team) => team.id === id)?.name || 'No team';
+  }
+
+  function getMatchFormatName(id) {
+    return matchFormats.find((format) => format.id === id)?.name || 'No format';
   }
 
   const availableDivisions = useMemo(() => {
@@ -91,12 +111,27 @@ export default function AdminFixturesPage() {
     );
   }, [teams, seasonId, competitionId, divisionId]);
 
+  const editingAvailableDivisions = useMemo(() => {
+    return divisions.filter(
+      (division) =>
+        division.seasonId === editingSeasonId &&
+        division.competitionId === editingCompetitionId
+    );
+  }, [divisions, editingSeasonId, editingCompetitionId]);
+
+  const editingAvailableTeams = useMemo(() => {
+    return teams.filter(
+      (team) =>
+        team.seasonId === editingSeasonId &&
+        team.competitionId === editingCompetitionId &&
+        team.divisionId === editingDivisionId
+    );
+  }, [teams, editingSeasonId, editingCompetitionId, editingDivisionId]);
+
   async function handleCreateFixture(event) {
     event.preventDefault();
 
-    const selectedTemplate = adminFixtureTemplates.find(
-      (template) => template.templateId === templateId
-    );
+    const selectedFormat = matchFormats.find((format) => format.id === matchFormatId);
 
     try {
       const newFixture = await createAdminFixture({
@@ -107,7 +142,7 @@ export default function AdminFixturesPage() {
         awayTeamId,
         fixtureDate,
         fixtureTime,
-        template: selectedTemplate
+        matchFormat: selectedFormat
       });
 
       setFixtures((current) => [newFixture, ...current]);
@@ -117,6 +152,58 @@ export default function AdminFixturesPage() {
       setMessage('Fixture created successfully.');
     } catch (error) {
       setMessage(error.message || 'Could not create fixture.');
+    }
+  }
+
+  function startEditingFixture(fixture) {
+    setEditingFixtureId(fixture.id);
+    setEditingSeasonId(fixture.seasonId || '');
+    setEditingCompetitionId(fixture.competitionId || '');
+    setEditingDivisionId(fixture.divisionId || '');
+    setEditingHomeTeamId(fixture.homeTeamId || '');
+    setEditingAwayTeamId(fixture.awayTeamId || '');
+    setEditingFixtureDate(fixture.fixtureDate || '');
+    setEditingFixtureTime(fixture.fixtureTime || '19:30');
+    setEditingMatchFormatId(fixture.matchFormatId || fixture.templateId || '');
+    setMessage('');
+  }
+
+  function cancelEditingFixture() {
+    setEditingFixtureId('');
+    setEditingSeasonId('');
+    setEditingCompetitionId('');
+    setEditingDivisionId('');
+    setEditingHomeTeamId('');
+    setEditingAwayTeamId('');
+    setEditingFixtureDate('');
+    setEditingFixtureTime('19:30');
+    setEditingMatchFormatId('');
+  }
+
+  async function handleSaveFixture(fixture) {
+    const selectedFormat = matchFormats.find(
+      (format) => format.id === editingMatchFormatId
+    );
+
+    try {
+      await updateAdminFixture({
+        fixtureId: fixture.id,
+        seasonId: editingSeasonId,
+        competitionId: editingCompetitionId,
+        divisionId: editingDivisionId,
+        homeTeamId: editingHomeTeamId,
+        awayTeamId: editingAwayTeamId,
+        fixtureDate: editingFixtureDate,
+        fixtureTime: editingFixtureTime,
+        currentMatchFormatId: fixture.matchFormatId || fixture.templateId || '',
+        matchFormat: selectedFormat
+      });
+
+      setMessage('Fixture updated.');
+      cancelEditingFixture();
+      await loadPageData();
+    } catch (error) {
+      setMessage(error.message || 'Could not update fixture.');
     }
   }
 
@@ -137,8 +224,14 @@ export default function AdminFixturesPage() {
     <div className="page-stack admin-fixtures-page">
       <PageHeader
         title="Fixture Manager"
-        subtitle="Create and manage fixtures from your admin competition structure."
+        subtitle="Create and manage fixtures from saved match formats."
       />
+
+<AdminStepNavigation
+  previousTo="/admin/match-formats"
+  previousLabel="Previous: Match Formats"
+  finish
+/>
 
       <section className="panel premium-panel">
         <div className="panel-header">
@@ -153,7 +246,6 @@ export default function AdminFixturesPage() {
           <div className="register-form-grid">
             <div className="form-row">
               <label className="form-label">Season</label>
-
               <CustomSelect
                 value={seasonId}
                 onChange={(value) => {
@@ -172,7 +264,6 @@ export default function AdminFixturesPage() {
 
             <div className="form-row">
               <label className="form-label">Competition</label>
-
               <CustomSelect
                 value={competitionId}
                 onChange={(value) => {
@@ -191,7 +282,6 @@ export default function AdminFixturesPage() {
 
             <div className="form-row">
               <label className="form-label">Division</label>
-
               <CustomSelect
                 value={divisionId}
                 onChange={(value) => {
@@ -209,7 +299,6 @@ export default function AdminFixturesPage() {
 
             <div className="form-row">
               <label className="form-label">Home Team</label>
-
               <CustomSelect
                 value={homeTeamId}
                 onChange={setHomeTeamId}
@@ -223,7 +312,6 @@ export default function AdminFixturesPage() {
 
             <div className="form-row">
               <label className="form-label">Away Team</label>
-
               <CustomSelect
                 value={awayTeamId}
                 onChange={setAwayTeamId}
@@ -238,22 +326,20 @@ export default function AdminFixturesPage() {
             </div>
 
             <div className="form-row">
-              <label className="form-label">Fixture Template</label>
-
+              <label className="form-label">Match Format</label>
               <CustomSelect
-                value={templateId}
-                onChange={setTemplateId}
-                options={adminFixtureTemplates.map((template) => ({
-                  value: template.templateId,
-                  label: `${template.name} • ${template.pointsSystem}`
+                value={matchFormatId}
+                onChange={setMatchFormatId}
+                options={matchFormats.map((format) => ({
+                  value: format.id,
+                  label: `${format.name} • ${format.pointsSystem} Point`
                 }))}
-                placeholder="Select template"
+                placeholder="Select match format"
               />
             </div>
 
             <div className="form-row">
               <label className="form-label">Fixture Date</label>
-
               <input
                 className="form-input"
                 type="date"
@@ -264,7 +350,6 @@ export default function AdminFixturesPage() {
 
             <div className="form-row">
               <label className="form-label">Fixture Time</label>
-
               <input
                 className="form-input"
                 type="time"
@@ -294,48 +379,171 @@ export default function AdminFixturesPage() {
             fixtures.map((fixture) => (
               <div key={fixture.id} className="admin-season-row">
                 <div className="admin-season-main competition-main-stacked">
-                  <strong>
-                    {getTeamName(fixture.homeTeamId)} vs {getTeamName(fixture.awayTeamId)}
-                  </strong>
+                  {editingFixtureId === fixture.id ? (
+                    <>
+                      <CustomSelect
+                        value={editingSeasonId}
+                        onChange={(value) => {
+                          setEditingSeasonId(value);
+                          setEditingDivisionId('');
+                          setEditingHomeTeamId('');
+                          setEditingAwayTeamId('');
+                        }}
+                        options={seasons.map((season) => ({
+                          value: season.id,
+                          label: season.name
+                        }))}
+                        placeholder="Select season"
+                      />
 
-                  <div className="competition-tags-row">
-                    <span className="admin-season-status inactive">
-                      {getSeasonName(fixture.seasonId)}
-                    </span>
+                      <CustomSelect
+                        value={editingCompetitionId}
+                        onChange={(value) => {
+                          setEditingCompetitionId(value);
+                          setEditingDivisionId('');
+                          setEditingHomeTeamId('');
+                          setEditingAwayTeamId('');
+                        }}
+                        options={competitions.map((competition) => ({
+                          value: competition.id,
+                          label: `${competition.name} • ${getSeasonName(competition.seasonId)}`
+                        }))}
+                        placeholder="Select competition"
+                      />
 
-                    <span className="admin-season-status inactive">
-                      {getCompetitionName(fixture.competitionId)}
-                    </span>
+                      <CustomSelect
+                        value={editingDivisionId}
+                        onChange={(value) => {
+                          setEditingDivisionId(value);
+                          setEditingHomeTeamId('');
+                          setEditingAwayTeamId('');
+                        }}
+                        options={editingAvailableDivisions.map((division) => ({
+                          value: division.id,
+                          label: division.name
+                        }))}
+                        placeholder="Select division"
+                      />
 
-                    <span className="admin-season-status inactive">
-                      {getDivisionName(fixture.divisionId)}
-                    </span>
+                      <CustomSelect
+                        value={editingHomeTeamId}
+                        onChange={setEditingHomeTeamId}
+                        options={editingAvailableTeams.map((team) => ({
+                          value: team.id,
+                          label: team.name
+                        }))}
+                        placeholder="Select home team"
+                      />
 
-                    <span className="admin-season-status active">
-                      {fixture.status || 'upcoming'}
-                    </span>
+                      <CustomSelect
+                        value={editingAwayTeamId}
+                        onChange={setEditingAwayTeamId}
+                        options={editingAvailableTeams
+                          .filter((team) => team.id !== editingHomeTeamId)
+                          .map((team) => ({
+                            value: team.id,
+                            label: team.name
+                          }))}
+                        placeholder="Select away team"
+                      />
 
-                    <span className="admin-season-status inactive">
-                      {fixture.fixtureDate || 'No date'} • {fixture.fixtureTime || '19:30'}
-                    </span>
-                  </div>
+                      <CustomSelect
+                        value={editingMatchFormatId}
+                        onChange={setEditingMatchFormatId}
+                        options={matchFormats.map((format) => ({
+                          value: format.id,
+                          label: `${format.name} • ${format.pointsSystem} Point`
+                        }))}
+                        placeholder="Select match format"
+                      />
+
+                      <input
+                        className="form-input admin-season-edit-input"
+                        type="date"
+                        value={editingFixtureDate}
+                        onChange={(event) => setEditingFixtureDate(event.target.value)}
+                      />
+
+                      <input
+                        className="form-input admin-season-edit-input"
+                        type="time"
+                        value={editingFixtureTime}
+                        onChange={(event) => setEditingFixtureTime(event.target.value)}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <strong>
+                        {getTeamName(fixture.homeTeamId)} vs {getTeamName(fixture.awayTeamId)}
+                      </strong>
+
+                      <div className="competition-tags-row">
+                        <span className="admin-season-status inactive">
+                          {getSeasonName(fixture.seasonId)}
+                        </span>
+
+                        <span className="admin-season-status inactive">
+                          {getCompetitionName(fixture.competitionId)}
+                        </span>
+
+                        <span className="admin-season-status inactive">
+                          {getDivisionName(fixture.divisionId)}
+                        </span>
+
+                        <span className="admin-season-status inactive">
+                          {getMatchFormatName(fixture.matchFormatId || fixture.templateId)}
+                        </span>
+
+                        <span className="admin-season-status active">
+                          {fixture.status || 'upcoming'}
+                        </span>
+
+                        <span className="admin-season-status inactive">
+                          {fixture.fixtureDate || 'No date'} • {fixture.fixtureTime || '19:30'}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="admin-season-actions">
-                  <button
-                    type="button"
-                    className="secondary-btn"
-                  >
-                    Edit
-                  </button>
+                  {editingFixtureId === fixture.id ? (
+                    <>
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={() => handleSaveFixture(fixture)}
+                      >
+                        Save
+                      </button>
 
-                  <button
-                    type="button"
-                    className="secondary-btn danger-btn"
-                    onClick={() => setFixtureToDelete(fixture)}
-                  >
-                    Delete
-                  </button>
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={cancelEditingFixture}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={() => startEditingFixture(fixture)}
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        className="secondary-btn danger-btn"
+                        onClick={() => setFixtureToDelete(fixture)}
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))

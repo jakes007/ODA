@@ -8,6 +8,7 @@ import {
   updateSeasonName
 } from '../services/adminSeasonService';
 import { Link } from 'react-router-dom';
+import AdminStepNavigation from '../components/admin/AdminStepNavigation';
 
 export default function AdminSeasonsPage() {
   const [seasons, setSeasons] = useState([]);
@@ -100,6 +101,12 @@ export default function AdminSeasonsPage() {
         title="Season Manager"
         subtitle="Create and manage competition seasons."
       />
+      <AdminStepNavigation
+  previousTo="/admin"
+  previousLabel="Dashboard"
+  nextTo="/admin/competitions"
+  nextLabel="Next: Competitions"
+/>
 
       <section className="panel premium-panel admin-season-panel">
       <div className="panel-header">

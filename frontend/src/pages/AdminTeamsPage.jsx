@@ -12,6 +12,8 @@ import {
   getTeams,
   updateTeam
 } from '../services/adminTeamService';
+import AdminStepNavigation from '../components/admin/AdminStepNavigation';
+
 
 function getClubOptions() {
   return (importedRegistryData.clubs || []).map((club) => ({
@@ -148,6 +150,13 @@ export default function AdminTeamsPage() {
   return (
     <div className="page-stack admin-teams-page">
       <PageHeader title="Team Manager" />
+
+      <AdminStepNavigation
+  previousTo="/admin/teams"
+  previousLabel="Previous: Teams"
+  nextTo="/admin/fixtures"
+  nextLabel="Next: Fixtures"
+/>
   
       <section className="panel premium-panel">
         <div className="panel-header">

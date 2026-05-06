@@ -10,6 +10,8 @@ import {
   getDivisions,
   updateDivision
 } from '../services/adminDivisionService';
+import AdminStepNavigation from '../components/admin/AdminStepNavigation';
+
 
 export default function AdminDivisionsPage() {
   const [seasons, setSeasons] = useState([]);
@@ -129,6 +131,12 @@ export default function AdminDivisionsPage() {
         title="Division Manager"
         subtitle="Create and manage divisions inside competitions."
       />
+      <AdminStepNavigation
+  previousTo="/admin/competitions"
+  previousLabel="Previous: Competitions"
+  nextTo="/admin/teams"
+  nextLabel="Next: Teams"
+/>
 
       <section className="panel premium-panel">
         <div className="panel-header">

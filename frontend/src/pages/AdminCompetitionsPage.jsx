@@ -10,6 +10,7 @@ import {
   updateCompetitionNameAndSeason
 } from '../services/adminCompetitionService';
 import CustomSelect from '../components/common/CustomSelect';
+import AdminStepNavigation from '../components/admin/AdminStepNavigation';
 
 export default function AdminCompetitionsPage() {
   const [seasons, setSeasons] = useState([]);
@@ -126,6 +127,13 @@ const [editingSeasonId, setEditingSeasonId] = useState('');
         title="Competition Manager"
         subtitle="Create and manage competitions linked to seasons."
       />
+
+<AdminStepNavigation
+  previousTo="/admin/seasons"
+  previousLabel="Previous: Seasons"
+  nextTo="/admin/divisions"
+  nextLabel="Next: Divisions"
+/>
 
       <section className="panel premium-panel">
         <div className="panel-header">

@@ -23,7 +23,7 @@ export async function createAdminFixture({
   awayTeamId,
   fixtureDate,
   fixtureTime,
-  template
+  matchFormat
 }) {
   if (!seasonId) throw new Error('Please select a season.');
   if (!competitionId) throw new Error('Please select a competition.');
@@ -32,7 +32,10 @@ export async function createAdminFixture({
   if (!awayTeamId) throw new Error('Please select an away team.');
   if (homeTeamId === awayTeamId) throw new Error('Home and away teams cannot be the same.');
   if (!fixtureDate) throw new Error('Please select a fixture date.');
-  if (!template?.templateId) throw new Error('Please select a fixture template.');
+  if (!matchFormat?.id) throw new Error('Please select a match format.');
+  if (!Array.isArray(matchFormat.games) || matchFormat.games.length === 0) {
+    throw new Error('Selected match format has no games.');
+  }
 
   const fixtureRef = await addDoc(fixturesCollection, {
     seasonId,
@@ -42,7 +45,7 @@ export async function createAdminFixture({
     awayTeamId,
     fixtureDate,
     fixtureTime: fixtureTime || '19:30',
-    templateId: template.templateId,
+    matchFormatId: matchFormat.id,
     status: 'upcoming',
     score: { home: 0, away: 0 },
     complete: false,
@@ -51,17 +54,18 @@ export async function createAdminFixture({
 
   const batch = writeBatch(db);
 
-  template.games.forEach((game, index) => {
+  matchFormat.games.forEach((game, index) => {
     const gameRef = doc(collection(db, 'fixtureGames'));
 
     batch.set(gameRef, {
       fixtureId: fixtureRef.id,
+      matchFormatId: matchFormat.id,
       order: index + 1,
-      label: game.label,
+      label: game.label || `Game ${index + 1}`,
       type: game.type,
-      startingScore: game.startingScore,
-      legsMode: game.legsMode,
-      totalLegs: game.totalLegs,
+      startingScore: Number(game.startingScore || 501),
+      legsMode: game.legsMode || 'fixed',
+      totalLegs: Number(game.totalLegs || 1),
       status: 'pending',
       homePlayers: [],
       awayPlayers: [],
@@ -82,7 +86,7 @@ export async function createAdminFixture({
     awayTeamId,
     fixtureDate,
     fixtureTime: fixtureTime || '19:30',
-    templateId: template.templateId,
+    matchFormatId: matchFormat.id,
     status: 'upcoming',
     complete: false
   };
@@ -98,36 +102,7 @@ export async function getAdminFixtures() {
   }));
 }
 
-export async function updateAdminFixture({
-  fixtureId,
-  seasonId,
-  competitionId,
-  divisionId,
-  homeTeamId,
-  awayTeamId,
-  fixtureDate,
-  fixtureTime
-}) {
-  if (!seasonId) throw new Error('Please select a season.');
-  if (!competitionId) throw new Error('Please select a competition.');
-  if (!divisionId) throw new Error('Please select a division.');
-  if (!homeTeamId) throw new Error('Please select a home team.');
-  if (!awayTeamId) throw new Error('Please select an away team.');
-  if (homeTeamId === awayTeamId) throw new Error('Home and away teams cannot be the same.');
-  if (!fixtureDate) throw new Error('Please select a fixture date.');
-
-  await updateDoc(doc(db, 'fixtures', fixtureId), {
-    seasonId,
-    competitionId,
-    divisionId,
-    homeTeamId,
-    awayTeamId,
-    fixtureDate,
-    fixtureTime: fixtureTime || '19:30'
-  });
-}
-
-export async function deleteAdminFixture(fixtureId) {
+async function deleteFixtureGamesForFixture(fixtureId) {
   const gamesQuery = query(
     collection(db, 'fixtureGames'),
     where('fixtureId', '==', fixtureId)
@@ -140,7 +115,75 @@ export async function deleteAdminFixture(fixtureId) {
     batch.delete(doc(db, 'fixtureGames', gameDoc.id));
   });
 
-  batch.delete(doc(db, 'fixtures', fixtureId));
+  await batch.commit();
+}
+
+async function recreateFixtureGames({ fixtureId, matchFormat }) {
+  const batch = writeBatch(db);
+
+  matchFormat.games.forEach((game, index) => {
+    const gameRef = doc(collection(db, 'fixtureGames'));
+
+    batch.set(gameRef, {
+      fixtureId,
+      matchFormatId: matchFormat.id,
+      order: index + 1,
+      label: game.label || `Game ${index + 1}`,
+      type: game.type,
+      startingScore: Number(game.startingScore || 501),
+      legsMode: game.legsMode || 'fixed',
+      totalLegs: Number(game.totalLegs || 1),
+      status: 'pending',
+      homePlayers: [],
+      awayPlayers: [],
+      winner: null,
+      summary: null,
+      createdAt: serverTimestamp()
+    });
+  });
 
   await batch.commit();
+}
+
+export async function updateAdminFixture({
+  fixtureId,
+  seasonId,
+  competitionId,
+  divisionId,
+  homeTeamId,
+  awayTeamId,
+  fixtureDate,
+  fixtureTime,
+  currentMatchFormatId,
+  matchFormat
+}) {
+  if (!seasonId) throw new Error('Please select a season.');
+  if (!competitionId) throw new Error('Please select a competition.');
+  if (!divisionId) throw new Error('Please select a division.');
+  if (!homeTeamId) throw new Error('Please select a home team.');
+  if (!awayTeamId) throw new Error('Please select an away team.');
+  if (homeTeamId === awayTeamId) throw new Error('Home and away teams cannot be the same.');
+  if (!fixtureDate) throw new Error('Please select a fixture date.');
+  if (!matchFormat?.id) throw new Error('Please select a match format.');
+
+  await updateDoc(doc(db, 'fixtures', fixtureId), {
+    seasonId,
+    competitionId,
+    divisionId,
+    homeTeamId,
+    awayTeamId,
+    fixtureDate,
+    fixtureTime: fixtureTime || '19:30',
+    matchFormatId: matchFormat.id
+  });
+
+  if (currentMatchFormatId !== matchFormat.id) {
+    await deleteFixtureGamesForFixture(fixtureId);
+    await recreateFixtureGames({ fixtureId, matchFormat });
+  }
+}
+
+export async function deleteAdminFixture(fixtureId) {
+  await deleteFixtureGamesForFixture(fixtureId);
+  await deleteDoc(doc(db, 'fixtures', fixtureId));
 }
