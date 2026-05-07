@@ -150,6 +150,7 @@ export function createTeam(data) {
     clubName: cleanString(data.clubName),
     associationName: cleanString(data.associationName),
     competitionId: data.competitionId ?? null,
+    division: cleanString(data.division),
     season: cleanString(data.season),
     captainPlayerId: data.captainPlayerId ?? null,
     status: cleanString(data.status) || 'active',

@@ -209,11 +209,15 @@ export function importStatsRows(registry, rows = [], options = {}) {
     const provinceName =
       options.provinceName || readFirst(row, ['Province', 'Province Name']) || '';
 
-      const seasonFromRow = readFirst(row, ['Year']) || options.season || '';
-      const leagueNameFromRow =
-        readFirst(row, ['League']) ||
-        options.competitionName ||
-        'Unknown League';
+      const seasonFromRow =
+  readFirst(row, ['Year']) || options.season || '';
+
+const rowLeague = readFirst(row, ['League']);
+
+const leagueNameFromRow =
+  rowLeague ||
+  options.competitionName ||
+  'Unknown League';
       
       const divisionFromRow = readFirst(row, ['Division']);
       
@@ -258,6 +262,11 @@ export function importStatsRows(registry, rows = [], options = {}) {
         clubId: club?.clubId ?? '',
         clubName: club?.name ?? clubNameFromRow ?? '',
         associationName,
+        competitionId: competitionResult.success
+          ? competitionResult.competition.competitionId
+          : null,
+        division: divisionFromRow,
+        season: seasonFromRow,
         source: 'stats_import',
         sourceImportedAt: new Date().toISOString()
       });
@@ -274,6 +283,11 @@ export function importStatsRows(registry, rows = [], options = {}) {
       const opponentTeamName = normalizeClubName(
         readFirst(row, ['Opponent', 'Opponent_1', 'Opponent Team'])
       );
+
+      if (!teamName || !opponentTeamName) {
+        skippedCount++;
+        return;
+      }
 
       const rawTeamResult = createHistoricalTeamResultRaw({
         sourceWorkbook: options.sourceWorkbook ?? 'Unknown Workbook',
@@ -303,7 +317,7 @@ division: divisionFromRow,
         opponentTeamName,
         matchDate: readFirst(row, ['Date']),
         tournament: readFirst(row, ['Tournament']),
-        league: readFirst(row, ['League']),
+        league: leagueNameFromRow,
         ageGroup: readFirst(row, [' Age Group ', 'Age Group']),
         metrics: {
           dartsUsed: readFirst(row, ['Darts Used']),
@@ -484,7 +498,7 @@ if (!player && normalizedDsaNumber && rawPlayerName) {
         opponentTeamName: normalizeOptions.opponentTeamName,
         matchDate: readFirst(row, ['Date']),
         tournament: readFirst(row, ['Tournament']),
-        league: readFirst(row, ['League']),
+        league: leagueNameFromRow,
         ageGroup: readFirst(row, [' Age Group ', 'Age Group']),
         metrics: {
           average: Number(readFirst(row, [' Average ', 'Average'])) || 0,
@@ -545,7 +559,7 @@ if (!player && normalizedDsaNumber && rawPlayerName) {
           opponentTeamName: normalizeOptions.opponentTeamName,
           matchDate: readFirst(row, ['Date']),
           tournament: readFirst(row, ['Tournament']),
-          league: readFirst(row, ['League']),
+          league: leagueNameFromRow,
           ageGroup: readFirst(row, [' Age Group ', 'Age Group']),
           metrics: {
             average: Number(readFirst(row, [' Average ', 'Average'])) || 0,

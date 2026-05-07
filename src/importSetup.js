@@ -167,13 +167,13 @@ import {
       clubName: data.clubName ?? '',
       associationName,
       competitionId,
+      division: data.division ?? '',
       season,
       captainPlayerId: data.captainPlayerId ?? null,
       status: data.status ?? 'active',
       source: data.source ?? 'import',
       sourceImportedAt: data.sourceImportedAt ?? new Date().toISOString()
     });
-  
     registry.teams[team.teamId] = team;
     registry.teamIdsByLookupKey[teamLookupKey] = team.teamId;
   

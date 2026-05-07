@@ -66,23 +66,7 @@ function main() {
   const registryRows = readWorkbookSheetRows(registryWorkbookPath, 'Membership');
   const statsRows = readWorkbookSheetRows(statsWorkbookPath, 'Stats Input');
 
-  const registry = createEmptyRegistry();
-
-  importRegistryRows(registry, registryRows, {
-    source: 'registry_import'
-  });
-
-  importStatsRows(registry, statsRows, {
-    competitionName: 'Placements',
-    competitionType: 'league',
-    season: '2026',
-    competitionStatus: 'active',
-    associationName: 'Observatory',
-    provinceName: 'Western Cape',
-    sourceWorkbook: path.basename(statsWorkbookPath),
-    sourceSheet: 'Stats Input',
-    defaultRole: 'player'
-  });
+  
 
   const competitionId = findCompetitionId(registry, 'Placements', '2026');
 
@@ -115,6 +99,10 @@ function main() {
   console.log('\n===== FRONTEND STANDINGS EXPORTED =====');
   console.log(`Upper teams: ${upper.standings.length}`);
   console.log(`Lower teams: ${lower.standings.length}`);
+  console.log(
+    '\nLOWER TEAMS:\n',
+    lower.standings.map((t) => t.teamName)
+  );
   console.log(`Written to: ${outputPath}`);
 }
 
