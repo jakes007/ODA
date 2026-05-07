@@ -1,5 +1,5 @@
 export const importedRegistryData = {
-  "generatedAt": "2026-04-30T12:31:48.928Z",
+  "generatedAt": "2026-05-07T14:12:18.790Z",
   "summary": {
     "players": 111,
     "clubs": 8

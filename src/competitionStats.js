@@ -45,7 +45,8 @@ function buildPlayerRankingRow(player) {
     oneEighties: 0,
     legsPlayed: 0,
     legsWon: 0,
-    points: 0
+    points: 0,
+playerOfMatchAwards: 0
   };
 }
 
@@ -252,6 +253,13 @@ export function buildCompetitionPlayerRankings(registry, competitionId) {
     rankingRow.legsPlayed += toNumber(row.metrics?.legsPlayed);
     rankingRow.legsWon += toNumber(row.metrics?.legsWon);
     rankingRow.points += toNumber(row.metrics?.points);
+    if (
+      String(row.metrics?.playerOfMatch || '')
+        .trim()
+        .toUpperCase() === 'POM'
+    ) {
+      rankingRow.playerOfMatchAwards += 1;
+    }
   });
 
   const rankings = Object.values(rankingsMap)
@@ -319,6 +327,15 @@ export function buildPlayerCompetitionHistory(registry, playerId, competitionId)
       acc.legsPlayed += toNumber(row.metrics?.legsPlayed);
       acc.legsWon += toNumber(row.metrics?.legsWon);
       acc.points += toNumber(row.metrics?.points);
+      
+
+if (
+  String(row.metrics?.playerOfMatch || '')
+    .trim()
+    .toUpperCase() === 'POM'
+) {
+  acc.playerOfMatchAwards += 1;
+}
       return acc;
     },
     {
@@ -330,7 +347,8 @@ export function buildPlayerCompetitionHistory(registry, playerId, competitionId)
       oneEighties: 0,
       legsPlayed: 0,
       legsWon: 0,
-      points: 0
+      points: 0,
+playerOfMatchAwards: 0
     }
   );
 

@@ -61,7 +61,7 @@ function RankingsTable({ rows }) {
             <th>Ave</th>
             <th>Tons</th>
             <th>180</th>
-            <th>170</th>
+            <th>171</th>
             <th>H/C</th>
             <th>P</th>
             <th>W</th>

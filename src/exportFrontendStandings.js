@@ -66,7 +66,57 @@ function main() {
   const registryRows = readWorkbookSheetRows(registryWorkbookPath, 'Membership');
   const statsRows = readWorkbookSheetRows(statsWorkbookPath, 'Stats Input');
 
+  console.log('\n===== STANDINGS EXPORT DEBUG =====');
+console.log('Stats workbook:', statsWorkbookPath);
+console.log('Stats rows:', statsRows.length);
+console.log('First row keys:', Object.keys(statsRows[0] || {}));
+
+const teamResultsRows = statsRows.filter(
+  (row) => String(row.Player || '').trim().toLowerCase() === 'team results'
+);
+
+console.log('Team Results rows:', teamResultsRows.length);
+console.log('First Team Results row:', teamResultsRows[0]);
+console.log('Sample rows:', statsRows.slice(0, 5));
+
+  const registry = createEmptyRegistry();
+
+  importRegistryRows(registry, registryRows, {
+    source: 'registry_import'
+  });
+
+  const statsImportResult = importStatsRows(registry, statsRows, {
+    competitionName: 'Placements',
+    competitionType: 'league',
+    season: '2026',
+    competitionStatus: 'active',
+    associationName: 'Observatory',
+    provinceName: 'Western Cape',
+    sourceWorkbook: path.basename(statsWorkbookPath),
+    sourceSheet: 'Stats Input',
+    defaultRole: 'player'
+  });
   
+  console.log('\n===== IMPORT SUMMARY =====');
+  console.log(statsImportResult.summary);
+  
+  console.log('\n===== BLANK TEAMS IN REGISTRY =====');
+  console.log(
+    Object.values(registry.teams).filter(
+      (team) => !String(team.name || '').trim()
+    )
+  );
+  
+  console.log('\n===== LOWER TEAMS IN REGISTRY =====');
+  console.log(
+    Object.values(registry.teams)
+      .filter((team) => team.competitionId === findCompetitionId(registry, 'Placements', '2026'))
+      .map((team) => ({
+        name: team.name,
+        division: team.division,
+        competitionId: team.competitionId
+      }))
+  );
 
   const competitionId = findCompetitionId(registry, 'Placements', '2026');
 

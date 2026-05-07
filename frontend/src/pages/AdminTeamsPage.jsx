@@ -147,6 +147,24 @@ export default function AdminTeamsPage() {
 
   const clubOptions = getClubOptions();
 
+  const sortedTeams = [...teams].sort((a, b) => {
+    const competitionA = getCompetitionName(a.competitionId);
+    const competitionB = getCompetitionName(b.competitionId);
+  
+    if (competitionA !== competitionB) {
+      return competitionA.localeCompare(competitionB);
+    }
+  
+    const divisionA = getDivisionName(a.divisionId);
+    const divisionB = getDivisionName(b.divisionId);
+  
+    if (divisionA !== divisionB) {
+      return divisionA.localeCompare(divisionB);
+    }
+  
+    return String(a.name || '').localeCompare(String(b.name || ''));
+  });
+
   return (
     <div className="page-stack admin-teams-page">
       <PageHeader title="Team Manager" />
@@ -242,7 +260,7 @@ export default function AdminTeamsPage() {
           {teams.length === 0 ? (
             <p className="muted-text">No teams created yet.</p>
           ) : (
-            teams.map((team) => (
+            sortedTeams.map((team) => (
               <div key={team.id} className="admin-season-row">
                 <div className="admin-season-main competition-main-stacked">
   
