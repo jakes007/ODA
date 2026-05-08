@@ -3347,3 +3347,24 @@ text-overflow: ellipsis; /* ... if too long */
     white-space: nowrap;
   }
 }
+
+.ranking-arrow-up {
+  color: #22c55e;
+  font-weight: 900;
+}
+
+.ranking-arrow-down {
+  color: #ef4444;
+  font-weight: 900;
+}
+
+.ranking-arrow-neutral {
+  color: #64748b;
+  font-weight: 800;
+}
+
+@media (max-width: 768px) {
+  .ranking-movement-col {
+    display: none;
+  }
+}

@@ -102,10 +102,19 @@ function readRaw(rawFields, keys) {
   return '';
 }
 
-function buildPlayerRankingRows(registry, division) {
-  const rows = Object.values(registry.historicalStatsNormalized).filter(
-    (row) => row.season === '2026' && row.division === division
-  );
+function buildPlayerRankingRows(registry, division, options = {}) {
+  const rows = Object.values(registry.historicalStatsNormalized).filter((row) => {
+    if (row.season !== '2026' || row.division !== division) return false;
+
+    if (options.excludeLatestGameweek) {
+      const rawFields = getRawFields(registry, row);
+      const gw = toNumber(rawFields.GW);
+
+      return gw < options.latestGameweek;
+    }
+
+    return true;
+  });
 
   const players = {};
 
@@ -275,8 +284,53 @@ function main() {
     defaultRole: 'player'
   });
 
+  function getLatestGameweekForDivision(division) {
+    return Math.max(
+      0,
+      ...statsRows
+        .filter((row) => String(row.Division || '').trim() === division)
+        .map((row) => toNumber(row.GW))
+    );
+  }
+  
+  const upperLatestGameweek = getLatestGameweekForDivision('Upper');
+  const lowerLatestGameweek = getLatestGameweekForDivision('Lower');
+  
   const upper = buildPlayerRankingRows(registry, 'Upper');
   const lower = buildPlayerRankingRows(registry, 'Lower');
+  
+  const previousUpper = buildPlayerRankingRows(registry, 'Upper', {
+    excludeLatestGameweek: true,
+    latestGameweek: upperLatestGameweek
+  });
+  
+  const previousLower = buildPlayerRankingRows(registry, 'Lower', {
+    excludeLatestGameweek: true,
+    latestGameweek: lowerLatestGameweek
+  });
+  
+  function getMovementKey(row) {
+    return row.playerId || row.playerName;
+  }
+  
+  function applyMovement(currentRows, previousRows) {
+    const previousMap = new Map();
+  
+    [...previousRows.qualified, ...previousRows.alsoPlayed].forEach((row) => {
+      previousMap.set(getMovementKey(row), row.position);
+    });
+  
+    [...currentRows.qualified, ...currentRows.alsoPlayed].forEach((row) => {
+      const previousPosition = previousMap.get(getMovementKey(row));
+  
+      row.previousPosition = previousPosition ?? null;
+      row.rankMovement =
+        previousPosition == null ? 0 : previousPosition - row.position;
+    });
+  }
+  
+  applyMovement(upper, previousUpper);
+  applyMovement(lower, previousLower);
 
   const fileContent = `export const importedRankingsData = {
   season: '2026',

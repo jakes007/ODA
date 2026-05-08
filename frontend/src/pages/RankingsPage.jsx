@@ -53,7 +53,8 @@ function RankingsTable({ rows }) {
       <table className="rankings-table">
         <thead>
           <tr>
-            <th>Pos</th>
+          <th className="ranking-movement-col">Move</th>
+<th>#</th>
             <th>Player</th>
             <th>Club</th>
             <th>T/S</th>
@@ -74,7 +75,16 @@ function RankingsTable({ rows }) {
         <tbody>
           {rows.map((row) => (
             <tr key={`${row.position}-${row.playerId}-${row.playerName}`}>
-              <td>{row.position}</td>
+              <td className="ranking-movement-col">
+              {row.rankMovement > 0 ? (
+  <span className="ranking-arrow-up">▲</span>
+) : row.rankMovement < 0 ? (
+  <span className="ranking-arrow-down">▼</span>
+) : (
+  <span className="ranking-arrow-neutral">–</span>
+)}
+</td>
+<td>{row.position}</td>
               <td className="player-name-cell">
                 <Link
                   to={`/player/${row.playerId}`}
