@@ -181,11 +181,15 @@ function buildPlayerRankingRows(registry, division) {
       readRaw(rawFields, ['Singles Won', 'Won', 'W'])
     );
 
-    const potmValue = String(readRaw(rawFields, ['Player Of Match'])).trim();
-
-if (potmValue.toUpperCase() === 'POM') {
-  playerRow.playerOfMatch += 1;
-}
+    const potmValue = String(
+      rawFields['Player Of Match'] ??
+      rawFields['Player Of Match '] ??
+      ''
+    ).trim();
+    
+    if (toNumber(potmValue) > 0) {
+      playerRow.playerOfMatch += toNumber(potmValue);
+    }
   });
 
   const rankingRows = Object.values(players).map((player) => {
