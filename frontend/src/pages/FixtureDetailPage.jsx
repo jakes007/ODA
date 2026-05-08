@@ -178,6 +178,78 @@ function TeamPlayerList({ title, players }) {
   );
 }
 
+function buildFixturePlayerRankings(fixture) {
+  const playerMap = new Map();
+
+  (fixture.playerRows || [])
+    .filter((row) => row.fixtureId === fixture.id)
+    .forEach((row) => {
+      const key = row.playerId || row.playerName;
+
+      if (!playerMap.has(key)) {
+        playerMap.set(key, {
+          playerId: row.playerId,
+          playerName: row.playerName,
+          teamName: row.teamName,
+          total: 0,
+          dartsUsed: 0,
+          played: 0,
+          won: 0,
+          tons: 0,
+          oneEighties: 0,
+          highestClose: 0
+        });
+      }
+
+      const player = playerMap.get(key);
+
+      player.total += Number(row.total || 0);
+      player.dartsUsed += Number(row.dartsUsed || 0);
+      player.played += 1;
+      player.won += row.singlesWon ? 1 : 0;
+      player.tons += Number(row.tons || 0);
+      player.oneEighties += Number(row.oneEighties || 0);
+      player.highestClose = Math.max(
+        player.highestClose,
+        Number(row.highestClose || 0)
+      );
+    });
+
+  return Array.from(playerMap.values())
+    .map((player) => {
+      const average =
+        player.dartsUsed > 0
+          ? (player.total / player.dartsUsed) * 3
+          : 0;
+
+      const winPercentage =
+        player.played > 0
+          ? (player.won / player.played) * 100
+          : 0;
+
+      const rankingScore = average * 0.7 + winPercentage * 0.3;
+
+      return {
+        ...player,
+        lost: player.played - player.won,
+        average,
+        winPercentage,
+        rankingScore
+      };
+    })
+    .sort((a, b) => {
+      if (b.rankingScore !== a.rankingScore) {
+        return b.rankingScore - a.rankingScore;
+      }
+
+      if (b.average !== a.average) {
+        return b.average - a.average;
+      }
+
+      return b.won - a.won;
+    });
+}
+
 export default function FixtureDetailPage() {
   const { fixtureId } = useParams();
   const fixture = getAllFixtures().find((item) => item.id === fixtureId);
@@ -187,6 +259,8 @@ export default function FixtureDetailPage() {
   }
 
   const { homePlayers, awayPlayers } = groupPlayersByTeam(fixture);
+
+  const fixturePlayerRankings = buildFixturePlayerRankings(fixture);
 
   return (
     <div className="page-stack fixture-detail-page">
@@ -215,6 +289,67 @@ export default function FixtureDetailPage() {
         <div className="panel-header">
           <h3 className="panel-title">Player Match Data</h3>
         </div>
+
+        <section className="panel premium-panel">
+  <div className="panel-header">
+    <h3 className="panel-title">Fixture Player Rankings</h3>
+  </div>
+
+  {!fixturePlayerRankings.length ? (
+    <p className="muted-text">No fixture ranking data found.</p>
+  ) : (
+    <div className="club-table-scroll">
+      <table className="club-ranking-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Player</th>
+            <th>Team</th>
+            <th>P</th>
+            <th>W</th>
+            <th>L</th>
+            <th>Avg</th>
+            <th>Win %</th>
+            <th>Tons</th>
+            <th>180s</th>
+            <th>H/C</th>
+            <th>Ranking</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {fixturePlayerRankings.map((player, index) => (
+            <tr key={player.playerId || player.playerName}>
+              <td>{index + 1}</td>
+              <td>{resolvePlayerDisplayName(player.playerName)}</td>
+              <td>{player.teamName}</td>
+              <td>{player.played}</td>
+              <td>
+  <span className="result-win">
+    {player.won}
+  </span>
+</td>
+
+<td>
+  <span className="result-loss">
+    {player.lost}
+  </span>
+</td>
+              <td className="orange-stat">{formatAverage(player.average)}</td>
+              <td>{formatAverage(player.winPercentage)}%</td>
+              <td>{player.tons}</td>
+              <td>{player.oneEighties}</td>
+              <td>{player.highestClose}</td>
+              <td className="orange-stat">
+                {Number(player.rankingScore || 0).toFixed(3)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+</section>
 
         <div className="fixture-team-grid">
           <TeamPlayerList

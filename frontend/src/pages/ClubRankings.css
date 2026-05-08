@@ -202,3 +202,27 @@
 .club-ranking-player-link:hover {
   color: #ff9800;
 }
+
+.club-ranking-toggle {
+  width: 100%;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  text-align: left;
+}
+
+.club-ranking-chevron {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 1.4rem;
+  transition: transform 0.2s ease;
+}
+
+.club-ranking-chevron.open {
+  transform: rotate(180deg);
+}

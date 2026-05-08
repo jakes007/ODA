@@ -222,17 +222,79 @@ function PlayerDirectory({ returnPath }) {
       <div className="club-player-list">
         {clubPlayers.map((player) => (
                 <Link
-                  key={player.playerId}
-                  to={`/player/${player.playerId}`}
-                  state={{
-                    from: 'profiles',
-                    returnTo: returnPath
-                  }}
-                  className="club-player-link"
-                >
-                  <span>{player.fullName}</span>
-                  <span>{player.contexts.length ? 'View Stats' : 'No Stats'}</span>
-                </Link>
+                key={player.playerId}
+                to={`/player/${player.playerId}`}
+                state={{
+                  from: 'profiles',
+                  returnTo: returnPath
+                }}
+                className="club-player-link enhanced-club-player-link"
+              >
+                <div className="club-player-main">
+                  <span className="club-player-name">
+                    {player.fullName}
+                  </span>
+              
+                  {player.contexts.length > 0 && (
+                    <div className="club-player-inline-stats">
+                      <span>
+                        P {player.contexts.reduce(
+                          (total, context) => total + Number(context.singlesPlayed || 0),
+                          0
+                        )}
+                      </span>
+              
+                      <span className="result-win">
+                        W {player.contexts.reduce(
+                          (total, context) => total + Number(context.singlesWon || 0),
+                          0
+                        )}
+                      </span>
+              
+                      <span className="result-loss">
+                        L {
+                          player.contexts.reduce(
+                            (total, context) =>
+                              total +
+                              (
+                                Number(context.singlesPlayed || 0) -
+                                Number(context.singlesWon || 0)
+                              ),
+                            0
+                          )
+                        }
+                      </span>
+
+                      <span>
+                        H/C {
+                          Math.max(
+                            ...player.contexts.map((context) =>
+                              Number(context.highestClose || 0)
+                            )
+                          )
+                        }
+                      </span>
+              
+                      <span className="orange-stat">
+                        Avg {
+                          formatNumber(
+                            player.contexts.reduce(
+                              (total, context) => total + Number(context.chuckAverage || 0),
+                              0
+                            ) / player.contexts.length,
+                            2
+                          )
+                        }
+                      </span>
+              
+                    </div>
+                  )}
+                </div>
+              
+                <span className="club-player-action">
+                  {player.contexts.length ? 'View Stats' : 'No Stats'}
+                </span>
+              </Link>
                             ))}
                             </div>
                           )}

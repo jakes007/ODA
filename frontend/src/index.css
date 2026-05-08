@@ -3220,3 +3220,130 @@ text-overflow: ellipsis; /* ... if too long */
     justify-content: center;
   }
 }
+
+.enhanced-club-player-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.club-player-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.club-player-name {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.club-player-inline-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.club-player-inline-stats span {
+  color: #e5e7eb;
+}
+
+.club-player-inline-stats .result-win {
+  color: #22c55e;
+}
+
+.club-player-inline-stats .result-loss {
+  color: #ef4444;
+}
+
+.club-player-inline-stats .orange-stat {
+  color: #ffffff;
+}
+
+.club-player-action {
+  color: #ffffff;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .enhanced-club-player-link {
+    align-items: flex-start;
+  }
+
+  .club-player-action {
+    width: 100%;
+  }
+}
+
+.club-ranking-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.club-ranking-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.club-ranking-chevron {
+  margin-left: auto;
+}
+
+.club-ranking-table .result-win {
+  color: #22c55e !important;
+  font-weight: 800;
+}
+
+.club-ranking-table .result-loss {
+  color: #ef4444 !important;
+  font-weight: 800;
+}
+
+.fixture-detail-page .fixture-team-grid {
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .fixture-detail-page .club-table-scroll {
+    overflow-x: auto;
+  }
+
+  .fixture-detail-page .club-ranking-table {
+    min-width: 760px;
+  }
+
+  .fixture-detail-page .club-ranking-table th:first-child,
+  .fixture-detail-page .club-ranking-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    width: 44px;
+    min-width: 44px;
+    background: #111827;
+  }
+
+  .fixture-detail-page .club-ranking-table th:nth-child(2),
+  .fixture-detail-page .club-ranking-table td:nth-child(2) {
+    position: sticky;
+    left: 44px;
+    z-index: 3;
+    width: 135px;
+    min-width: 135px;
+    background: #111827;
+  }
+
+  .fixture-detail-page .club-ranking-table th,
+  .fixture-detail-page .club-ranking-table td {
+    padding-left: 0.55rem;
+    padding-right: 0.55rem;
+    white-space: nowrap;
+  }
+}
