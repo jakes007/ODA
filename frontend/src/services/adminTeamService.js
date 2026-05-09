@@ -8,7 +8,8 @@ import {
   orderBy,
   query,
   serverTimestamp,
-  updateDoc
+  updateDoc,
+  setDoc
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -32,7 +33,7 @@ export async function createTeam({
 
   const docRef = await addDoc(teamsCollection, {
     name: cleanTeamName,
-    clubName: cleanClubName,
+    clubName: cleanTeamName,
     seasonId,
     competitionId,
     divisionId,
@@ -80,7 +81,7 @@ export async function updateTeam({
 
   await updateDoc(doc(db, 'teams', teamId), {
     name: cleanTeamName,
-    clubName: cleanClubName,
+    clubName: cleanTeamName,
     seasonId,
     competitionId,
     divisionId
@@ -108,4 +109,25 @@ export async function updateTeamSquad({ teamId, squadPlayerIds }) {
   await updateDoc(doc(db, 'teams', teamId), {
     squadPlayerIds
   });
+}
+
+export async function updateTeamCaptain({
+  teamId,
+  captainPlayerId
+}) {
+  console.log('UPDATING TEAM CAPTAIN');
+  console.log('TEAM ID:', teamId);
+  console.log('CAPTAIN ID:', captainPlayerId);
+
+  const teamRef = doc(db, 'teams', teamId);
+
+  await setDoc(
+    teamRef,
+    {
+      captainPlayerId: captainPlayerId
+    },
+    { merge: true }
+  );
+
+  console.log('CAPTAIN SAVED');
 }

@@ -102,6 +102,55 @@ function readRaw(rawFields, keys) {
   return '';
 }
 
+function normalizeDsa(value) {
+  return String(value || '')
+    .replace(/^DSA-?/i, '')
+    .replace(/\s+/g, '')
+    .trim();
+}
+
+function normalizeName(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .trim();
+}
+
+function findRegistryPlayerForStatRow(registry, row, rawFields) {
+  const rawDsa = normalizeDsa(
+    readRaw(rawFields, ['Player No', 'DSA', 'DSA No', 'Membership No'])
+  );
+
+  const rawName = normalizeName(
+    readRaw(rawFields, ['Player'])
+  );
+
+  return (
+    Object.values(registry.players).find((player) => {
+      const playerDsa = normalizeDsa(
+        player.dsaNumber || player.membershipNo
+      );
+
+      return rawDsa && playerDsa && rawDsa === playerDsa;
+    }) ||
+    Object.values(registry.players).find((player) => {
+      const fullName = normalizeName(player.fullName);
+
+      const displayName = normalizeName(
+        player.callingName && player.surname
+          ? `${player.callingName} ${player.surname}`
+          : ''
+      );
+
+      return rawName && (
+        rawName === fullName ||
+        rawName === displayName
+      );
+    }) ||
+    null
+  );
+}
+
 function buildPlayerRankingRows(registry, division, options = {}) {
   const rows = Object.values(registry.historicalStatsNormalized).filter((row) => {
     if (row.season !== '2026' || row.division !== division) return false;
@@ -121,13 +170,21 @@ function buildPlayerRankingRows(registry, division, options = {}) {
   rows.forEach((row) => {
     if (!row.playerId) return;
 
-    const player = registry.players[row.playerId];
     const rawFields = getRawFields(registry, row);
-    const key = row.playerId;
+
+const registryPlayer = findRegistryPlayerForStatRow(
+  registry,
+  row,
+  rawFields
+);
+
+const player = registryPlayer || registry.players[row.playerId];
+
+const key = registryPlayer?.playerId || row.playerId;
 
     if (!players[key]) {
       players[key] = {
-        playerId: row.playerId,
+        playerId: key,
         playerName: formatPlayerName(
           player?.fullName ||
             (player?.firstNames && player?.surname
