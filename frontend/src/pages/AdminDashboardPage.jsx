@@ -290,41 +290,41 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="admin-module-grid">
-          <div className="admin-module-card premium-module">
-            <div className="admin-module-icon blue"><FiUsers /></div>
-            <strong>Registry & Players</strong>
-            <p>Manage player records and registry-linked profiles.</p>
-          </div>
+        <Link to="/player" className="admin-module-card premium-module">
+  <div className="admin-module-icon blue"><FiUsers /></div>
+  <strong>Registry & Players</strong>
+  <p>Manage player records and registry-linked profiles.</p>
+</Link>
 
-          <div className="admin-module-card premium-module">
-            <div className="admin-module-icon orange"><FiShield /></div>
-            <strong>Teams & Captains</strong>
-            <p>Assign players, captains, and team memberships.</p>
-          </div>
+<Link to="/admin/teams" className="admin-module-card premium-module">
+  <div className="admin-module-icon orange"><FiShield /></div>
+  <strong>Teams & Captains</strong>
+  <p>Assign players, captains, and team memberships.</p>
+</Link>
 
-          <div className="admin-module-card premium-module">
-            <div className="admin-module-icon blue"><FiCalendar /></div>
-            <strong>Fixture Generator</strong>
-            <p>Create fixtures, board allocations, and match nights.</p>
-          </div>
+<Link to="/admin/fixtures" className="admin-module-card premium-module">
+  <div className="admin-module-icon blue"><FiCalendar /></div>
+  <strong>Fixture Generator</strong>
+  <p>Create fixtures, board allocations, and match nights.</p>
+</Link>
 
-          <div className="admin-module-card premium-module">
-            <div className="admin-module-icon orange"><FiTarget /></div>
-            <strong>Live Scoring Control</strong>
-            <p>Start scoring sessions and monitor live fixtures.</p>
-          </div>
+<Link to="/captain" className="admin-module-card premium-module">
+  <div className="admin-module-icon orange"><FiTarget /></div>
+  <strong>Live Scoring Control</strong>
+  <p>Start scoring sessions and monitor live fixtures.</p>
+</Link>
 
-          <div className="admin-module-card premium-module">
-            <div className="admin-module-icon blue"><FiInbox /></div>
-            <strong>Access Requests</strong>
-            <p>Review registrations and approve account access.</p>
-          </div>
+<Link to="/admin" className="admin-module-card premium-module">
+  <div className="admin-module-icon blue"><FiInbox /></div>
+  <strong>Access Requests</strong>
+  <p>Review registrations and approve account access.</p>
+</Link>
 
-          <div className="admin-module-card premium-module">
-            <div className="admin-module-icon orange"><FiEdit /></div>
-            <strong>Results & Corrections</strong>
-            <p>Review scores, fix mistakes, and verify final results.</p>
-          </div>
+<Link to="/admin/fixtures" className="admin-module-card premium-module">
+  <div className="admin-module-icon orange"><FiEdit /></div>
+  <strong>Results & Corrections</strong>
+  <p>Review scores, fix mistakes, and verify final results.</p>
+</Link>
         </div>
       </section>
 

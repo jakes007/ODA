@@ -3395,3 +3395,8 @@ text-overflow: ellipsis; /* ... if too long */
 .admin-status-item strong {
   font-size: 1.05rem;
 }
+
+.admin-module-card {
+  text-decoration: none;
+  color: inherit;
+}
