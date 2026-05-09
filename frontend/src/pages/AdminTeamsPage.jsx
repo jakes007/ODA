@@ -334,6 +334,13 @@ export default function AdminTeamsPage() {
                       >
                         Edit
                       </button>
+
+                      <Link
+  to={`/admin/teams/${team.id}`}
+  className="secondary-btn"
+>
+  Manage
+</Link>
   
                       <button
                         type="button"

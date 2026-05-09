@@ -25,6 +25,7 @@ import AdminDivisionsPage from './pages/AdminDivisionsPage';
 import AdminTeamsPage from './pages/AdminTeamsPage';
 import AdminFixturesPage from './pages/AdminFixturesPage';
 import AdminMatchFormatsPage from './pages/AdminMatchFormatsPage';
+import AdminTeamDetailPage from './pages/AdminTeamDetailPage';
 
 export default function App() {
   return (
@@ -140,6 +141,17 @@ export default function App() {
     <ProtectedRoute>
       <RoleRoute allowedRoles={['admin']}>
         <AdminTeamsPage />
+      </RoleRoute>
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/teams/:teamId"
+  element={
+    <ProtectedRoute>
+      <RoleRoute allowedRoles={['admin']}>
+        <AdminTeamDetailPage />
       </RoleRoute>
     </ProtectedRoute>
   }

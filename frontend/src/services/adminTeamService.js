@@ -3,6 +3,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   orderBy,
   query,
@@ -88,4 +89,23 @@ export async function updateTeam({
 
 export async function deleteTeam(teamId) {
   await deleteDoc(doc(db, 'teams', teamId));
+}
+
+export async function getTeamById(teamId) {
+  const snapshot = await getDoc(doc(db, 'teams', teamId));
+
+  if (!snapshot.exists()) {
+    throw new Error('Team not found.');
+  }
+
+  return {
+    id: snapshot.id,
+    ...snapshot.data()
+  };
+}
+
+export async function updateTeamSquad({ teamId, squadPlayerIds }) {
+  await updateDoc(doc(db, 'teams', teamId), {
+    squadPlayerIds
+  });
 }
