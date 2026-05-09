@@ -157,7 +157,7 @@ export default function AdminDashboardPage() {
         <div className="admin-stat-card">
           <div className="admin-stat-icon orange"><FiCalendar /></div>
           <div className="admin-stat-main">
-            <span className="admin-stat-label">Fixtures</span>
+          <span className="admin-stat-label">Fixtures Played</span>
             <strong className="admin-stat-value">{importedLandingData.summary.fixtures}</strong>
           </div>
           <div className="admin-stat-subtext">
@@ -329,41 +329,57 @@ export default function AdminDashboardPage() {
       </section>
 
       <div className="content-grid admin-dashboard-grid">
-        <section className="panel premium-panel">
-          <div className="panel-header">
-            <h3 className="panel-title">Recent Activity</h3>
-          </div>
+      <section className="panel premium-panel">
+  <div className="panel-header">
+    <h3 className="panel-title">Competition Status</h3>
+  </div>
 
-          <div className="admin-activity-list">
-            <div className="admin-activity-row">
-              <span className="admin-activity-time">10:42</span>
-              <div className="admin-activity-content">
-                <strong>Admin dashboard connected to Firestore setup flow</strong>
-              </div>
-              <span className="admin-activity-user">Admin User</span>
-            </div>
+  <div className="admin-status-grid">
+    <div className="admin-status-item">
+      <span className="admin-status-label">Competition</span>
+      <strong>{currentCompetition.name}</strong>
+    </div>
 
-            <div className="admin-activity-row">
-              <span className="admin-activity-time">09:15</span>
-              <div className="admin-activity-content">
-                <strong>Competition setup workflow is active</strong>
-              </div>
-              <span className="admin-activity-user">System</span>
-            </div>
+    <div className="admin-status-item">
+      <span className="admin-status-label">Season</span>
+      <strong>
+        {currentCompetition.seasonId
+          ? getSeasonName(currentCompetition.seasonId)
+          : '2026'}
+      </strong>
+    </div>
 
-            <div className="admin-activity-row">
-              <span className="admin-activity-time">Yesterday</span>
-              <div className="admin-activity-content">
-                <strong>Match formats and fixture manager enabled</strong>
-              </div>
-              <span className="admin-activity-user">System</span>
-            </div>
-          </div>
+    <div className="admin-status-item">
+      <span className="admin-status-label">Divisions</span>
+      <strong>{divisions.length}</strong>
+    </div>
 
-          <div className="admin-activity-footer">
-            View All Activity →
-          </div>
-        </section>
+    <div className="admin-status-item">
+      <span className="admin-status-label">Teams Registered</span>
+      <strong>{teams.length}</strong>
+    </div>
+
+    <div className="admin-status-item">
+      <span className="admin-status-label">Fixtures Played</span>
+      <strong>{importedLandingData.summary.fixtures}</strong>
+    </div>
+
+    <div className="admin-status-item">
+      <span className="admin-status-label">Upcoming Fixtures</span>
+      <strong>{upcomingAdminFixtures.length}</strong>
+    </div>
+
+    <div className="admin-status-item">
+      <span className="admin-status-label">Match Formats</span>
+      <strong>Configured</strong>
+    </div>
+
+    <div className="admin-status-item">
+      <span className="admin-status-label">Live Scoring</span>
+      <strong>Offline</strong>
+    </div>
+  </div>
+</section>
 
         <section className="panel premium-panel">
           <div className="panel-header">
