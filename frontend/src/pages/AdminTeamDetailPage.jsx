@@ -260,15 +260,8 @@ export default function AdminTeamDetailPage() {
         <button
   type="button"
   className="primary-btn auth-submit-btn"
-  onClick={async () => {
-    console.log('SAVE BUTTON CLICKED');
-
-    console.log('TEAM ID:', team.id);
-
-    console.log('SELECTED CAPTAIN:', captainPlayerId);
-
-    await handleSaveCaptain();
-  }}
+  onClick={handleSaveCaptain}
+  disabled={!captainPlayerId}
 >
   Save Captain
 </button>
@@ -289,8 +282,12 @@ export default function AdminTeamDetailPage() {
         </div>
 
         <p className="muted-text">
-          Select players from this club who belong to this team squad.
-        </p>
+  Select players from this club who belong to this team squad.
+</p>
+
+<p className="muted-text">
+  Squad: {selectedPlayerIds.length} selected
+</p>
 
         <button
           type="button"

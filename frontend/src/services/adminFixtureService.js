@@ -23,7 +23,8 @@ export async function createAdminFixture({
   awayTeamId,
   fixtureDate,
   fixtureTime,
-  matchFormat
+  matchFormat,
+status = 'upcoming'
 }) {
   if (!seasonId) throw new Error('Please select a season.');
   if (!competitionId) throw new Error('Please select a competition.');
@@ -46,7 +47,7 @@ export async function createAdminFixture({
     fixtureDate,
     fixtureTime: fixtureTime || '19:30',
     matchFormatId: matchFormat.id,
-    status: 'upcoming',
+    status,
     score: { home: 0, away: 0 },
     complete: false,
     createdAt: serverTimestamp()
@@ -87,7 +88,7 @@ export async function createAdminFixture({
     fixtureDate,
     fixtureTime: fixtureTime || '19:30',
     matchFormatId: matchFormat.id,
-    status: 'upcoming',
+    status,
     complete: false
   };
 }
@@ -155,7 +156,8 @@ export async function updateAdminFixture({
   fixtureDate,
   fixtureTime,
   currentMatchFormatId,
-  matchFormat
+  matchFormat,
+status = 'upcoming'
 }) {
   if (!seasonId) throw new Error('Please select a season.');
   if (!competitionId) throw new Error('Please select a competition.');

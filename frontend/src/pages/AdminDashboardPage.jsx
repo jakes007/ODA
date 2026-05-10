@@ -162,7 +162,7 @@ export default function AdminDashboardPage() {
           </div>
           <div className="admin-stat-subtext">
             <span>Total</span>
-            <strong>Fixtures Scheduled</strong>
+            <strong>Fixtures Played</strong>
           </div>
         </div>
       </div>

@@ -1,16 +1,77 @@
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
 import StatCard from '../components/common/StatCard';
 import { useAuth } from '../context/AuthContext';
-import { getCaptainDashboardData } from '../services/captainData';
+import { getTeams } from '../services/adminTeamService';
+import { getCaptainFixtures } from '../services/captainFixtureService';
 
 export default function CaptainDashboardPage() {
   const { currentUser } = useAuth();
-  const data = currentUser?.playerId
-    ? getCaptainDashboardData(currentUser.playerId)
-    : null;
 
-  if (!data) {
+  const [teams, setTeams] = useState([]);
+  const [fixtures, setFixtures] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadDashboard();
+  }, [currentUser?.playerId]);
+
+  async function loadDashboard() {
+    if (!currentUser?.playerId) {
+      setLoading(false);
+      return;
+    }
+  
+    try {
+      const loadedTeams = await getTeams();
+  
+      const captainTeams = loadedTeams.filter(
+        (team) => team.captainPlayerId === currentUser.playerId
+      );
+  
+      setTeams(captainTeams);
+  
+      if (!captainTeams.length) {
+        setFixtures([]);
+        return;
+      }
+  
+      const captainFixtures = await Promise.all(
+        captainTeams.map((team) => getCaptainFixtures(team.id))
+      );
+  
+      setFixtures(captainFixtures.flat());
+    } catch (error) {
+      console.error('Captain dashboard load failed:', error);
+      setFixtures([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const mainTeam = teams[0];
+
+  const uniqueFixtures = useMemo(() => {
+    const map = new Map();
+
+    fixtures.forEach((fixture) => {
+      map.set(fixture.id, fixture);
+    });
+
+    return Array.from(map.values());
+  }, [fixtures]);
+
+  if (loading) {
+    return (
+      <div className="page-stack">
+        <PageHeader title="Captain Dashboard" />
+        <p className="muted-text">Loading captain dashboard...</p>
+      </div>
+    );
+  }
+
+  if (!mainTeam) {
     return (
       <div className="page-stack">
         <PageHeader
@@ -18,87 +79,90 @@ export default function CaptainDashboardPage() {
           subtitle="No captain assignment found."
         />
 
-        <section className="panel">
+        <section className="panel premium-panel">
           <p className="muted-text">
-            This account does not currently have captain dashboard data linked.
+            This account is not currently linked to a team captain record.
           </p>
         </section>
       </div>
     );
   }
 
-  const totalFixtures = data.fixtures.length;
-  const readyForLineups = data.fixtures.filter(
+  const readyForLineups = uniqueFixtures.filter(
     (fixture) => fixture.status === 'ready_for_lineups'
   ).length;
-  const waitingForOpponent = data.fixtures.filter(
+
+  const waiting = uniqueFixtures.filter(
     (fixture) => fixture.status === 'waiting_for_opponent'
   ).length;
-  const readyToPlay = data.fixtures.filter(
+
+  const readyToPlay = uniqueFixtures.filter(
     (fixture) => fixture.status === 'ready_to_play'
   ).length;
-  const completed = data.fixtures.filter(
-    (fixture) => fixture.status === 'completed'
+
+  const completed = uniqueFixtures.filter(
+    (fixture) => fixture.status === 'completed' || fixture.complete
   ).length;
 
   return (
     <div className="page-stack">
       <PageHeader
         title="Captain Dashboard"
-        subtitle={`${data.team.teamName} • ${data.competition.name} ${data.competition.season}`}
+        subtitle={`${mainTeam.name} • ${mainTeam.divisionName || 'Division'} • ${mainTeam.competitionName || 'Competition'}`}
       />
 
       <div className="stats-grid">
-        <StatCard label="My Team" value={data.team.teamName} />
-        <StatCard label="Fixtures" value={totalFixtures} />
+        <StatCard label="My Team" value={mainTeam.name} />
+        <StatCard label="Fixtures" value={uniqueFixtures.length} />
         <StatCard label="Ready For Lineups" value={readyForLineups} />
-        <StatCard label="Waiting" value={waitingForOpponent} />
+        <StatCard label="Waiting" value={waiting} />
         <StatCard label="Ready To Play" value={readyToPlay} />
         <StatCard label="Completed" value={completed} />
       </div>
 
-      <section className="panel">
-        <h3 className="panel-title">Captain Actions</h3>
-        <div className="landing-actions">
-          <Link to="/captain/fixture/fixture_001/setup" className="primary-btn">
-            Open Fixture Setup
-          </Link>
-          <button type="button" className="secondary-btn">
-            Open Fixtures
-          </button>
-          <button type="button" className="secondary-btn">
-            View Team Stats
-          </button>
-        </div>
-      </section>
-
-      <section className="panel">
+      <section className="panel premium-panel">
         <h3 className="panel-title">My Team Fixtures</h3>
 
         <div className="captain-fixture-list">
-          {data.fixtures.map((fixture) => (
-            <div key={fixture.fixtureId} className="captain-fixture-card">
-              <div className="captain-fixture-main">
-                <div className="history-title">{fixture.fixtureName}</div>
-                <div className="muted-text">Opponent: {fixture.opponentName}</div>
-                <div className="muted-text">Status: {formatStatus(fixture.status)}</div>
-                <div className="muted-text">
-                  Lineups: {fixture.lineupsRevealed ? 'Revealed' : 'Hidden until both submit'}
+          {!uniqueFixtures.length ? (
+            <p className="muted-text">No fixtures found for this team yet.</p>
+          ) : null}
+
+          {uniqueFixtures.map((fixture) => {
+            const isHome = fixture.homeTeamId === mainTeam.id;
+            const opponentName = isHome
+              ? fixture.awayTeamName || 'Away Team'
+              : fixture.homeTeamName || 'Home Team';
+
+            return (
+              <div key={fixture.id} className="captain-fixture-card">
+                <div className="captain-fixture-main">
+                  <div className="history-title">
+                    {fixture.homeTeamName || 'Home'} vs{' '}
+                    {fixture.awayTeamName || 'Away'}
+                  </div>
+
+                  <div className="muted-text">Opponent: {opponentName}</div>
+                  <div className="muted-text">
+                    Status: {formatStatus(fixture.status || 'upcoming')}
+                  </div>
+                  <div className="muted-text">
+                    Date: {fixture.fixtureDate || 'No date'}{' '}
+                    {fixture.fixtureTime || ''}
+                  </div>
+                </div>
+
+                <div className="captain-fixture-side">
+                  <Link
+                    to={getCaptainFixtureRoute(fixture)}
+                    className="secondary-btn captain-action-btn"
+                  >
+                    Open Fixture
+                  </Link>
                 </div>
               </div>
-
-              <div className="captain-fixture-side">
-                <div className="fixture-score">{fixture.scoreText}</div>
-
-                <Link
-                  to={getCaptainFixtureRoute(fixture)}
-                  className="secondary-btn captain-action-btn"
-                >
-                  {fixture.captainAction}
-                </Link>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
     </div>
@@ -107,14 +171,15 @@ export default function CaptainDashboardPage() {
 
 function getCaptainFixtureRoute(fixture) {
   if (fixture.status === 'active' || fixture.status === 'completed') {
-    return `/captain/fixture/${fixture.fixtureId}/live`;
+    return `/captain/fixture/${fixture.id}/live`;
   }
 
-  return `/captain/fixture/${fixture.fixtureId}/setup`;
+  return `/captain/fixture/${fixture.id}/setup`;
 }
 
 function formatStatus(status) {
   const labels = {
+    upcoming: 'Upcoming',
     ready_for_lineups: 'Ready For Lineups',
     waiting_for_opponent: 'Waiting For Opponent',
     ready_to_play: 'Ready To Play',
