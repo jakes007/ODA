@@ -46,6 +46,8 @@ export default function AdminFixturesPage() {
   const [editingFixtureTime, setEditingFixtureTime] = useState('19:30');
   const [editingMatchFormatId, setEditingMatchFormatId] = useState('');
 
+  const [openFixtureSections, setOpenFixtureSections] = useState({});
+
   useEffect(() => {
     loadPageData();
   }, []);
@@ -159,7 +161,7 @@ export default function AdminFixturesPage() {
   async function handleImportPlacementsFixtures() {
     try {
       setMessage('Importing fixtures...');
-
+  
       function normalizeFixtureTeamName(value = '') {
         return String(value)
           .replace(/^BOO\s+/i, 'Best Of Order ')
@@ -168,30 +170,32 @@ export default function AdminFixturesPage() {
           .trim()
           .toLowerCase();
       }
-
+  
       function getFixtureStatusByDate(dateValue) {
         const today = new Date();
         const fixtureDateObj = new Date(dateValue);
-      
+  
         today.setHours(0, 0, 0, 0);
         fixtureDateObj.setHours(0, 0, 0, 0);
-      
+  
         if (fixtureDateObj < today) return 'completed';
         if (fixtureDateObj > today) return 'upcoming';
-      
+  
         return 'ready_for_lineups';
       }
   
       const upperDivision = divisions.find(
         (division) =>
           division.name === 'Upper' &&
-          competitions.find((c) => c.id === division.competitionId)?.name === 'Placements'
+          competitions.find((c) => c.id === division.competitionId)?.name ===
+            'Placements'
       );
   
       const lowerDivision = divisions.find(
         (division) =>
           division.name === 'Lower' &&
-          competitions.find((c) => c.id === division.competitionId)?.name === 'Placements'
+          competitions.find((c) => c.id === division.competitionId)?.name ===
+            'Placements'
       );
   
       const placementsCompetition = competitions.find(
@@ -202,7 +206,13 @@ export default function AdminFixturesPage() {
         (season) => season.status === 'active'
       );
   
-      const defaultFormat = matchFormats[0];
+      const format16 = matchFormats.find(
+        (format) => Number(format.pointsSystem) === 16
+      );
+  
+      const format32 = matchFormats.find(
+        (format) => Number(format.pointsSystem) === 32
+      );
   
       if (!upperDivision || !lowerDivision) {
         throw new Error('Upper or Lower division not found.');
@@ -216,8 +226,8 @@ export default function AdminFixturesPage() {
         throw new Error('No active season found.');
       }
   
-      if (!defaultFormat) {
-        throw new Error('No match format found.');
+      if (!format16 || !format32) {
+        throw new Error('16 or 32 point match format missing.');
       }
   
       const divisionMap = {
@@ -231,14 +241,77 @@ export default function AdminFixturesPage() {
         const division = divisionMap[divisionName];
   
         for (const fixtureDate of divisionData.dates) {
-          for (const pairing of fixtureDate.pairings) {
-            const [homeRank, awayRank] = pairing;
+          /*
+            UPPER DIVISION
+            Uses MATCH GROUPS
+          */
   
-            const homeTeamName =
-              divisionData.teamsByRank[homeRank];
+          if (divisionName === 'Upper' && fixtureDate.matches) {
+            for (const matchGroup of fixtureDate.matches) {
+              const selectedFormat =
+                Number(matchGroup.pointsSystem) === 32
+                  ? format32
+                  : format16;
   
-            const awayTeamName =
-              divisionData.teamsByRank[awayRank];
+              for (const pairing of matchGroup.pairings) {
+                const [homeRank, awayRank] = pairing;
+  
+                const homeTeamName =
+                  divisionData.teamsByRank[homeRank];
+  
+                const awayTeamName =
+                  divisionData.teamsByRank[awayRank];
+  
+                const homeTeam = teams.find(
+                  (team) =>
+                    normalizeFixtureTeamName(team.name) ===
+                      normalizeFixtureTeamName(homeTeamName) &&
+                    team.divisionId === division.id
+                );
+  
+                const awayTeam = teams.find(
+                  (team) =>
+                    normalizeFixtureTeamName(team.name) ===
+                      normalizeFixtureTeamName(awayTeamName) &&
+                    team.divisionId === division.id
+                );
+  
+                if (!homeTeam || !awayTeam) {
+                  console.log('TEAM NOT FOUND');
+                  console.log(homeTeamName);
+                  console.log(awayTeamName);
+                  continue;
+                }
+  
+                await createAdminFixture({
+                  seasonId: activeSeason.id,
+                  competitionId: placementsCompetition.id,
+                  divisionId: division.id,
+                  homeTeamId: homeTeam.id,
+                  awayTeamId: awayTeam.id,
+                  fixtureDate: fixtureDate.date,
+                  fixtureTime: '20:30',
+                  matchFormat: selectedFormat,
+                  status: getFixtureStatusByDate(fixtureDate.date)
+                });
+              }
+            }
+          }
+  
+          /*
+            LOWER DIVISION
+            Standard pairings only
+          */
+  
+          else {
+            for (const pairing of fixtureDate.pairings) {
+              const [homeRank, awayRank] = pairing;
+  
+              const homeTeamName =
+                divisionData.teamsByRank[homeRank];
+  
+              const awayTeamName =
+                divisionData.teamsByRank[awayRank];
   
               const homeTeam = teams.find(
                 (team) =>
@@ -246,7 +319,7 @@ export default function AdminFixturesPage() {
                     normalizeFixtureTeamName(homeTeamName) &&
                   team.divisionId === division.id
               );
-              
+  
               const awayTeam = teams.find(
                 (team) =>
                   normalizeFixtureTeamName(team.name) ===
@@ -254,24 +327,25 @@ export default function AdminFixturesPage() {
                   team.divisionId === division.id
               );
   
-            if (!homeTeam || !awayTeam) {
-              console.log('TEAM NOT FOUND');
-              console.log(homeTeamName);
-              console.log(awayTeamName);
-              continue;
-            }
+              if (!homeTeam || !awayTeam) {
+                console.log('TEAM NOT FOUND');
+                console.log(homeTeamName);
+                console.log(awayTeamName);
+                continue;
+              }
   
-            await createAdminFixture({
-              seasonId: activeSeason.id,
-              competitionId: placementsCompetition.id,
-              divisionId: division.id,
-              homeTeamId: homeTeam.id,
-              awayTeamId: awayTeam.id,
-              fixtureDate: fixtureDate.date,
-              fixtureTime: '20:30',
-              matchFormat: defaultFormat,
-              status: getFixtureStatusByDate(fixtureDate.date)
-            });
+              await createAdminFixture({
+                seasonId: activeSeason.id,
+                competitionId: placementsCompetition.id,
+                divisionId: division.id,
+                homeTeamId: homeTeam.id,
+                awayTeamId: awayTeam.id,
+                fixtureDate: fixtureDate.date,
+                fixtureTime: '20:30',
+                matchFormat: format16,
+                status: getFixtureStatusByDate(fixtureDate.date)
+              });
+            }
           }
         }
       }
@@ -284,59 +358,6 @@ export default function AdminFixturesPage() {
       setMessage(error.message || 'Could not import fixtures.');
     }
   }
-
-  function startEditingFixture(fixture) {
-    setEditingFixtureId(fixture.id);
-    setEditingSeasonId(fixture.seasonId || '');
-    setEditingCompetitionId(fixture.competitionId || '');
-    setEditingDivisionId(fixture.divisionId || '');
-    setEditingHomeTeamId(fixture.homeTeamId || '');
-    setEditingAwayTeamId(fixture.awayTeamId || '');
-    setEditingFixtureDate(fixture.fixtureDate || '');
-    setEditingFixtureTime(fixture.fixtureTime || '19:30');
-    setEditingMatchFormatId(fixture.matchFormatId || fixture.templateId || '');
-    setMessage('');
-  }
-
-  function cancelEditingFixture() {
-    setEditingFixtureId('');
-    setEditingSeasonId('');
-    setEditingCompetitionId('');
-    setEditingDivisionId('');
-    setEditingHomeTeamId('');
-    setEditingAwayTeamId('');
-    setEditingFixtureDate('');
-    setEditingFixtureTime('19:30');
-    setEditingMatchFormatId('');
-  }
-
-  async function handleSaveFixture(fixture) {
-    const selectedFormat = matchFormats.find(
-      (format) => format.id === editingMatchFormatId
-    );
-
-    try {
-      await updateAdminFixture({
-        fixtureId: fixture.id,
-        seasonId: editingSeasonId,
-        competitionId: editingCompetitionId,
-        divisionId: editingDivisionId,
-        homeTeamId: editingHomeTeamId,
-        awayTeamId: editingAwayTeamId,
-        fixtureDate: editingFixtureDate,
-        fixtureTime: editingFixtureTime,
-        currentMatchFormatId: fixture.matchFormatId || fixture.templateId || '',
-        matchFormat: selectedFormat
-      });
-
-      setMessage('Fixture updated.');
-      cancelEditingFixture();
-      await loadPageData();
-    } catch (error) {
-      setMessage(error.message || 'Could not update fixture.');
-    }
-  }
-
   async function confirmDeleteFixture() {
     if (!fixtureToDelete) return;
 
@@ -350,223 +371,419 @@ export default function AdminFixturesPage() {
     }
   }
 
+  function toggleFixtureSection(key) {
+    setOpenFixtureSections((current) => ({
+      ...current,
+      [key]: !current[key]
+    }));
+  }
+
   const groupedFixtures = useMemo(() => {
-    return fixtures.reduce(
-      (groups, fixture) => {
-        const divisionName = getDivisionName(fixture.divisionId);
+    const groups = {
+      today: {},
+      upcoming: {},
+      completed: {}
+    };
   
-        if (divisionName === 'Upper') {
-          groups.Upper.push(fixture);
-        } else if (divisionName === 'Lower') {
-          groups.Lower.push(fixture);
-        } else {
-          groups.Other.push(fixture);
-        }
+    fixtures.forEach((fixture) => {
+      const fixtureDateObj = new Date(fixture.fixtureDate);
+      const today = new Date();
   
-        return groups;
-      },
-      {
-        Upper: [],
-        Lower: [],
-        Other: []
+      fixtureDateObj.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+  
+      let statusKey = 'upcoming';
+  
+      if (fixture.status === 'completed' || fixtureDateObj < today) {
+        statusKey = 'completed';
+      } else if (fixtureDateObj.getTime() === today.getTime()) {
+        statusKey = 'today';
       }
-    );
+  
+      const monthKey = fixtureDateObj.toISOString().slice(0, 7);
+      const monthLabel = fixtureDateObj.toLocaleString('en-ZA', {
+        month: 'long',
+        year: 'numeric'
+      });
+  
+      const divisionName = getDivisionName(fixture.divisionId);
+      const divisionKey =
+        divisionName === 'Upper' || divisionName === 'Lower'
+          ? divisionName
+          : 'Other';
+  
+      const dayKey = fixture.fixtureDate;
+      const dayLabel = fixtureDateObj.toLocaleDateString('en-ZA', {
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+  
+      if (!groups[statusKey][monthKey]) {
+        groups[statusKey][monthKey] = {
+          label: monthLabel,
+          divisions: {}
+        };
+      }
+  
+      if (!groups[statusKey][monthKey].divisions[divisionKey]) {
+        groups[statusKey][monthKey].divisions[divisionKey] = {};
+      }
+  
+      if (!groups[statusKey][monthKey].divisions[divisionKey][dayKey]) {
+        groups[statusKey][monthKey].divisions[divisionKey][dayKey] = {
+          label: dayLabel,
+          fixtures: []
+        };
+      }
+  
+      groups[statusKey][monthKey].divisions[divisionKey][dayKey].fixtures.push(
+        fixture
+      );
+    });
+  
+    return groups;
   }, [fixtures, divisions]);
 
-  function renderFixtureGroup(title, groupFixtures) {
-    if (!groupFixtures.length) return null;
+  function renderStatusGroup(title, statusGroup) {
+    const monthEntries = Object.entries(statusGroup).sort(
+      ([monthA], [monthB]) => monthA.localeCompare(monthB)
+    );
+  
+    if (!monthEntries.length) return null;
   
     return (
-      <div className="fixture-admin-group">
-        <h3 className="panel-title" style={{ marginTop: '1.5rem' }}>
-          {title}
-        </h3>
+      <div style={{ marginBottom: '3rem' }}>
+        <button
+          type="button"
+          className="secondary-btn"
+          style={{
+            width: '100%',
+            justifyContent: 'space-between',
+            marginBottom: '1rem'
+          }}
+          onClick={() => toggleFixtureSection(`status-${title}`)}
+        >
+          <span>{title}</span>
+          <span>{openFixtureSections[`status-${title}`] ? '▲' : '▼'}</span>
+        </button>
   
-        {groupFixtures.map((fixture) => (
-          <div key={fixture.id} className="admin-season-row">
-            <div className="admin-season-main competition-main-stacked">
-              {editingFixtureId === fixture.id ? (
-                <>
-                  <CustomSelect
-                    value={editingSeasonId}
-                    onChange={(value) => {
-                      setEditingSeasonId(value);
-                      setEditingDivisionId('');
-                      setEditingHomeTeamId('');
-                      setEditingAwayTeamId('');
-                    }}
-                    options={seasons.map((season) => ({
-                      value: season.id,
-                      label: season.name
-                    }))}
-                    placeholder="Select season"
-                  />
+        {openFixtureSections[`status-${title}`] ? (
+          <>
+            {monthEntries.map(([monthKey, monthData]) => {
+              const monthOpenKey = `${title}-${monthKey}`;
   
-                  <CustomSelect
-                    value={editingCompetitionId}
-                    onChange={(value) => {
-                      setEditingCompetitionId(value);
-                      setEditingDivisionId('');
-                      setEditingHomeTeamId('');
-                      setEditingAwayTeamId('');
-                    }}
-                    options={competitions.map((competition) => ({
-                      value: competition.id,
-                      label: `${competition.name} • ${getSeasonName(competition.seasonId)}`
-                    }))}
-                    placeholder="Select competition"
-                  />
-  
-                  <CustomSelect
-                    value={editingDivisionId}
-                    onChange={(value) => {
-                      setEditingDivisionId(value);
-                      setEditingHomeTeamId('');
-                      setEditingAwayTeamId('');
-                    }}
-                    options={editingAvailableDivisions.map((division) => ({
-                      value: division.id,
-                      label: division.name
-                    }))}
-                    placeholder="Select division"
-                  />
-  
-                  <CustomSelect
-                    value={editingHomeTeamId}
-                    onChange={setEditingHomeTeamId}
-                    options={editingAvailableTeams.map((team) => ({
-                      value: team.id,
-                      label: team.name
-                    }))}
-                    placeholder="Select home team"
-                  />
-  
-                  <CustomSelect
-                    value={editingAwayTeamId}
-                    onChange={setEditingAwayTeamId}
-                    options={editingAvailableTeams
-                      .filter((team) => team.id !== editingHomeTeamId)
-                      .map((team) => ({
-                        value: team.id,
-                        label: team.name
-                      }))}
-                    placeholder="Select away team"
-                  />
-  
-                  <CustomSelect
-                    value={editingMatchFormatId}
-                    onChange={setEditingMatchFormatId}
-                    options={matchFormats.map((format) => ({
-                      value: format.id,
-                      label: `${format.name} • ${format.pointsSystem} Point`
-                    }))}
-                    placeholder="Select match format"
-                  />
-  
-                  <input
-                    className="form-input admin-season-edit-input"
-                    type="date"
-                    value={editingFixtureDate}
-                    onChange={(event) =>
-                      setEditingFixtureDate(event.target.value)
-                    }
-                  />
-  
-                  <input
-                    className="form-input admin-season-edit-input"
-                    type="time"
-                    value={editingFixtureTime}
-                    onChange={(event) =>
-                      setEditingFixtureTime(event.target.value)
-                    }
-                  />
-                </>
-              ) : (
-                <>
-                  <strong>
-                    {getTeamName(fixture.homeTeamId)} vs{' '}
-                    {getTeamName(fixture.awayTeamId)}
-                  </strong>
-  
-                  <div className="competition-tags-row">
-                    <span className="admin-season-status inactive">
-                      {getSeasonName(fixture.seasonId)}
-                    </span>
-  
-                    <span className="admin-season-status inactive">
-                      {getCompetitionName(fixture.competitionId)}
-                    </span>
-  
-                    <span className="admin-season-status inactive">
-                      {getDivisionName(fixture.divisionId)}
-                    </span>
-  
-                    <span className="admin-season-status inactive">
-                      {getMatchFormatName(
-                        fixture.matchFormatId || fixture.templateId
-                      )}
-                    </span>
-  
-                    <span
-                      className={`admin-season-status ${
-                        fixture.status === 'completed'
-                          ? 'inactive'
-                          : 'active'
-                      }`}
-                    >
-                      {fixture.status || 'upcoming'}
-                    </span>
-  
-                    <span className="admin-season-status inactive">
-                      {fixture.fixtureDate || 'No date'} •{' '}
-                      {fixture.fixtureTime || '20:30'}
-                    </span>
-                  </div>
-                </>
-              )}
-            </div>
-  
-            <div className="admin-season-actions">
-              {editingFixtureId === fixture.id ? (
-                <>
+              return (
+                <div key={monthKey} style={{ marginBottom: '1.5rem' }}>
                   <button
                     type="button"
                     className="secondary-btn"
-                    onClick={() => handleSaveFixture(fixture)}
+                    style={{
+                      width: '100%',
+                      justifyContent: 'space-between',
+                      marginBottom: '1rem',
+                      color: '#ff8c42'
+                    }}
+                    onClick={() => toggleFixtureSection(monthOpenKey)}
                   >
-                    Save
+                    <span>{monthData.label}</span>
+                    <span>{openFixtureSections[monthOpenKey] ? '▲' : '▼'}</span>
                   </button>
   
-                  <button
-                    type="button"
-                    className="secondary-btn"
-                    onClick={cancelEditingFixture}
-                  >
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    className="secondary-btn"
-                    onClick={() => startEditingFixture(fixture)}
-                  >
-                    Edit
-                  </button>
+                  {openFixtureSections[monthOpenKey] ? (
+                    <>
+                      {['Upper', 'Lower', 'Other'].map((division) => {
+                        const days = monthData.divisions[division];
   
-                  <button
-                    type="button"
-                    className="secondary-btn danger-btn"
-                    onClick={() => setFixtureToDelete(fixture)}
-                  >
-                    Delete
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        ))}
+                        if (!days) return null;
+  
+                        const divisionOpenKey = `${monthOpenKey}-${division}`;
+  
+                        return (
+                          <div key={division} style={{ marginBottom: '1rem' }}>
+                            <button
+                              type="button"
+                              className="secondary-btn"
+                              style={{
+                                width: '100%',
+                                justifyContent: 'space-between',
+                                marginBottom: '0.75rem'
+                              }}
+                              onClick={() =>
+                                toggleFixtureSection(divisionOpenKey)
+                              }
+                            >
+                              <span>{division}</span>
+                              <span>
+                                {openFixtureSections[divisionOpenKey]
+                                  ? '▲'
+                                  : '▼'}
+                              </span>
+                            </button>
+  
+                            {openFixtureSections[divisionOpenKey] ? (
+                              <>
+                                {Object.entries(days)
+                                  .sort(([dateA], [dateB]) =>
+                                    dateA.localeCompare(dateB)
+                                  )
+                                  .map(([dayKey, dayData]) => {
+                                    const dayOpenKey = `${divisionOpenKey}-${dayKey}`;
+  
+                                    return (
+                                      <div
+                                        key={dayKey}
+                                        style={{ marginBottom: '0.75rem' }}
+                                      >
+                                        <button
+                                          type="button"
+                                          className="secondary-btn"
+                                          style={{
+                                            width: '100%',
+                                            justifyContent: 'space-between',
+                                            marginBottom: '0.75rem'
+                                          }}
+                                          onClick={() =>
+                                            toggleFixtureSection(dayOpenKey)
+                                          }
+                                        >
+                                          <span>{dayData.label}</span>
+                                          <span>
+                                            {openFixtureSections[dayOpenKey]
+                                              ? '▲'
+                                              : '▼'}
+                                          </span>
+                                        </button>
+  
+                                        {openFixtureSections[dayOpenKey]
+                                          ? dayData.fixtures.map((fixture) =>
+                                              renderFixtureRow(fixture)
+                                            )
+                                          : null}
+                                      </div>
+                                    );
+                                  })}
+                              </>
+                            ) : null}
+                          </div>
+                        );
+                      })}
+                    </>
+                  ) : null}
+                </div>
+              );
+            })}
+          </>
+        ) : null}
+      </div>
+    );
+  }
+
+  function renderFixtureRow(fixture) {
+    return (
+      <div key={fixture.id} className="admin-season-row">
+        <div className="admin-season-main competition-main-stacked">
+          {editingFixtureId === fixture.id ? (
+            <>
+              <CustomSelect
+                value={editingSeasonId}
+                onChange={(value) => {
+                  setEditingSeasonId(value);
+                  setEditingDivisionId('');
+                  setEditingHomeTeamId('');
+                  setEditingAwayTeamId('');
+                }}
+                options={seasons.map((season) => ({
+                  value: season.id,
+                  label: season.name
+                }))}
+                placeholder="Select season"
+              />
+  
+              <CustomSelect
+                value={editingCompetitionId}
+                onChange={(value) => {
+                  setEditingCompetitionId(value);
+                  setEditingDivisionId('');
+                  setEditingHomeTeamId('');
+                  setEditingAwayTeamId('');
+                }}
+                options={competitions.map((competition) => ({
+                  value: competition.id,
+                  label: `${competition.name} • ${getSeasonName(
+                    competition.seasonId
+                  )}`
+                }))}
+                placeholder="Select competition"
+              />
+  
+              <CustomSelect
+                value={editingDivisionId}
+                onChange={(value) => {
+                  setEditingDivisionId(value);
+                  setEditingHomeTeamId('');
+                  setEditingAwayTeamId('');
+                }}
+                options={editingAvailableDivisions.map((division) => ({
+                  value: division.id,
+                  label: division.name
+                }))}
+                placeholder="Select division"
+              />
+  
+              <CustomSelect
+                value={editingHomeTeamId}
+                onChange={setEditingHomeTeamId}
+                options={editingAvailableTeams.map((team) => ({
+                  value: team.id,
+                  label: team.name
+                }))}
+                placeholder="Select home team"
+              />
+  
+              <CustomSelect
+                value={editingAwayTeamId}
+                onChange={setEditingAwayTeamId}
+                options={editingAvailableTeams
+                  .filter((team) => team.id !== editingHomeTeamId)
+                  .map((team) => ({
+                    value: team.id,
+                    label: team.name
+                  }))}
+                placeholder="Select away team"
+              />
+  
+              <CustomSelect
+                value={editingMatchFormatId}
+                onChange={setEditingMatchFormatId}
+                options={matchFormats.map((format) => ({
+                  value: format.id,
+                  label: `${format.name} • ${format.pointsSystem} Point`
+                }))}
+                placeholder="Select match format"
+              />
+  
+              <input
+                className="form-input admin-season-edit-input"
+                type="date"
+                value={editingFixtureDate}
+                onChange={(event) => setEditingFixtureDate(event.target.value)}
+              />
+  
+              <input
+                className="form-input admin-season-edit-input"
+                type="time"
+                value={editingFixtureTime}
+                onChange={(event) => setEditingFixtureTime(event.target.value)}
+              />
+            </>
+          ) : (
+            <>
+              <strong>
+                {getTeamName(fixture.homeTeamId)} vs{' '}
+                {getTeamName(fixture.awayTeamId)}
+              </strong>
+  
+              <div className="competition-tags-row">
+                <span className="admin-season-status inactive">
+                  {getSeasonName(fixture.seasonId)}
+                </span>
+  
+                <span className="admin-season-status inactive">
+                  {getCompetitionName(fixture.competitionId)}
+                </span>
+  
+                <span className="admin-season-status inactive">
+                  {getDivisionName(fixture.divisionId)}
+                </span>
+  
+                <span
+  className="admin-season-status"
+  style={{
+    background:
+      getMatchFormatName(
+        fixture.matchFormatId || fixture.templateId
+      )?.includes('32')
+        ? 'rgba(255, 140, 66, 0.18)'
+        : 'rgba(59, 130, 246, 0.18)',
+
+    color:
+      getMatchFormatName(
+        fixture.matchFormatId || fixture.templateId
+      )?.includes('32')
+        ? '#ff8c42'
+        : '#60a5fa',
+
+    border:
+      getMatchFormatName(
+        fixture.matchFormatId || fixture.templateId
+      )?.includes('32')
+        ? '1px solid rgba(255, 140, 66, 0.4)'
+        : '1px solid rgba(96, 165, 250, 0.4)'
+  }}
+>
+  {getMatchFormatName(
+    fixture.matchFormatId || fixture.templateId
+  )}
+</span>
+  
+                <span
+                  className={`admin-season-status ${
+                    fixture.status === 'completed' ? 'inactive' : 'active'
+                  }`}
+                >
+                  {fixture.status || 'upcoming'}
+                </span>
+  
+                <span className="admin-season-status inactive">
+                  {fixture.fixtureDate || 'No date'} •{' '}
+                  {fixture.fixtureTime || '20:30'}
+                </span>
+              </div>
+            </>
+          )}
+        </div>
+  
+        <div className="admin-season-actions">
+          {editingFixtureId === fixture.id ? (
+            <>
+              <button
+                type="button"
+                className="secondary-btn"
+                onClick={() => handleSaveFixture(fixture)}
+              >
+                Save
+              </button>
+  
+              <button
+                type="button"
+                className="secondary-btn"
+                onClick={cancelEditingFixture}
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="secondary-btn"
+                onClick={() => startEditingFixture(fixture)}
+              >
+                Edit
+              </button>
+  
+              <button
+                type="button"
+                className="secondary-btn danger-btn"
+                onClick={() => setFixtureToDelete(fixture)}
+              >
+                Delete
+              </button>
+            </>
+          )}
+        </div>
       </div>
     );
   }
@@ -738,13 +955,9 @@ export default function AdminFixturesPage() {
       <p className="muted-text">No fixtures created yet.</p>
     ) : (
       <>
-        {renderFixtureGroup('Upper', groupedFixtures.Upper)}
-
-        {renderFixtureGroup('Lower', groupedFixtures.Lower)}
-
-        {groupedFixtures.Other.length > 0
-          ? renderFixtureGroup('Other', groupedFixtures.Other)
-          : null}
+        {renderStatusGroup('Today', groupedFixtures.today)}
+        {renderStatusGroup('Upcoming Fixtures', groupedFixtures.upcoming)}
+        {renderStatusGroup('Completed Fixtures', groupedFixtures.completed)}
       </>
     )}
   </div>

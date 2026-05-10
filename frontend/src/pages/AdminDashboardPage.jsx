@@ -99,16 +99,53 @@ export default function AdminDashboardPage() {
     status: 'active'
   };
 
+  const totalUpcomingFixtures = useMemo(() => {
+    return fixtures.filter(
+      (fixture) => fixture.status === 'upcoming' && !fixture.complete
+    ).length;
+  }, [fixtures]);
+  
+  const divisionPriorityMap = {
+    premier: 1,
+    upper: 2,
+    first: 3,
+    '1st': 3,
+    second: 4,
+    '2nd': 4,
+    third: 5,
+    '3rd': 5,
+    lower: 6
+  };
+  
   const upcomingAdminFixtures = useMemo(() => {
     return fixtures
       .filter((fixture) => fixture.status === 'upcoming' && !fixture.complete)
       .sort((a, b) => {
+        const divisionA = String(
+          getDivisionName(a.divisionId)
+        ).toLowerCase();
+  
+        const divisionB = String(
+          getDivisionName(b.divisionId)
+        ).toLowerCase();
+  
+        const priorityA =
+          divisionPriorityMap[divisionA] ?? 999;
+  
+        const priorityB =
+          divisionPriorityMap[divisionB] ?? 999;
+  
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB;
+        }
+  
         const dateA = `${a.fixtureDate || ''} ${a.fixtureTime || ''}`;
         const dateB = `${b.fixtureDate || ''} ${b.fixtureTime || ''}`;
+  
         return dateA.localeCompare(dateB);
       })
       .slice(0, 3);
-  }, [fixtures]);
+  }, [fixtures, divisions]);
 
   return (
     <div className="page-stack admin-dashboard-page">
@@ -366,7 +403,7 @@ export default function AdminDashboardPage() {
 
     <div className="admin-status-item">
       <span className="admin-status-label">Upcoming Fixtures</span>
-      <strong>{upcomingAdminFixtures.length}</strong>
+      <strong>{totalUpcomingFixtures}</strong>
     </div>
 
     <div className="admin-status-item">
