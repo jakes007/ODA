@@ -327,7 +327,7 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="admin-module-grid">
-        <Link to="/player" className="admin-module-card premium-module">
+        <Link to="/admin/registry" className="admin-module-card premium-module">
   <div className="admin-module-icon blue"><FiUsers /></div>
   <strong>Registry & Players</strong>
   <p>Manage player records and registry-linked profiles.</p>

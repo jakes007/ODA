@@ -26,6 +26,7 @@ import AdminTeamsPage from './pages/AdminTeamsPage';
 import AdminFixturesPage from './pages/AdminFixturesPage';
 import AdminMatchFormatsPage from './pages/AdminMatchFormatsPage';
 import AdminTeamDetailPage from './pages/AdminTeamDetailPage';
+import AdminRegistryPage from './pages/AdminRegistryPage';
 
 export default function App() {
   return (
@@ -179,6 +180,17 @@ export default function App() {
   }
 />
 
+<Route
+  path="/admin/registry"
+  element={
+    <ProtectedRoute>
+      <RoleRoute allowedRoles={['admin']}>
+        <AdminRegistryPage />
+      </RoleRoute>
+    </ProtectedRoute>
+  }
+/>
+
         <Route
           path="/admin"
           element={
@@ -193,3 +205,4 @@ export default function App() {
     </AppLayout>
   );
 }
+
