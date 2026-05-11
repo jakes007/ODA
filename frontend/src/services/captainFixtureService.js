@@ -4,6 +4,7 @@ import {
   getDoc,
   getDocs,
   query,
+  serverTimestamp,
   updateDoc,
   where
 } from 'firebase/firestore';
@@ -353,5 +354,265 @@ import { importedRegistryData } from '../data/importedRegistryData';
     return {
       success: true,
       message: 'Your lineup submission has been withdrawn.'
+    };
+  }
+
+  const sixteenPointSinglesBlocks = [
+    [
+      [1, 2],
+      [2, 1],
+      [3, 4],
+      [4, 3]
+    ],
+    [
+      [2, 2],
+      [1, 4],
+      [4, 1],
+      [3, 3]
+    ],
+    [
+      [4, 4],
+      [1, 1],
+      [2, 3],
+      [3, 2]
+    ],
+    [
+      [1, 3],
+      [2, 4],
+      [3, 1],
+      [4, 2]
+    ]
+  ];
+  
+  function getPlayerFromLineup(lineupIds = [], squad = [], slotNumber) {
+    const playerId = lineupIds[slotNumber - 1];
+    if (!playerId) return null;
+  
+    return squad.find((player) => player.playerId === playerId) || null;
+  }
+  
+  function buildLiveMatchups({
+    homeLineupIds,
+    awayLineupIds,
+    homeSquad,
+    awaySquad
+  }) {
+    const games = [];
+    let counter = 1;
+  
+    sixteenPointSinglesBlocks.forEach((block, blockIndex) => {
+      block.forEach(([homeSlot, awaySlot], blockOrderIndex) => {
+        const homePlayer = getPlayerFromLineup(homeLineupIds, homeSquad, homeSlot);
+        const awayPlayer = getPlayerFromLineup(awayLineupIds, awaySquad, awaySlot);
+  
+        games.push({
+          matchupId: `matchup_${counter}`,
+          order: counter,
+          blockNumber: blockIndex + 1,
+          blockOrder: blockOrderIndex + 1,
+          type: 'singles',
+          format: 'singles',
+          formatLabel: '501 Singles',
+          startingScore: 501,
+          homeSlots: [homeSlot],
+          awaySlots: [awaySlot],
+          homePlayers: homePlayer ? [homePlayer] : [],
+          awayPlayers: awayPlayer ? [awayPlayer] : [],
+          label: `${homePlayer?.displayName || 'Missing Player'} vs ${
+            awayPlayer?.displayName || 'Missing Player'
+          }`,
+          status: 'waiting',
+          boardNumber: null,
+          result: null,
+          liveState: null
+        });
+  
+        counter += 1;
+      });
+    });
+  
+    return games;
+  }
+
+  export async function startCaptainFixtureLiveMatch({
+    fixtureId,
+    captainPlayerId
+  }) {
+    if (!fixtureId || !captainPlayerId) {
+      return {
+        success: false,
+        message: 'Fixture or captain details missing.'
+      };
+    }
+  
+    const fixtureSnapshot = await getDoc(doc(db, 'fixtures', fixtureId));
+  
+    if (!fixtureSnapshot.exists()) {
+      return {
+        success: false,
+        message: 'Fixture not found.'
+      };
+    }
+  
+    const fixture = {
+      id: fixtureSnapshot.id,
+      ...fixtureSnapshot.data()
+    };
+  
+    const homeTeam = await getTeamById(fixture.homeTeamId);
+    const awayTeam = await getTeamById(fixture.awayTeamId);
+  
+    const isAuthorizedCaptain =
+      homeTeam.captainPlayerId === captainPlayerId ||
+      awayTeam.captainPlayerId === captainPlayerId;
+  
+    if (!isAuthorizedCaptain) {
+      return {
+        success: false,
+        message: 'You are not authorized to start this fixture.'
+      };
+    }
+  
+    if (
+      !fixture.homeLineupSubmitted ||
+      !fixture.awayLineupSubmitted
+    ) {
+      return {
+        success: false,
+        message: 'Both lineups must be submitted before starting.'
+      };
+    }
+  
+    const homeSquad = buildSquadFromPlayerIds(homeTeam.squadPlayerIds || []);
+const awaySquad = buildSquadFromPlayerIds(awayTeam.squadPlayerIds || []);
+
+const games = buildLiveMatchups({
+  homeLineupIds: fixture.homeLineupPlayerIds || [],
+  awayLineupIds: fixture.awayLineupPlayerIds || [],
+  homeSquad,
+  awaySquad
+});
+
+const liveSession = {
+  startedAt: new Date().toISOString(),
+  startedBy: captainPlayerId,
+  status: 'active',
+  activeBoardCount: 0,
+  games
+};
+  
+    await updateDoc(doc(db, 'fixtures', fixtureId), {
+      status: 'active',
+      liveStartedAt: serverTimestamp(),
+      liveSession
+    });
+  
+    return {
+      success: true,
+      message: 'Live match session started successfully.'
+    };
+  }
+
+  export async function getCaptainLiveScoringData({
+    fixtureId,
+    captainPlayerId
+  }) {
+    if (!fixtureId || !captainPlayerId) {
+      return null;
+    }
+  
+    const fixtureSnapshot = await getDoc(doc(db, 'fixtures', fixtureId));
+  
+    if (!fixtureSnapshot.exists()) {
+      return null;
+    }
+  
+    const fixture = {
+      id: fixtureSnapshot.id,
+      ...fixtureSnapshot.data()
+    };
+  
+    const homeTeam = await getTeamById(fixture.homeTeamId);
+    const awayTeam = await getTeamById(fixture.awayTeamId);
+  
+    const isHomeCaptain =
+      homeTeam.captainPlayerId === captainPlayerId;
+  
+    const isAwayCaptain =
+      awayTeam.captainPlayerId === captainPlayerId;
+  
+    if (!isHomeCaptain && !isAwayCaptain) {
+      return null;
+    }
+  
+    const captainSide = isHomeCaptain ? 'home' : 'away';
+  
+    const myTeam =
+      captainSide === 'home' ? homeTeam : awayTeam;
+  
+    const opponentTeam =
+      captainSide === 'home' ? awayTeam : homeTeam;
+  
+    const myLineupIds =
+      captainSide === 'home'
+        ? fixture.homeLineupPlayerIds || []
+        : fixture.awayLineupPlayerIds || [];
+  
+    const opponentLineupIds =
+      captainSide === 'home'
+        ? fixture.awayLineupPlayerIds || []
+        : fixture.homeLineupPlayerIds || [];
+  
+    const mySquad = buildSquadFromPlayerIds(
+      myTeam.squadPlayerIds || []
+    );
+  
+    const opponentSquad = buildSquadFromPlayerIds(
+      opponentTeam.squadPlayerIds || []
+    );
+  
+    return {
+      fixtureId: fixture.id,
+      fixtureName: `${homeTeam.name} vs ${awayTeam.name}`,
+      status: fixture.status || 'active',
+      lineupsRevealed: Boolean(fixture.lineupsRevealed),
+  
+      captainSide,
+  
+      competition: {
+        name: fixture.competitionName || 'Placements',
+        season: fixture.seasonName || '2026'
+      },
+  
+      team: {
+        teamId: myTeam.id,
+        teamName: myTeam.name
+      },
+  
+      opponent: {
+        teamId: opponentTeam.id,
+        teamName: opponentTeam.name
+      },
+  
+      myTeam: {
+        currentLineup: myLineupIds,
+        squad: mySquad
+      },
+  
+      opponentTeam: {
+        currentLineup: opponentLineupIds,
+        squad: opponentSquad
+      },
+  
+      liveSession: fixture.liveSession || {
+        games: [],
+        activeBoardCount: 0
+      },
+  
+      scoreText: fixture.scoreText || '0 - 0',
+  
+      format: {
+        name: fixture.formatName || 'Fixture Format'
+      }
     };
   }

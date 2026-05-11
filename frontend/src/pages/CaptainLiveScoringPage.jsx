@@ -1,10 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
 import EmptyState from '../components/common/EmptyState';
 import { useAuth } from '../context/AuthContext';
 import {
-  getCaptainLiveScoringData,
+  getCaptainLiveScoringData
+} from '../services/captainFixtureService';
+import {
   startCaptainFixtureMatchup,
   applyCaptainSubstitution,
   submitCaptainPostMatchWrapUp
@@ -22,15 +24,35 @@ export default function CaptainLiveScoringPage() {
   const [selectedOpponentPotmPlayerId, setSelectedOpponentPotmPlayerId] = useState('');
   const [captainNotes, setCaptainNotes] = useState('');
   const [confirmScoresheet, setConfirmScoresheet] = useState(false);
+  const [fixture, setFixture] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const fixture = useMemo(() => {
-    if (!currentUser?.playerId) return null;
-    return getCaptainLiveScoringData(currentUser.playerId, fixtureId);
-  }, [currentUser?.playerId, fixtureId, refreshKey]);
+useEffect(() => {
+  loadLiveFixture();
+}, [fixtureId, currentUser?.playerId, refreshKey]);
 
-  if (!fixture) {
-    return <EmptyState message="Live scoring fixture not found." />;
+async function loadLiveFixture() {
+  if (!fixtureId || !currentUser?.playerId) {
+    setLoading(false);
+    return;
   }
+
+  const liveFixture = await getCaptainLiveScoringData({
+    fixtureId,
+    captainPlayerId: currentUser.playerId
+  });
+
+  setFixture(liveFixture);
+  setLoading(false);
+}
+
+if (loading) {
+  return <EmptyState message="Loading live scoring fixture..." />;
+}
+
+if (!fixture) {
+  return <EmptyState message="Live scoring fixture not found." />;
+}
 
   if (fixture.status !== 'active' && fixture.status !== 'completed') {
     return (
@@ -766,3 +788,4 @@ function formatStatus(status) {
 
   return labels[status] ?? status;
 }
+

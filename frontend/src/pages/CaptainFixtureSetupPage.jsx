@@ -6,7 +6,8 @@ import { useAuth } from '../context/AuthContext';
 import {
   getCaptainFixtureSetupData,
   submitCaptainFixtureLineup,
-  withdrawCaptainFixtureLineup
+  withdrawCaptainFixtureLineup,
+  startCaptainFixtureLiveMatch
 } from '../services/captainFixtureService';
 import {
   submitCaptainLineup,
@@ -148,17 +149,21 @@ export default function CaptainFixtureSetupPage() {
     await loadFixtureSetup();
   }
 
-  function handleStartMatch() {
-    const result = startCaptainFixtureLiveScoring(currentUser.playerId, fixtureId);
-
+  async function handleStartMatch() {
+    const result = await startCaptainFixtureLiveMatch({
+      fixtureId,
+      captainPlayerId: currentUser.playerId
+    });
+  
     if (!result.success) {
-      setErrors(result.errors ?? [result.message]);
+      setErrors([result.message]);
       setSuccessMessage('');
       return;
     }
-
+  
     setErrors([]);
     setSuccessMessage(result.message);
+  
     navigate(`/captain/fixture/${fixtureId}/live`);
   }
 
