@@ -738,3 +738,117 @@ const liveSession = {
       matchup
     };
   }
+
+  function getNextTurnSide(currentSide) {
+    return currentSide === 'home' ? 'away' : 'home';
+  }
+  
+  export async function submitCaptainMatchupTurn({
+    fixtureId,
+    captainPlayerId,
+    matchupId,
+    score
+  }) {
+    const numericScore = Number(score);
+  
+    if (!Number.isInteger(numericScore) || numericScore < 0 || numericScore > 180) {
+      return {
+        success: false,
+        message: 'Turn score must be between 0 and 180.'
+      };
+    }
+  
+    const fixtureSnapshot = await getDoc(doc(db, 'fixtures', fixtureId));
+  
+    if (!fixtureSnapshot.exists()) {
+      return {
+        success: false,
+        message: 'Fixture not found.'
+      };
+    }
+  
+    const fixture = {
+      id: fixtureSnapshot.id,
+      ...fixtureSnapshot.data()
+    };
+  
+    const games = fixture.liveSession?.games || [];
+    const matchup = games.find((game) => game.matchupId === matchupId);
+  
+    if (!matchup || !matchup.liveState) {
+      return {
+        success: false,
+        message: 'Active matchup not found.'
+      };
+    }
+  
+    const currentSide = matchup.liveState.currentTurnSide || 'home';
+    const scoreKey = currentSide === 'home' ? 'homeScoreLeft' : 'awayScoreLeft';
+    const currentScoreLeft = matchup.liveState[scoreKey];
+    const nextScoreLeft = currentScoreLeft - numericScore;
+  
+    let bust = false;
+    let resultingScore = currentScoreLeft;
+    let winnerSide = null;
+  
+    if (nextScoreLeft < 0 || nextScoreLeft === 1) {
+      bust = true;
+    } else if (nextScoreLeft === 0) {
+      resultingScore = 0;
+      winnerSide = currentSide;
+    } else {
+      resultingScore = nextScoreLeft;
+    }
+  
+    const nextTurn = {
+      side: currentSide,
+      playerIndex: matchup.liveState.currentPlayerIndex || 0,
+      score: numericScore,
+      bust,
+      resultingScore,
+      dartsUsed: 3,
+      createdAt: new Date().toISOString()
+    };
+  
+    const updatedLiveState = {
+      ...matchup.liveState,
+      [scoreKey]: bust ? currentScoreLeft : resultingScore,
+      currentTurnSide: winnerSide
+        ? currentSide
+        : getNextTurnSide(currentSide),
+      turns: [...(matchup.liveState.turns || []), nextTurn],
+      winnerSide
+    };
+  
+    const updatedMatchup = {
+      ...matchup,
+      status: winnerSide ? 'completed' : 'in_progress',
+      liveState: updatedLiveState,
+      result: winnerSide
+        ? {
+            winnerSide,
+            winnerTeamName:
+              winnerSide === 'home'
+                ? fixture.homeTeamName || 'Home'
+                : fixture.awayTeamName || 'Away'
+          }
+        : matchup.result || null,
+      boardNumber: winnerSide ? null : matchup.boardNumber
+    };
+  
+    const nextGames = games.map((game) =>
+      game.matchupId === matchupId ? updatedMatchup : game
+    );
+  
+    await updateDoc(doc(db, 'fixtures', fixtureId), {
+      'liveSession.games': nextGames,
+      'liveSession.activeBoardCount': nextGames.filter(
+        (game) => game.status === 'in_progress'
+      ).length
+    });
+  
+    return {
+      success: true,
+      message: winnerSide ? 'Matchup completed.' : 'Turn saved.'
+    };
+  }

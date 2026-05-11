@@ -4,11 +4,11 @@ import PageHeader from '../components/common/PageHeader';
 import EmptyState from '../components/common/EmptyState';
 import { useAuth } from '../context/AuthContext';
 import {
-  getCaptainMatchupScoringData
+  getCaptainMatchupScoringData,
+  submitCaptainMatchupTurn
 } from '../services/captainFixtureService';
 
 import {
-  submitCaptainMatchupTurn,
   updateCaptainMatchupTurn,
   setCaptainMatchupStartingSide
 } from '../services/captainData';
@@ -34,6 +34,8 @@ useEffect(() => {
 }, [fixtureId, matchupId, currentUser?.playerId, refreshKey]);
 
 async function loadScoringData() {
+  setLoading(true);
+
   if (!fixtureId || !matchupId || !currentUser?.playerId) {
     setLoading(false);
     return;
@@ -131,17 +133,17 @@ if (!data) {
     );
   }
 
-  function handleSubmitTurn(event) {
+  async function handleSubmitTurn(event) {
     event.preventDefault();
 
     const result =
       editingTurnIndex === null
-        ? submitCaptainMatchupTurn(
-            currentUser.playerId,
-            fixtureId,
-            matchupId,
-            turnScore
-          )
+        ? submitCaptainMatchupTurn({
+          fixtureId,
+          captainPlayerId: currentUser.playerId,
+          matchupId,
+          score: turnScore
+        })
         : updateCaptainMatchupTurn(
             currentUser.playerId,
             fixtureId,
@@ -173,7 +175,7 @@ if (!data) {
     setFinishDartOptions([]);
     setEditingTurnIndex(null);
 
-    refreshPage();
+    await loadScoringData();
   }
 
   function handleFinishWithDarts(dartsUsed) {
