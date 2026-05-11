@@ -692,3 +692,49 @@ const liveSession = {
   
     return board;
   }
+
+  export async function getCaptainMatchupScoringData({
+    fixtureId,
+    matchupId,
+    captainPlayerId
+  }) {
+    const fixtureSnapshot = await getDoc(doc(db, 'fixtures', fixtureId));
+  
+    if (!fixtureSnapshot.exists()) {
+      return null;
+    }
+  
+    const fixture = {
+      id: fixtureSnapshot.id,
+      ...fixtureSnapshot.data()
+    };
+  
+    const homeTeam = await getTeamById(fixture.homeTeamId);
+    const awayTeam = await getTeamById(fixture.awayTeamId);
+  
+    const isCaptain =
+      homeTeam.captainPlayerId === captainPlayerId ||
+      awayTeam.captainPlayerId === captainPlayerId;
+  
+    if (!isCaptain) {
+      return null;
+    }
+  
+    const matchup =
+      fixture.liveSession?.games?.find(
+        (game) => game.matchupId === matchupId
+      ) || null;
+  
+    if (!matchup) {
+      return null;
+    }
+  
+    return {
+      fixture: {
+        fixtureId: fixture.id,
+        fixtureName: `${homeTeam.name} vs ${awayTeam.name}`,
+        status: fixture.status
+      },
+      matchup
+    };
+  }

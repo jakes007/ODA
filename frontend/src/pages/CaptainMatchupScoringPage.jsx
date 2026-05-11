@@ -1,10 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
 import EmptyState from '../components/common/EmptyState';
 import { useAuth } from '../context/AuthContext';
 import {
-  getCaptainMatchupScoringData,
+  getCaptainMatchupScoringData
+} from '../services/captainFixtureService';
+
+import {
   submitCaptainMatchupTurn,
   updateCaptainMatchupTurn,
   setCaptainMatchupStartingSide
@@ -23,14 +26,36 @@ export default function CaptainMatchupScoringPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  const data = useMemo(() => {
-    if (!currentUser?.playerId) return null;
-    return getCaptainMatchupScoringData(currentUser.playerId, fixtureId, matchupId);
-  }, [currentUser?.playerId, fixtureId, matchupId, refreshKey]);
+  const [data, setData] = useState(null);
+const [loading, setLoading] = useState(true);
 
-  if (!data) {
-    return <EmptyState message="Matchup scoring data not found." />;
+useEffect(() => {
+  loadScoringData();
+}, [fixtureId, matchupId, currentUser?.playerId, refreshKey]);
+
+async function loadScoringData() {
+  if (!fixtureId || !matchupId || !currentUser?.playerId) {
+    setLoading(false);
+    return;
   }
+
+  const scoringData = await getCaptainMatchupScoringData({
+    fixtureId,
+    matchupId,
+    captainPlayerId: currentUser.playerId
+  });
+
+  setData(scoringData);
+  setLoading(false);
+}
+
+if (loading) {
+  return <EmptyState message="Loading matchup scoring data..." />;
+}
+
+if (!data) {
+  return <EmptyState message="Matchup scoring data not found." />;
+}
 
   const { fixture, matchup } = data;
 
