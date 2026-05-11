@@ -105,6 +105,16 @@ export default function AdminDashboardPage() {
     ).length;
   }, [fixtures]);
   
+  const totalLoanPlayers = useMemo(() => {
+    return fixtures.reduce((total, fixture) => {
+      return (
+        total +
+        (fixture.homeLoanPlayerIds?.length || 0) +
+        (fixture.awayLoanPlayerIds?.length || 0)
+      );
+    }, 0);
+  }, [fixtures]);
+  
   const divisionPriorityMap = {
     premier: 1,
     upper: 2,
@@ -407,14 +417,19 @@ export default function AdminDashboardPage() {
     </div>
 
     <div className="admin-status-item">
-      <span className="admin-status-label">Match Formats</span>
-      <strong>Configured</strong>
-    </div>
+  <span className="admin-status-label">Match Formats</span>
+  <strong>Configured</strong>
+</div>
 
-    <div className="admin-status-item">
-      <span className="admin-status-label">Live Scoring</span>
-      <strong>Offline</strong>
-    </div>
+<div className="admin-status-item">
+  <span className="admin-status-label">Loan Players</span>
+  <strong>{totalLoanPlayers}</strong>
+</div>
+
+<div className="admin-status-item">
+  <span className="admin-status-label">Live Scoring</span>
+  <strong>Offline</strong>
+</div>
   </div>
 </section>
 

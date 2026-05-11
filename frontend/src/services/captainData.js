@@ -1317,6 +1317,33 @@ function cloneLiveState(liveState) {
 function cloneFixtureForViewer(playerId, fixture) {
   const captainSide = getCaptainSide(playerId, fixture);
   const viewerSide = fixture.sides[captainSide];
+  const loanPlayerIds =
+  captainSide === 'home'
+    ? fixture.homeLoanPlayerIds || []
+    : fixture.awayLoanPlayerIds || [];
+
+const loanPlayers = loanPlayerIds
+  .map((playerId) =>
+    viewerSide.squad.find(
+      (player) => player.playerId === playerId
+    )
+  )
+  .filter(Boolean)
+  .map((player) => ({
+    ...player,
+    isLoanPlayer: true
+  }));
+
+const eligibleSquad = [
+  ...viewerSide.squad,
+  ...loanPlayers.filter(
+    (loanPlayer) =>
+      !viewerSide.squad.some(
+        (existingPlayer) =>
+          existingPlayer.playerId === loanPlayer.playerId
+      )
+  )
+];
   const opponentSideKey = getOpponentSide(captainSide);
   const opponentSide = fixture.sides[opponentSideKey];
   const reveal = canRevealLineups(fixture);
@@ -1356,7 +1383,7 @@ function cloneFixtureForViewer(playerId, fixture) {
       opponentSide: opponentSideKey,
       myTeam: {
       teamName: viewerSide.teamName,
-      squad: viewerSide.squad,
+      squad: eligibleSquad,
       currentLineup: [...viewerSide.currentLineup],
       submittedLineup: viewerSide.submittedLineup ? [...viewerSide.submittedLineup] : null,
       submitted: viewerSide.submitted,

@@ -24,7 +24,9 @@ export async function createAdminFixture({
   fixtureDate,
   fixtureTime,
   matchFormat,
-status = 'upcoming'
+  status = 'upcoming',
+  homeLoanPlayerIds = [],
+  awayLoanPlayerIds = []
 }) {
   if (!seasonId) throw new Error('Please select a season.');
   if (!competitionId) throw new Error('Please select a competition.');
@@ -48,6 +50,8 @@ status = 'upcoming'
     fixtureTime: fixtureTime || '19:30',
     matchFormatId: matchFormat.id,
     status,
+    homeLoanPlayerIds,
+    awayLoanPlayerIds,
     score: { home: 0, away: 0 },
     complete: false,
     createdAt: serverTimestamp()
@@ -89,6 +93,8 @@ status = 'upcoming'
     fixtureTime: fixtureTime || '19:30',
     matchFormatId: matchFormat.id,
     status,
+    homeLoanPlayerIds,
+    awayLoanPlayerIds,
     complete: false
   };
 }
@@ -157,7 +163,9 @@ export async function updateAdminFixture({
   fixtureTime,
   currentMatchFormatId,
   matchFormat,
-status = 'upcoming'
+  status = 'upcoming',
+  homeLoanPlayerIds = [],
+  awayLoanPlayerIds = []
 }) {
   if (!seasonId) throw new Error('Please select a season.');
   if (!competitionId) throw new Error('Please select a competition.');
@@ -176,7 +184,10 @@ status = 'upcoming'
     awayTeamId,
     fixtureDate,
     fixtureTime: fixtureTime || '19:30',
-    matchFormatId: matchFormat.id
+    matchFormatId: matchFormat.id,
+    status,
+    homeLoanPlayerIds,
+    awayLoanPlayerIds
   });
 
   if (currentMatchFormatId !== matchFormat.id) {

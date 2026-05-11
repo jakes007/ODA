@@ -54,12 +54,39 @@ export default function CaptainDashboardPage() {
 
   const uniqueFixtures = useMemo(() => {
     const map = new Map();
-
+  
     fixtures.forEach((fixture) => {
       map.set(fixture.id, fixture);
     });
-
-    return Array.from(map.values());
+  
+    const statusPriority = {
+      ready_to_play: 1,
+      ready_for_lineups: 2,
+      waiting_for_opponent: 3,
+      active: 4,
+      upcoming: 5,
+      completed: 6
+    };
+  
+    return Array.from(map.values()).sort((a, b) => {
+      const priorityA =
+        statusPriority[a.status] ?? 999;
+  
+      const priorityB =
+        statusPriority[b.status] ?? 999;
+  
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+  
+      const dateA =
+        `${a.fixtureDate || ''} ${a.fixtureTime || ''}`;
+  
+      const dateB =
+        `${b.fixtureDate || ''} ${b.fixtureTime || ''}`;
+  
+      return dateA.localeCompare(dateB);
+    });
   }, [fixtures]);
 
   if (loading) {

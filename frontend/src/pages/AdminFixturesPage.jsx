@@ -15,6 +15,7 @@ import {
 } from '../services/adminFixtureService';
 import AdminStepNavigation from '../components/admin/AdminStepNavigation';
 import { placementsFixturesData } from '../data/placementsFixturesData';
+import { importedRegistryData } from '../data/importedRegistryData';
 
 export default function AdminFixturesPage() {
   const [seasons, setSeasons] = useState([]);
@@ -44,9 +45,11 @@ export default function AdminFixturesPage() {
   const [editingAwayTeamId, setEditingAwayTeamId] = useState('');
   const [editingFixtureDate, setEditingFixtureDate] = useState('');
   const [editingFixtureTime, setEditingFixtureTime] = useState('19:30');
-  const [editingMatchFormatId, setEditingMatchFormatId] = useState('');
+const [editingMatchFormatId, setEditingMatchFormatId] = useState('');
+const [editingHomeLoanPlayerIds, setEditingHomeLoanPlayerIds] = useState([]);
+const [editingAwayLoanPlayerIds, setEditingAwayLoanPlayerIds] = useState([]);
 
-  const [openFixtureSections, setOpenFixtureSections] = useState({});
+const [openFixtureSections, setOpenFixtureSections] = useState({});
 
   useEffect(() => {
     loadPageData();
@@ -95,6 +98,74 @@ export default function AdminFixturesPage() {
 
   function getMatchFormatName(id) {
     return matchFormats.find((format) => format.id === id)?.name || 'No format';
+  }
+
+  function getRegistryPlayerName(playerId) {
+    const player = importedRegistryData.players.find(
+      (registryPlayer) => registryPlayer.playerId === playerId
+    );
+  
+    return player?.fullName || 'Unknown player';
+  }
+  
+  function normalizeClubName(value = '') {
+    return String(value)
+      .toLowerCase()
+      .replace('dart club', '')
+      .replace('darts club', '')
+      .replace('east side', 'eastside')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  
+  function getTeamClubName(teamId) {
+    const team = teams.find((team) => team.id === teamId);
+  
+    return team?.clubName || team?.name || '';
+  }
+  
+  function getClubLoanPlayerOptions(teamId, selectedIds = []) {
+    const clubName = getTeamClubName(teamId);
+    const normalizedClubName = normalizeClubName(clubName);
+  
+    return importedRegistryData.players
+      .filter(
+        (player) =>
+          normalizeClubName(player.clubName) === normalizedClubName
+      )
+      .filter((player) => !selectedIds.includes(player.playerId))
+      .map((player) => ({
+        value: player.playerId,
+        label: `${player.fullName} • DSA: ${player.dsaNumber}`
+      }));
+  }
+  
+  function addHomeLoanPlayer(playerId) {
+    if (!playerId) return;
+  
+    setEditingHomeLoanPlayerIds((current) =>
+      current.includes(playerId) ? current : [...current, playerId]
+    );
+  }
+  
+  function addAwayLoanPlayer(playerId) {
+    if (!playerId) return;
+  
+    setEditingAwayLoanPlayerIds((current) =>
+      current.includes(playerId) ? current : [...current, playerId]
+    );
+  }
+  
+  function removeHomeLoanPlayer(playerId) {
+    setEditingHomeLoanPlayerIds((current) =>
+      current.filter((id) => id !== playerId)
+    );
+  }
+  
+  function removeAwayLoanPlayer(playerId) {
+    setEditingAwayLoanPlayerIds((current) =>
+      current.filter((id) => id !== playerId)
+    );
   }
 
   const availableDivisions = useMemo(() => {
@@ -580,6 +651,64 @@ export default function AdminFixturesPage() {
     );
   }
 
+  function startEditingFixture(fixture) {
+    setEditingFixtureId(fixture.id);
+    setEditingSeasonId(fixture.seasonId || '');
+    setEditingCompetitionId(fixture.competitionId || '');
+    setEditingDivisionId(fixture.divisionId || '');
+    setEditingHomeTeamId(fixture.homeTeamId || '');
+    setEditingAwayTeamId(fixture.awayTeamId || '');
+    setEditingFixtureDate(fixture.fixtureDate || '');
+    setEditingFixtureTime(fixture.fixtureTime || '20:30');
+    setEditingMatchFormatId(fixture.matchFormatId || fixture.templateId || '');
+    setEditingHomeLoanPlayerIds(fixture.homeLoanPlayerIds || []);
+    setEditingAwayLoanPlayerIds(fixture.awayLoanPlayerIds || []);
+  }
+  
+  function cancelEditingFixture() {
+    setEditingFixtureId('');
+    setEditingSeasonId('');
+    setEditingCompetitionId('');
+    setEditingDivisionId('');
+    setEditingHomeTeamId('');
+    setEditingAwayTeamId('');
+    setEditingFixtureDate('');
+    setEditingFixtureTime('20:30');
+    setEditingMatchFormatId('');
+    setEditingHomeLoanPlayerIds([]);
+    setEditingAwayLoanPlayerIds([]);
+  }
+  
+  async function handleSaveFixture(fixture) {
+    const selectedFormat = matchFormats.find(
+      (format) => format.id === editingMatchFormatId
+    );
+  
+    try {
+      await updateAdminFixture({
+        fixtureId: fixture.id,
+        seasonId: editingSeasonId,
+        competitionId: editingCompetitionId,
+        divisionId: editingDivisionId,
+        homeTeamId: editingHomeTeamId,
+        awayTeamId: editingAwayTeamId,
+        fixtureDate: editingFixtureDate,
+        fixtureTime: editingFixtureTime,
+        currentMatchFormatId: fixture.matchFormatId || fixture.templateId,
+        matchFormat: selectedFormat,
+        status: fixture.status || 'upcoming',
+        homeLoanPlayerIds: editingHomeLoanPlayerIds,
+        awayLoanPlayerIds: editingAwayLoanPlayerIds
+      });
+  
+      cancelEditingFixture();
+      setMessage('Fixture updated successfully.');
+      await loadPageData();
+    } catch (error) {
+      setMessage(error.message || 'Could not update fixture.');
+    }
+  }
+
   function renderFixtureRow(fixture) {
     return (
       <div key={fixture.id} className="admin-season-row">
@@ -677,6 +806,60 @@ export default function AdminFixturesPage() {
                 value={editingFixtureTime}
                 onChange={(event) => setEditingFixtureTime(event.target.value)}
               />
+
+<div className="panel" style={{ marginTop: '1rem' }}>
+  <h4 className="panel-title">Home Loan Players</h4>
+
+  <CustomSelect
+    value=""
+    onChange={addHomeLoanPlayer}
+    options={getClubLoanPlayerOptions(
+      editingHomeTeamId,
+      editingHomeLoanPlayerIds
+    )}
+    placeholder="Add home loan player"
+  />
+
+  <div className="competition-tags-row" style={{ marginTop: '0.75rem' }}>
+    {editingHomeLoanPlayerIds.map((playerId) => (
+      <button
+        key={playerId}
+        type="button"
+        className="admin-season-status active"
+        onClick={() => removeHomeLoanPlayer(playerId)}
+      >
+        {getRegistryPlayerName(playerId)} ×
+      </button>
+    ))}
+  </div>
+</div>
+
+<div className="panel" style={{ marginTop: '1rem' }}>
+  <h4 className="panel-title">Away Loan Players</h4>
+
+  <CustomSelect
+    value=""
+    onChange={addAwayLoanPlayer}
+    options={getClubLoanPlayerOptions(
+      editingAwayTeamId,
+      editingAwayLoanPlayerIds
+    )}
+    placeholder="Add away loan player"
+  />
+
+  <div className="competition-tags-row" style={{ marginTop: '0.75rem' }}>
+    {editingAwayLoanPlayerIds.map((playerId) => (
+      <button
+        key={playerId}
+        type="button"
+        className="admin-season-status active"
+        onClick={() => removeAwayLoanPlayer(playerId)}
+      >
+        {getRegistryPlayerName(playerId)} ×
+      </button>
+    ))}
+  </div>
+</div>
             </>
           ) : (
             <>
@@ -740,6 +923,18 @@ export default function AdminFixturesPage() {
                   {fixture.fixtureDate || 'No date'} •{' '}
                   {fixture.fixtureTime || '20:30'}
                 </span>
+
+                {fixture.homeLoanPlayerIds?.length ? (
+  <span className="admin-season-status active">
+    Home Loans: {fixture.homeLoanPlayerIds.length}
+  </span>
+) : null}
+
+{fixture.awayLoanPlayerIds?.length ? (
+  <span className="admin-season-status active">
+    Away Loans: {fixture.awayLoanPlayerIds.length}
+  </span>
+) : null}
               </div>
             </>
           )}

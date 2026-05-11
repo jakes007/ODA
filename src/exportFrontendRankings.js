@@ -387,7 +387,16 @@ function main() {
   }
   
   applyMovement(upper, previousUpper);
-  applyMovement(lower, previousLower);
+applyMovement(lower, previousLower);
+
+console.log(
+  upper.qualified.slice(0, 10).map((row) => ({
+    player: row.playerName,
+    current: row.position,
+    previous: row.previousPosition,
+    movement: row.rankMovement
+  }))
+);
 
   const fileContent = `export const importedRankingsData = {
   season: '2026',

@@ -1,10 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
 import EmptyState from '../components/common/EmptyState';
 import { useAuth } from '../context/AuthContext';
 import {
   getCaptainFixtureSetupData,
+  submitCaptainFixtureLineup,
+  withdrawCaptainFixtureLineup
+} from '../services/captainFixtureService';
+import {
   submitCaptainLineup,
   validateCaptainLineup,
   startCaptainFixtureLiveScoring,
@@ -16,13 +20,31 @@ export default function CaptainFixtureSetupPage() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
-  const fixture = currentUser?.playerId
-    ? getCaptainFixtureSetupData(currentUser.playerId, fixtureId)
-    : null;
-
-  const [lineup, setLineup] = useState(fixture?.myTeam.currentLineup ?? []);
+  const [fixture, setFixture] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [lineup, setLineup] = useState([]);
   const [errors, setErrors] = useState([]);
   const [successMessage, setSuccessMessage] = useState('');
+
+  useEffect(() => {
+    loadFixtureSetup();
+  }, [fixtureId, currentUser?.playerId]);
+  
+  async function loadFixtureSetup() {
+    if (!fixtureId || !currentUser?.playerId) {
+      setLoading(false);
+      return;
+    }
+  
+    const setupData = await getCaptainFixtureSetupData({
+      fixtureId,
+      captainPlayerId: currentUser.playerId
+    });
+  
+    setFixture(setupData);
+    setLineup(setupData?.myTeam.currentLineup ?? []);
+    setLoading(false);
+  }
 
   const lineupPlayers = useMemo(() => {
     if (!fixture) return [];
@@ -54,6 +76,10 @@ export default function CaptainFixtureSetupPage() {
     return fixture.myTeam.squad.filter((player) => !lineupIds.has(player.playerId));
   }, [fixture, lineup]);
 
+  if (loading) {
+    return <EmptyState message="Loading fixture setup..." />;
+  }
+  
   if (!fixture) {
     return <EmptyState message="Fixture setup data not found." />;
   }
@@ -77,32 +103,49 @@ export default function CaptainFixtureSetupPage() {
     setErrors(validation.valid ? [] : validation.errors);
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-
-    const result = submitCaptainLineup(currentUser.playerId, fixtureId, lineup);
-
-    if (!result.success) {
-      setErrors(result.errors ?? [result.message]);
+  
+    const validation = validateCaptainLineup(fixture, lineup);
+  
+    if (!validation.valid) {
+      setErrors(validation.errors);
       setSuccessMessage('');
       return;
     }
-
+  
+    const result = await submitCaptainFixtureLineup({
+      fixtureId,
+      captainPlayerId: currentUser.playerId,
+      lineup
+    });
+  
+    if (!result.success) {
+      setErrors([result.message]);
+      setSuccessMessage('');
+      return;
+    }
+  
     setErrors([]);
     setSuccessMessage(result.message);
+    await loadFixtureSetup();
   }
 
-  function handleWithdrawSubmission() {
-    const result = withdrawCaptainLineupSubmission(currentUser.playerId, fixtureId);
-
+  async function handleWithdrawSubmission() {
+    const result = await withdrawCaptainFixtureLineup({
+      fixtureId,
+      captainPlayerId: currentUser.playerId
+    });
+  
     if (!result.success) {
-      setErrors(result.errors ?? [result.message]);
+      setErrors([result.message]);
       setSuccessMessage('');
       return;
     }
-
+  
     setErrors([]);
     setSuccessMessage(result.message);
+    await loadFixtureSetup();
   }
 
   function handleStartMatch() {
@@ -191,10 +234,11 @@ export default function CaptainFixtureSetupPage() {
                 <option value="">Select Player</option>
 
                 {fixture.myTeam.squad.map((player) => (
-                  <option key={player.playerId} value={player.playerId}>
-                    {player.displayName}
-                  </option>
-                ))}
+  <option key={player.playerId} value={player.playerId}>
+    {player.displayName}
+    {player.isLoanPlayer ? ' [LOAN]' : ''}
+  </option>
+))}
               </select>
             </div>
           ))}
@@ -247,9 +291,11 @@ export default function CaptainFixtureSetupPage() {
               <div className="feature-title">
                 {index + 1}. {player.empty ? 'Empty Slot' : player.displayName}
               </div>
-              <div className="muted-text">
-                {player.empty ? 'No player selected for this position' : player.playerId}
-              </div>
+              {player.empty ? (
+  <div className="muted-text">
+    No player selected for this position
+  </div>
+) : null}
             </div>
           ))}
         </div>
@@ -264,8 +310,16 @@ export default function CaptainFixtureSetupPage() {
           <div className="feature-list">
             {benchPlayers.map((player) => (
               <div key={player.playerId} className="feature-item">
-                <div className="feature-title">{player.displayName}</div>
-                <div className="muted-text">{player.playerId}</div>
+                <div className="feature-title">
+  {player.displayName}
+  {player.isLoanPlayer ? ' [LOAN]' : ''}
+</div>
+
+{player.isLoanPlayer ? (
+  <div className="muted-text">
+    Approved loan player
+  </div>
+) : null}
               </div>
             ))}
           </div>
@@ -273,38 +327,37 @@ export default function CaptainFixtureSetupPage() {
       </section>
 
       <section className="panel">
-        <h3 className="panel-title">Opponent Lineup</h3>
+  <h3 className="panel-title">Opponent Lineup</h3>
 
-        {!fixture.lineupsRevealed ? (
-          <div className="feature-list">
-            <div className="feature-item">
-              <div className="feature-title">Lineup Hidden</div>
-              <div className="muted-text">
-                The opposing lineup will only be shown after both captains have submitted.
-              </div>
+  {!fixture.lineupsRevealed ? (
+    <div className="feature-list">
+      <div className="feature-item">
+        <div className="feature-title">Lineup Hidden</div>
+        <div className="muted-text">
+          The opposing lineup will only be shown after both captains have submitted.
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div className="feature-list">
+      {(fixture.opponentTeam.submittedLineup ?? []).map((playerId, index) => {
+        const player = fixture.opponentTeam.squad.find(
+          (squadPlayer) => squadPlayer.playerId === playerId
+        );
+
+        if (!player) return null;
+
+        return (
+          <div key={player.playerId} className="feature-item">
+            <div className="feature-title">
+              {index + 1}. {player.displayName}
             </div>
           </div>
-        ) : (
-          <div className="feature-list">
-            {(fixture.opponentTeam.submittedLineup ?? []).map((playerId, index) => {
-              const player = fixture.opponentTeam.squad.find(
-                (squadPlayer) => squadPlayer.playerId === playerId
-              );
-
-              if (!player) return null;
-
-              return (
-                <div key={player.playerId} className="feature-item">
-                  <div className="feature-title">
-                    {index + 1}. {player.displayName}
-                  </div>
-                  <div className="muted-text">{player.playerId}</div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
+        );
+      })}
+    </div>
+  )}
+</section>
 
       <section className="panel">
         <h3 className="panel-title">Submission Status</h3>
