@@ -742,12 +742,50 @@ const liveSession = {
   function getNextTurnSide(currentSide) {
     return currentSide === 'home' ? 'away' : 'home';
   }
+
+  const SINGLE_DART_DOUBLES = new Set([
+    2, 4, 6, 8, 10, 12, 14, 16, 18, 20,
+    22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 50
+  ]);
+  
+  function canFinishInOneDart(scoreLeft) {
+    return SINGLE_DART_DOUBLES.has(scoreLeft);
+  }
+  
+  function canFinishInTwoDarts(scoreLeft) {
+    for (let firstDart = 0; firstDart <= 60; firstDart += 1) {
+      const remaining = scoreLeft - firstDart;
+  
+      if (remaining > 0 && canFinishInOneDart(remaining)) {
+        return true;
+      }
+    }
+  
+    return false;
+  }
+  
+  function getPossibleFinishDarts(scoreLeft) {
+    const options = [];
+  
+    if (canFinishInOneDart(scoreLeft)) {
+      options.push(1);
+    }
+  
+    if (canFinishInTwoDarts(scoreLeft)) {
+      options.push(2);
+    }
+  
+    options.push(3);
+  
+    return options;
+  }
   
   export async function submitCaptainMatchupTurn({
     fixtureId,
     captainPlayerId,
     matchupId,
-    score
+    score,
+    dartsUsed
   }) {
     const numericScore = Number(score);
   
@@ -794,6 +832,15 @@ const liveSession = {
     if (nextScoreLeft < 0 || nextScoreLeft === 1) {
       bust = true;
     } else if (nextScoreLeft === 0) {
+      if (!dartsUsed) {
+        return {
+          success: true,
+          requiresFinishDarts: true,
+          possibleDartsUsed: getPossibleFinishDarts(currentScoreLeft),
+          message: 'Select darts used to finish the leg.'
+        };
+      }
+    
       resultingScore = 0;
       winnerSide = currentSide;
     } else {
@@ -840,15 +887,496 @@ const liveSession = {
       game.matchupId === matchupId ? updatedMatchup : game
     );
   
+    const homeWins = nextGames.filter(
+      (game) => game.result?.winnerSide === 'home'
+    ).length;
+    
+    const awayWins = nextGames.filter(
+      (game) => game.result?.winnerSide === 'away'
+    ).length;
+    
+    const allMatchupsCompleted = nextGames.every(
+      (game) => game.status === 'completed'
+    );
+    
     await updateDoc(doc(db, 'fixtures', fixtureId), {
       'liveSession.games': nextGames,
       'liveSession.activeBoardCount': nextGames.filter(
         (game) => game.status === 'in_progress'
-      ).length
+      ).length,
+      'liveSession.status': allMatchupsCompleted ? 'completed' : 'active',
+      status: allMatchupsCompleted ? 'completed' : 'active',
+      complete: allMatchupsCompleted,
+      scoreText: `${homeWins} - ${awayWins}`
     });
   
     return {
       success: true,
       message: winnerSide ? 'Matchup completed.' : 'Turn saved.'
+    };
+  }
+
+  export async function setCaptainMatchupStartingSide({
+    fixtureId,
+    captainPlayerId,
+    matchupId,
+    startingSide
+  }) {
+    if (!['home', 'away'].includes(startingSide)) {
+      return {
+        success: false,
+        message: 'Starting side is invalid.'
+      };
+    }
+  
+    const fixtureSnapshot = await getDoc(doc(db, 'fixtures', fixtureId));
+  
+    if (!fixtureSnapshot.exists()) {
+      return {
+        success: false,
+        message: 'Fixture not found.'
+      };
+    }
+  
+    const fixture = {
+      id: fixtureSnapshot.id,
+      ...fixtureSnapshot.data()
+    };
+  
+    const homeTeam = await getTeamById(fixture.homeTeamId);
+  
+    if (homeTeam.captainPlayerId !== captainPlayerId) {
+      return {
+        success: false,
+        message: 'Only the home captain can change the starting side.'
+      };
+    }
+  
+    const games = fixture.liveSession?.games || [];
+  
+    const matchup = games.find((game) => game.matchupId === matchupId);
+  
+    if (!matchup?.liveState) {
+      return {
+        success: false,
+        message: 'Matchup live state not found.'
+      };
+    }
+  
+    if ((matchup.liveState.turns || []).length > 0) {
+      return {
+        success: false,
+        message: 'Starting side can only be changed before the first turn.'
+      };
+    }
+  
+    const nextGames = games.map((game) => {
+      if (game.matchupId !== matchupId) return game;
+  
+      return {
+        ...game,
+        liveState: {
+          ...game.liveState,
+          startingSide,
+          currentTurnSide: startingSide
+        }
+      };
+    });
+  
+    await updateDoc(doc(db, 'fixtures', fixtureId), {
+      'liveSession.games': nextGames
+    });
+  
+    return {
+      success: true,
+      message: `${startingSide === 'home' ? 'Home' : 'Away'} will throw first.`
+    };
+  }
+
+  function rebuildSinglesLiveStateFromTurns(turns = [], startingSide = 'home', startingScore = 501) {
+    let homeScoreLeft = startingScore;
+    let awayScoreLeft = startingScore;
+    let currentTurnSide = startingSide;
+    let winnerSide = null;
+    const rebuiltTurns = [];
+  
+    for (const turn of turns) {
+      if (winnerSide) break;
+  
+      const numericScore = Number(turn.score);
+      const scoreKey = currentTurnSide === 'home' ? 'homeScoreLeft' : 'awayScoreLeft';
+      const currentScoreLeft = currentTurnSide === 'home' ? homeScoreLeft : awayScoreLeft;
+      const nextScoreLeft = currentScoreLeft - numericScore;
+  
+      let bust = false;
+      let resultingScore = currentScoreLeft;
+  
+      if (!Number.isInteger(numericScore) || numericScore < 0 || numericScore > 180) {
+        bust = true;
+      } else if (nextScoreLeft < 0 || nextScoreLeft === 1) {
+        bust = true;
+      } else if (nextScoreLeft === 0) {
+        resultingScore = 0;
+        winnerSide = currentTurnSide;
+      } else {
+        resultingScore = nextScoreLeft;
+      }
+  
+      if (!bust) {
+        if (scoreKey === 'homeScoreLeft') {
+          homeScoreLeft = resultingScore;
+        } else {
+          awayScoreLeft = resultingScore;
+        }
+      }
+  
+      rebuiltTurns.push({
+        ...turn,
+        side: currentTurnSide,
+        bust,
+        resultingScore
+      });
+  
+      if (!winnerSide) {
+        currentTurnSide = getNextTurnSide(currentTurnSide);
+      }
+    }
+  
+    return {
+      startingScore,
+      homeScoreLeft,
+      awayScoreLeft,
+      startingSide,
+      currentTurnSide,
+      turns: rebuiltTurns,
+      winnerSide
+    };
+  }
+  
+  export async function updateCaptainMatchupTurn({
+    fixtureId,
+    captainPlayerId,
+    matchupId,
+    turnIndex,
+    score
+  }) {
+    const numericScore = Number(score);
+  
+    if (!Number.isInteger(numericScore) || numericScore < 0 || numericScore > 180) {
+      return {
+        success: false,
+        message: 'Turn score must be between 0 and 180.'
+      };
+    }
+  
+    const fixtureSnapshot = await getDoc(doc(db, 'fixtures', fixtureId));
+  
+    if (!fixtureSnapshot.exists()) {
+      return {
+        success: false,
+        message: 'Fixture not found.'
+      };
+    }
+  
+    const fixture = {
+      id: fixtureSnapshot.id,
+      ...fixtureSnapshot.data()
+    };
+  
+    const homeTeam = await getTeamById(fixture.homeTeamId);
+  
+    if (homeTeam.captainPlayerId !== captainPlayerId) {
+      return {
+        success: false,
+        message: 'Only the home captain can edit turns.'
+      };
+    }
+  
+    const games = fixture.liveSession?.games || [];
+    const matchup = games.find((game) => game.matchupId === matchupId);
+  
+    if (!matchup?.liveState) {
+      return {
+        success: false,
+        message: 'Matchup live state not found.'
+      };
+    }
+  
+    const turns = matchup.liveState.turns || [];
+  
+    if (
+      !Number.isInteger(turnIndex) ||
+      turnIndex < 0 ||
+      turnIndex >= turns.length
+    ) {
+      return {
+        success: false,
+        message: 'Turn index is invalid.'
+      };
+    }
+  
+    const updatedTurns = turns.map((turn, index) =>
+      index === turnIndex
+        ? {
+            ...turn,
+            score: numericScore
+          }
+        : turn
+    );
+  
+    const rebuiltLiveState = rebuildSinglesLiveStateFromTurns(
+      updatedTurns,
+      matchup.liveState.startingSide || 'home',
+      matchup.liveState.startingScore || matchup.startingScore || 501
+    );
+  
+    const winnerSide = rebuiltLiveState.winnerSide;
+  
+    const updatedMatchup = {
+      ...matchup,
+      status: winnerSide ? 'completed' : 'in_progress',
+      liveState: rebuiltLiveState,
+      result: winnerSide
+        ? {
+            winnerSide,
+            winnerTeamName:
+              winnerSide === 'home'
+                ? fixture.homeTeamName || 'Home'
+                : fixture.awayTeamName || 'Away'
+          }
+        : null,
+      boardNumber: winnerSide ? null : matchup.boardNumber || 1
+    };
+  
+    const nextGames = games.map((game) =>
+      game.matchupId === matchupId ? updatedMatchup : game
+    );
+  
+    const homeWins = nextGames.filter(
+      (game) => game.result?.winnerSide === 'home'
+    ).length;
+    
+    const awayWins = nextGames.filter(
+      (game) => game.result?.winnerSide === 'away'
+    ).length;
+    
+    const allMatchupsCompleted = nextGames.every(
+      (game) => game.status === 'completed'
+    );
+    
+    await updateDoc(doc(db, 'fixtures', fixtureId), {
+      'liveSession.games': nextGames,
+      'liveSession.activeBoardCount': nextGames.filter(
+        (game) => game.status === 'in_progress'
+      ).length,
+      'liveSession.status': allMatchupsCompleted ? 'completed' : 'active',
+      status: allMatchupsCompleted ? 'completed' : 'active',
+      complete: allMatchupsCompleted,
+      scoreText: `${homeWins} - ${awayWins}`
+    });
+  
+    return {
+      success: true,
+      message: 'Turn updated successfully.'
+    };
+  }
+
+  export async function applyCaptainSubstitution({
+    fixtureId,
+    captainPlayerId,
+    outgoingPlayerId,
+    incomingPlayerId
+  }) {
+    const fixtureSnapshot = await getDoc(doc(db, 'fixtures', fixtureId));
+  
+    if (!fixtureSnapshot.exists()) {
+      return {
+        success: false,
+        message: 'Fixture not found.'
+      };
+    }
+  
+    const fixture = {
+      id: fixtureSnapshot.id,
+      ...fixtureSnapshot.data()
+    };
+  
+    const homeTeam = await getTeamById(fixture.homeTeamId);
+    const awayTeam = await getTeamById(fixture.awayTeamId);
+  
+    const captainSide =
+      homeTeam.captainPlayerId === captainPlayerId
+        ? 'home'
+        : awayTeam.captainPlayerId === captainPlayerId
+          ? 'away'
+          : null;
+  
+    if (!captainSide) {
+      return {
+        success: false,
+        message: 'You are not assigned to this fixture.'
+      };
+    }
+  
+    const games = fixture.liveSession?.games || [];
+    const playerKey = captainSide === 'home' ? 'homePlayers' : 'awayPlayers';
+  
+    let updatedMatchupCount = 0;
+  
+    const incomingPlayer = getRegistryPlayerById(incomingPlayerId);
+  
+    if (!incomingPlayer) {
+      return {
+        success: false,
+        message: 'Incoming player not found.'
+      };
+    }
+  
+    const incomingPlayerData = {
+      playerId: incomingPlayer.playerId,
+      displayName: `${incomingPlayer.fullName} (SUB)`,
+      dsaNumber: incomingPlayer.dsaNumber,
+      clubName: incomingPlayer.clubName,
+      isSubstitute: true,
+      substituteForPlayerId: outgoingPlayerId
+    };
+  
+    const nextGames = games.map((game) => {
+      if (game.status !== 'waiting') return game;
+  
+      const sidePlayers = game[playerKey] || [];
+      const hasOutgoingPlayer = sidePlayers.some(
+        (player) => player.playerId === outgoingPlayerId
+      );
+  
+      if (!hasOutgoingPlayer) return game;
+  
+      updatedMatchupCount += 1;
+  
+      const updatedSidePlayers = sidePlayers.map((player) =>
+        player.playerId === outgoingPlayerId ? incomingPlayerData : player
+      );
+  
+      return {
+        ...game,
+        [playerKey]: updatedSidePlayers,
+        label:
+          captainSide === 'home'
+            ? `${updatedSidePlayers.map((player) => player.displayName).join(' + ')} vs ${(game.awayPlayers || []).map((player) => player.displayName).join(' + ')}`
+            : `${(game.homePlayers || []).map((player) => player.displayName).join(' + ')} vs ${updatedSidePlayers.map((player) => player.displayName).join(' + ')}`
+      };
+    });
+  
+    if (updatedMatchupCount === 0) {
+      return {
+        success: false,
+        message: 'There are no future waiting matchups left for that player.'
+      };
+    }
+  
+    await updateDoc(doc(db, 'fixtures', fixtureId), {
+      'liveSession.games': nextGames
+    });
+  
+    return {
+      success: true,
+      message: `Substitution applied to ${updatedMatchupCount} future matchup${updatedMatchupCount > 1 ? 's' : ''}.`
+    };
+  }
+
+  export async function submitCaptainPostMatchWrapUp({
+    fixtureId,
+    captainPlayerId,
+    selectedOpponentPotmPlayerId,
+    notes,
+    confirmScoresheet
+  }) {
+    if (!confirmScoresheet) {
+      return {
+        success: false,
+        message: 'Please confirm the scoresheet before submitting.'
+      };
+    }
+  
+    const fixtureSnapshot = await getDoc(doc(db, 'fixtures', fixtureId));
+  
+    if (!fixtureSnapshot.exists()) {
+      return {
+        success: false,
+        message: 'Fixture not found.'
+      };
+    }
+  
+    const fixture = {
+      id: fixtureSnapshot.id,
+      ...fixtureSnapshot.data()
+    };
+  
+    if (fixture.status !== 'completed') {
+      return {
+        success: false,
+        message: 'Post-match wrap-up is only available once the fixture is complete.'
+      };
+    }
+  
+    const homeTeam = await getTeamById(fixture.homeTeamId);
+    const awayTeam = await getTeamById(fixture.awayTeamId);
+  
+    const captainSide =
+      homeTeam.captainPlayerId === captainPlayerId
+        ? 'home'
+        : awayTeam.captainPlayerId === captainPlayerId
+          ? 'away'
+          : null;
+  
+    if (!captainSide) {
+      return {
+        success: false,
+        message: 'You are not assigned to this fixture.'
+      };
+    }
+  
+    const opponentTeam = captainSide === 'home' ? awayTeam : homeTeam;
+    const opponentSquad = buildSquadFromPlayerIds(opponentTeam.squadPlayerIds || []);
+    const selectedPotmPlayer = opponentSquad.find(
+      (player) => player.playerId === selectedOpponentPotmPlayerId
+    );
+  
+    if (!selectedPotmPlayer) {
+      return {
+        success: false,
+        message: 'Please choose a valid POTM from the opposing team.'
+      };
+    }
+  
+    const existingPostMatch = fixture.postMatch || {
+      home: null,
+      away: null
+    };
+  
+    const nextPostMatch = {
+      ...existingPostMatch,
+      [captainSide]: {
+        selectedOpponentPotmPlayerId: selectedPotmPlayer.playerId,
+        selectedOpponentPotmPlayerName: selectedPotmPlayer.displayName,
+        notes: notes?.trim() || '',
+        confirmedAt: new Date().toISOString()
+      }
+    };
+  
+    const homeDone = Boolean(nextPostMatch.home?.confirmedAt);
+    const awayDone = Boolean(nextPostMatch.away?.confirmedAt);
+  
+    await updateDoc(doc(db, 'fixtures', fixtureId), {
+      postMatch: nextPostMatch,
+      postMatchComplete: homeDone && awayDone
+    });
+  
+    return {
+      success: true,
+      message:
+        homeDone && awayDone
+          ? 'Both captains have completed the post-match wrap-up.'
+          : 'Your post-match wrap-up has been submitted.'
     };
   }

@@ -5,13 +5,10 @@ import EmptyState from '../components/common/EmptyState';
 import { useAuth } from '../context/AuthContext';
 import {
   getCaptainMatchupScoringData,
-  submitCaptainMatchupTurn
+  submitCaptainMatchupTurn,
+  setCaptainMatchupStartingSide,
+  updateCaptainMatchupTurn
 } from '../services/captainFixtureService';
-
-import {
-  updateCaptainMatchupTurn,
-  setCaptainMatchupStartingSide
-} from '../services/captainData';
 
 export default function CaptainMatchupScoringPage() {
   const { fixtureId, matchupId } = useParams();
@@ -34,7 +31,7 @@ useEffect(() => {
 }, [fixtureId, matchupId, currentUser?.playerId, refreshKey]);
 
 async function loadScoringData() {
-  setLoading(true);
+
 
   if (!fixtureId || !matchupId || !currentUser?.playerId) {
     setLoading(false);
@@ -101,23 +98,24 @@ if (!data) {
     setRefreshKey((value) => value + 1);
   }
 
-  function handleSetStartingSide(startingSide) {
-    const result = setCaptainMatchupStartingSide(
-      currentUser.playerId,
+  async function handleSetStartingSide(startingSide) {
+    const result = await setCaptainMatchupStartingSide({
       fixtureId,
+      captainPlayerId: currentUser.playerId,
       matchupId,
       startingSide
-    );
-
+    });
+  
     if (!result.success) {
       setErrorMessage(result.message);
       setSuccessMessage('');
       return;
     }
-
+  
     setErrorMessage('');
     setSuccessMessage(result.message);
-    refreshPage();
+  
+    await loadScoringData();
   }
 
   function handleEditTurn(turn, actualIndex) {
@@ -135,23 +133,23 @@ if (!data) {
 
   async function handleSubmitTurn(event) {
     event.preventDefault();
-
+  
     const result =
       editingTurnIndex === null
-        ? submitCaptainMatchupTurn({
-          fixtureId,
-          captainPlayerId: currentUser.playerId,
-          matchupId,
-          score: turnScore
-        })
-        : updateCaptainMatchupTurn(
-            currentUser.playerId,
+        ? await submitCaptainMatchupTurn({
             fixtureId,
+            captainPlayerId: currentUser.playerId,
             matchupId,
-            editingTurnIndex,
-            turnScore
-          );
-
+            score: turnScore
+          })
+          : await updateCaptainMatchupTurn({
+            fixtureId,
+            captainPlayerId: currentUser.playerId,
+            matchupId,
+            turnIndex: editingTurnIndex,
+            score: turnScore
+          });
+  
     if (!result.success) {
       setErrorMessage(result.message);
       setSuccessMessage('');
@@ -159,33 +157,59 @@ if (!data) {
       setFinishDartOptions([]);
       return;
     }
-
+  
     if (editingTurnIndex === null && result.requiresFinishDarts) {
       setErrorMessage('');
       setSuccessMessage(result.message);
       setShowFinishDarts(true);
-      setFinishDartOptions(result.possibleDartsUsed ?? []);
+      setFinishDartOptions(result.possibleDartsUsed || [3]);
       return;
     }
-
+  
     setErrorMessage('');
     setSuccessMessage(result.message);
     setTurnScore('');
     setShowFinishDarts(false);
     setFinishDartOptions([]);
     setEditingTurnIndex(null);
-
+  
     await loadScoringData();
   }
-
-  function handleFinishWithDarts(dartsUsed) {
-    const result = submitCaptainMatchupTurn(
-      currentUser.playerId,
+  
+  async function handleFinishWithDarts(dartsUsed) {
+    const result = await submitCaptainMatchupTurn({
       fixtureId,
+      captainPlayerId: currentUser.playerId,
       matchupId,
-      turnScore,
-      { dartsUsed }
-    );
+      score: turnScore,
+      dartsUsed
+    });
+  
+    if (!result.success) {
+      setErrorMessage(result.message);
+      setSuccessMessage('');
+      return;
+    }
+  
+    setErrorMessage('');
+    setSuccessMessage(result.message);
+    setTurnScore('');
+    setShowFinishDarts(false);
+    setFinishDartOptions([]);
+    setEditingTurnIndex(null);
+  
+    await loadScoringData();
+    navigate(`/captain/fixture/${fixtureId}/live`);
+  }
+
+  async function handleFinishWithDarts(dartsUsed) {
+    const result = await submitCaptainMatchupTurn({
+      fixtureId,
+      captainPlayerId: currentUser.playerId,
+      matchupId,
+      score: turnScore,
+      dartsUsed
+    });
 
     if (!result.success) {
       setErrorMessage(result.message);

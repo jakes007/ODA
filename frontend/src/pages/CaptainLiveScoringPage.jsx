@@ -4,15 +4,10 @@ import PageHeader from '../components/common/PageHeader';
 import EmptyState from '../components/common/EmptyState';
 import { useAuth } from '../context/AuthContext';
 import {
-  getCaptainLiveScoringData
-} from '../services/captainFixtureService';
-import {
+  getCaptainLiveScoringData,
+  startCaptainFixtureMatchup,
   applyCaptainSubstitution,
   submitCaptainPostMatchWrapUp
-} from '../services/captainData';
-
-import {
-  startCaptainFixtureMatchup
 } from '../services/captainFixtureService';
 
 export default function CaptainLiveScoringPage() {
@@ -154,50 +149,54 @@ if (!fixture) {
   
     setErrors([]);
     setSuccessMessage(result.message);
-    refreshPage();
+    await loadLiveFixture();
   }
 
   function openMatchupScorer(matchupId) {
     navigate(`/captain/fixture/${fixtureId}/matchup/${matchupId}`);
   }
 
-  function handleApplySubstitution() {
-    const result = applyCaptainSubstitution(
-      currentUser.playerId,
+  async function handleApplySubstitution() {
+    const result = await applyCaptainSubstitution({
       fixtureId,
+      captainPlayerId: currentUser.playerId,
       outgoingPlayerId,
       incomingPlayerId
-    );
-
+    });
+  
     if (!result.success) {
       setErrors([result.message]);
       setSuccessMessage('');
       return;
     }
-
+  
     setErrors([]);
     setSuccessMessage(result.message);
     setOutgoingPlayerId('');
     setIncomingPlayerId('');
-    refreshPage();
+  
+    await loadLiveFixture();
   }
 
-  function handleSubmitPostMatchWrapUp() {
-    const result = submitCaptainPostMatchWrapUp(currentUser.playerId, fixtureId, {
+  async function handleSubmitPostMatchWrapUp() {
+    const result = await submitCaptainPostMatchWrapUp({
+      fixtureId,
+      captainPlayerId: currentUser.playerId,
       selectedOpponentPotmPlayerId,
       notes: captainNotes,
       confirmScoresheet
     });
-
+  
     if (!result.success) {
       setErrors([result.message]);
       setSuccessMessage('');
       return;
     }
-
+  
     setErrors([]);
     setSuccessMessage(result.message);
-    refreshPage();
+  
+    await loadLiveFixture();
   }
 
   return (
