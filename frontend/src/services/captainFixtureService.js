@@ -616,3 +616,79 @@ const liveSession = {
       }
     };
   }
+
+  export async function startCaptainFixtureMatchup({
+    fixtureId,
+    captainPlayerId,
+    matchupId
+  }) {
+    const fixtureSnapshot = await getDoc(doc(db, 'fixtures', fixtureId));
+  
+    if (!fixtureSnapshot.exists()) {
+      return {
+        success: false,
+        message: 'Fixture not found.'
+      };
+    }
+  
+    const fixture = {
+      id: fixtureSnapshot.id,
+      ...fixtureSnapshot.data()
+    };
+  
+    const homeTeam = await getTeamById(fixture.homeTeamId);
+  
+    if (homeTeam.captainPlayerId !== captainPlayerId) {
+      return {
+        success: false,
+        message: 'Only the home captain can start matchups.'
+      };
+    }
+  
+    const games = fixture.liveSession?.games || [];
+  
+    const nextGames = games.map((game) => {
+      if (game.matchupId !== matchupId) return game;
+  
+      return {
+        ...game,
+        status: 'in_progress',
+        boardNumber: getNextBoardNumber(games),
+        liveState: {
+          startingScore: game.startingScore || 501,
+          homeScoreLeft: game.startingScore || 501,
+          awayScoreLeft: game.startingScore || 501,
+          startingSide: 'home',
+          currentTurnSide: 'home',
+          turns: [],
+          winnerSide: null
+        }
+      };
+    });
+  
+    await updateDoc(doc(db, 'fixtures', fixtureId), {
+      'liveSession.games': nextGames,
+      'liveSession.activeBoardCount': nextGames.filter(
+        (game) => game.status === 'in_progress'
+      ).length
+    });
+  
+    return {
+      success: true,
+      message: 'Matchup started.'
+    };
+  }
+  
+  function getNextBoardNumber(games = []) {
+    const activeBoards = games
+      .filter((game) => game.status === 'in_progress' && game.boardNumber)
+      .map((game) => game.boardNumber);
+  
+    let board = 1;
+  
+    while (activeBoards.includes(board)) {
+      board += 1;
+    }
+  
+    return board;
+  }

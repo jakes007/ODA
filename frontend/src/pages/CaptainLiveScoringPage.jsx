@@ -7,10 +7,13 @@ import {
   getCaptainLiveScoringData
 } from '../services/captainFixtureService';
 import {
-  startCaptainFixtureMatchup,
   applyCaptainSubstitution,
   submitCaptainPostMatchWrapUp
 } from '../services/captainData';
+
+import {
+  startCaptainFixtureMatchup
+} from '../services/captainFixtureService';
 
 export default function CaptainLiveScoringPage() {
   const { fixtureId } = useParams();
@@ -136,15 +139,19 @@ if (!fixture) {
     setRefreshKey((value) => value + 1);
   }
 
-  function handleStartMatchup(matchupId) {
-    const result = startCaptainFixtureMatchup(currentUser.playerId, fixtureId, matchupId);
-
+  async function handleStartMatchup(matchupId) {
+    const result = await startCaptainFixtureMatchup({
+      fixtureId,
+      captainPlayerId: currentUser.playerId,
+      matchupId
+    });
+  
     if (!result.success) {
       setErrors([result.message]);
       setSuccessMessage('');
       return;
     }
-
+  
     setErrors([]);
     setSuccessMessage(result.message);
     refreshPage();
