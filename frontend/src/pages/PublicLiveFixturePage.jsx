@@ -15,7 +15,7 @@ useEffect(() => {
 
   const intervalId = setInterval(() => {
     loadFixture();
-  }, 5000);
+  }, 4000);
 
   return () => clearInterval(intervalId);
 }, [fixtureId]);
