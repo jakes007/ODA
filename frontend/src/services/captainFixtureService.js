@@ -349,7 +349,7 @@ import { importedRegistryData } from '../data/importedRegistryData';
       await updateDoc(doc(db, 'fixtures', fixtureId), {
         ...updatePayload,
         status: nextStatus,
-        lineupsRevealed: nextHomeSubmitted && nextAwaySubmitted
+        lineupsRevealed: false
       });
   
     return {
@@ -1450,4 +1450,119 @@ const liveSession = {
     );
   
     return fixtures.filter(Boolean);
+  }
+
+  export async function submitCaptainMatchupResultEntry({
+    fixtureId,
+    captainPlayerId,
+    matchupId,
+    winnerSide,
+    homeDartsUsed,
+    awayDartsUsed,
+    homeTons,
+    awayTons,
+    homeOneEighties,
+    awayOneEighties,
+    homeHighCheckout,
+    awayHighCheckout,
+    notes
+  }) {
+    if (!['home', 'away'].includes(winnerSide)) {
+      return {
+        success: false,
+        message: 'Please select a valid winner.'
+      };
+    }
+  
+    const fixtureSnapshot = await getDoc(doc(db, 'fixtures', fixtureId));
+  
+    if (!fixtureSnapshot.exists()) {
+      return {
+        success: false,
+        message: 'Fixture not found.'
+      };
+    }
+  
+    const fixture = {
+      id: fixtureSnapshot.id,
+      ...fixtureSnapshot.data()
+    };
+  
+    const homeTeam = await getTeamById(fixture.homeTeamId);
+  
+    if (homeTeam.captainPlayerId !== captainPlayerId) {
+      return {
+        success: false,
+        message: 'Only the home captain can submit result entry.'
+      };
+    }
+  
+    const games = fixture.liveSession?.games || [];
+    const matchup = games.find((game) => game.matchupId === matchupId);
+  
+    if (!matchup) {
+      return {
+        success: false,
+        message: 'Matchup not found.'
+      };
+    }
+  
+    const updatedMatchup = {
+      ...matchup,
+      scoringMode: 'result_entry',
+      status: 'completed',
+      boardNumber: null,
+      result: {
+        winnerSide,
+        winnerTeamName:
+          winnerSide === 'home'
+            ? fixture.homeTeamName || 'Home'
+            : fixture.awayTeamName || 'Away',
+        resultEntry: true
+      },
+      summaryResult: {
+        homeDartsUsed: Number(homeDartsUsed || 0),
+        awayDartsUsed: Number(awayDartsUsed || 0),
+        homeTons: Number(homeTons || 0),
+        awayTons: Number(awayTons || 0),
+        homeOneEighties: Number(homeOneEighties || 0),
+        awayOneEighties: Number(awayOneEighties || 0),
+        homeHighCheckout: Number(homeHighCheckout || 0),
+        awayHighCheckout: Number(awayHighCheckout || 0),
+        notes: notes?.trim() || '',
+        submittedAt: new Date().toISOString()
+      }
+    };
+  
+    const nextGames = games.map((game) =>
+      game.matchupId === matchupId ? updatedMatchup : game
+    );
+  
+    const homeWins = nextGames.filter(
+      (game) => game.result?.winnerSide === 'home'
+    ).length;
+  
+    const awayWins = nextGames.filter(
+      (game) => game.result?.winnerSide === 'away'
+    ).length;
+  
+    const allMatchupsCompleted = nextGames.every(
+      (game) => game.status === 'completed'
+    );
+  
+    await updateDoc(doc(db, 'fixtures', fixtureId), {
+      'liveSession.games': nextGames,
+      'liveSession.activeBoardCount': nextGames.filter(
+        (game) => game.status === 'in_progress'
+      ).length,
+      'liveSession.status': allMatchupsCompleted ? 'completed' : 'active',
+      status: allMatchupsCompleted ? 'completed' : 'active',
+      complete: allMatchupsCompleted,
+      scoreText: `${homeWins} - ${awayWins}`
+    });
+  
+    return {
+      success: true,
+      message: 'Result entry saved and matchup completed.'
+    };
   }

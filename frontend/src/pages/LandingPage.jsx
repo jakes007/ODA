@@ -84,7 +84,7 @@ async function loadLiveFixtures() {
 
           <div className="premium-hero-actions">
             <Link
-              to={liveFixtures.length > 0 ? `/live/${liveFixtures[0].fixtureId}` : '/competition/fixtures'}
+              to="/live"
               className="primary-btn premium-watch-btn"
             >
               Watch Live
@@ -113,7 +113,7 @@ async function loadLiveFixtures() {
             </div>
           </div>
 
-          <Link to="/competition/fixtures" className="panel-link">
+          <Link to="/live" className="panel-link">
             View all
           </Link>
         </div>

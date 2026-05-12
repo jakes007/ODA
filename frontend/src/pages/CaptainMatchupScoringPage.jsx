@@ -7,7 +7,8 @@ import {
   getCaptainMatchupScoringData,
   submitCaptainMatchupTurn,
   setCaptainMatchupStartingSide,
-  updateCaptainMatchupTurn
+  updateCaptainMatchupTurn,
+  submitCaptainMatchupResultEntry
 } from '../services/captainFixtureService';
 
 export default function CaptainMatchupScoringPage() {
@@ -15,46 +16,55 @@ export default function CaptainMatchupScoringPage() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
-  const [refreshKey, setRefreshKey] = useState(0);
   const [turnScore, setTurnScore] = useState('');
   const [showFinishDarts, setShowFinishDarts] = useState(false);
   const [finishDartOptions, setFinishDartOptions] = useState([]);
   const [editingTurnIndex, setEditingTurnIndex] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [scoringMode, setScoringMode] = useState('turn_by_turn');
+
+  const [resultWinnerSide, setResultWinnerSide] = useState('');
+  const [homeDartsUsed, setHomeDartsUsed] = useState('');
+  const [awayDartsUsed, setAwayDartsUsed] = useState('');
+  const [homeTons, setHomeTons] = useState('');
+  const [awayTons, setAwayTons] = useState('');
+  const [homeOneEighties, setHomeOneEighties] = useState('');
+  const [awayOneEighties, setAwayOneEighties] = useState('');
+  const [homeHighCheckout, setHomeHighCheckout] = useState('');
+  const [awayHighCheckout, setAwayHighCheckout] = useState('');
+  const [resultNotes, setResultNotes] = useState('');
 
   const [data, setData] = useState(null);
-const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-useEffect(() => {
-  loadScoringData();
-}, [fixtureId, matchupId, currentUser?.playerId, refreshKey]);
+  useEffect(() => {
+    loadScoringData();
+  }, [fixtureId, matchupId, currentUser?.playerId]);
 
-async function loadScoringData() {
+  async function loadScoringData() {
+    if (!fixtureId || !matchupId || !currentUser?.playerId) {
+      setLoading(false);
+      return;
+    }
 
+    const scoringData = await getCaptainMatchupScoringData({
+      fixtureId,
+      matchupId,
+      captainPlayerId: currentUser.playerId
+    });
 
-  if (!fixtureId || !matchupId || !currentUser?.playerId) {
+    setData(scoringData);
     setLoading(false);
-    return;
   }
 
-  const scoringData = await getCaptainMatchupScoringData({
-    fixtureId,
-    matchupId,
-    captainPlayerId: currentUser.playerId
-  });
+  if (loading) {
+    return <EmptyState message="Loading matchup scoring data..." />;
+  }
 
-  setData(scoringData);
-  setLoading(false);
-}
-
-if (loading) {
-  return <EmptyState message="Loading matchup scoring data..." />;
-}
-
-if (!data) {
-  return <EmptyState message="Matchup scoring data not found." />;
-}
+  if (!data) {
+    return <EmptyState message="Matchup scoring data not found." />;
+  }
 
   const { fixture, matchup } = data;
 
@@ -81,6 +91,15 @@ if (!data) {
     );
   }
 
+  const hasExistingTurns = (matchup.liveState?.turns?.length || 0) > 0;
+
+  const lockedScoringMode =
+    matchup.scoringMode === 'result_entry'
+      ? 'result_entry'
+      : hasExistingTurns
+        ? 'turn_by_turn'
+        : scoringMode;
+
   const homePlayerNames = matchup.homePlayers?.map((player) => player.displayName) ?? [];
   const awayPlayerNames = matchup.awayPlayers?.map((player) => player.displayName) ?? [];
 
@@ -92,12 +111,6 @@ if (!data) {
       ? homePlayerNames[matchup.liveState?.currentPlayerIndex ?? 0] ?? homePlayerName
       : awayPlayerNames[matchup.liveState?.currentPlayerIndex ?? 0] ?? awayPlayerName;
 
-  const currentTurnLabel = currentTurnPlayerName;
-
-  function refreshPage() {
-    setRefreshKey((value) => value + 1);
-  }
-
   async function handleSetStartingSide(startingSide) {
     const result = await setCaptainMatchupStartingSide({
       fixtureId,
@@ -105,16 +118,15 @@ if (!data) {
       matchupId,
       startingSide
     });
-  
+
     if (!result.success) {
       setErrorMessage(result.message);
       setSuccessMessage('');
       return;
     }
-  
+
     setErrorMessage('');
     setSuccessMessage(result.message);
-  
     await loadScoringData();
   }
 
@@ -133,7 +145,7 @@ if (!data) {
 
   async function handleSubmitTurn(event) {
     event.preventDefault();
-  
+
     const result =
       editingTurnIndex === null
         ? await submitCaptainMatchupTurn({
@@ -142,14 +154,14 @@ if (!data) {
             matchupId,
             score: turnScore
           })
-          : await updateCaptainMatchupTurn({
+        : await updateCaptainMatchupTurn({
             fixtureId,
             captainPlayerId: currentUser.playerId,
             matchupId,
             turnIndex: editingTurnIndex,
             score: turnScore
           });
-  
+
     if (!result.success) {
       setErrorMessage(result.message);
       setSuccessMessage('');
@@ -157,7 +169,7 @@ if (!data) {
       setFinishDartOptions([]);
       return;
     }
-  
+
     if (editingTurnIndex === null && result.requiresFinishDarts) {
       setErrorMessage('');
       setSuccessMessage(result.message);
@@ -165,17 +177,17 @@ if (!data) {
       setFinishDartOptions(result.possibleDartsUsed || [3]);
       return;
     }
-  
+
     setErrorMessage('');
     setSuccessMessage(result.message);
     setTurnScore('');
     setShowFinishDarts(false);
     setFinishDartOptions([]);
     setEditingTurnIndex(null);
-  
+
     await loadScoringData();
   }
-  
+
   async function handleFinishWithDarts(dartsUsed) {
     const result = await submitCaptainMatchupTurn({
       fixtureId,
@@ -184,31 +196,39 @@ if (!data) {
       score: turnScore,
       dartsUsed
     });
-  
+
     if (!result.success) {
       setErrorMessage(result.message);
       setSuccessMessage('');
       return;
     }
-  
+
     setErrorMessage('');
     setSuccessMessage(result.message);
     setTurnScore('');
     setShowFinishDarts(false);
     setFinishDartOptions([]);
     setEditingTurnIndex(null);
-  
+
     await loadScoringData();
     navigate(`/captain/fixture/${fixtureId}/live`);
   }
 
-  async function handleFinishWithDarts(dartsUsed) {
-    const result = await submitCaptainMatchupTurn({
+  async function handleSubmitResultEntry() {
+    const result = await submitCaptainMatchupResultEntry({
       fixtureId,
       captainPlayerId: currentUser.playerId,
       matchupId,
-      score: turnScore,
-      dartsUsed
+      winnerSide: resultWinnerSide,
+      homeDartsUsed,
+      awayDartsUsed,
+      homeTons,
+      awayTons,
+      homeOneEighties,
+      awayOneEighties,
+      homeHighCheckout,
+      awayHighCheckout,
+      notes: resultNotes
     });
 
     if (!result.success) {
@@ -219,10 +239,8 @@ if (!data) {
 
     setErrorMessage('');
     setSuccessMessage(result.message);
-    setTurnScore('');
-    setShowFinishDarts(false);
-    setFinishDartOptions([]);
-    setEditingTurnIndex(null);
+
+    await loadScoringData();
     navigate(`/captain/fixture/${fixtureId}/live`);
   }
 
@@ -230,7 +248,9 @@ if (!data) {
     <div className="page-stack">
       <PageHeader
         title="Matchup Scoring"
-        subtitle={`${buildMatchupDisplayLabel(matchup)} • Block ${matchup.blockNumber} • ${matchup.status === 'completed' ? 'Completed' : 'In Progress'}`}
+        subtitle={`${buildMatchupDisplayLabel(matchup)} • Block ${matchup.blockNumber} • ${
+          matchup.status === 'completed' ? 'Completed' : 'In Progress'
+        }`}
       />
 
       <section className="panel">
@@ -260,7 +280,7 @@ if (!data) {
           <div className="feature-item">
             <div className="feature-title">Current Throw</div>
             <div className="muted-text">
-              {matchup.status === 'completed' ? 'Completed matchup' : currentTurnLabel}
+              {matchup.status === 'completed' ? 'Completed matchup' : currentTurnPlayerName}
             </div>
           </div>
 
@@ -283,218 +303,394 @@ if (!data) {
       </section>
 
       <section className="panel">
-        <h3 className="panel-title">Starting Turn Control</h3>
+        <h3 className="panel-title">Scoring Mode</h3>
 
-        <div className="feature-list">
-          <div className="feature-item">
-            <div className="feature-title">Current Starter</div>
-            <div className="muted-text">
-              {(matchup.liveState?.startingSide ?? 'home') === 'home'
-                ? `${homePlayerNames[0] ?? homePlayerName} (Home)`
-                : `${awayPlayerNames[0] ?? awayPlayerName} (Away)`}
-            </div>
-          </div>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className={lockedScoringMode === 'turn_by_turn' ? 'primary-btn' : 'secondary-btn'}
+            disabled={hasExistingTurns || matchup.status === 'completed'}
+            onClick={() => setScoringMode('turn_by_turn')}
+          >
+            Turn-by-Turn
+          </button>
 
-          <div className="feature-item">
-            <div className="feature-title">Change Rule</div>
-            <div className="muted-text">
-              Starting side can only be changed before the first turn is entered.
-            </div>
-          </div>
+          <button
+            type="button"
+            className={lockedScoringMode === 'result_entry' ? 'primary-btn' : 'secondary-btn'}
+            disabled={hasExistingTurns || matchup.status === 'completed'}
+            onClick={() => setScoringMode('result_entry')}
+          >
+            Result Entry
+          </button>
         </div>
 
-        {matchup.liveState?.turns?.length === 0 && matchup.status !== 'completed' ? (
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1rem' }}>
-            <button
-              type="button"
-              className="secondary-btn"
-              onClick={() => handleSetStartingSide('home')}
-            >
-              Home Throws First
-            </button>
-
-            <button
-              type="button"
-              className="secondary-btn"
-              onClick={() => handleSetStartingSide('away')}
-            >
-              Away Throws First
-            </button>
-          </div>
-        ) : (
-          <div className="muted-text" style={{ marginTop: '1rem' }}>
-            {matchup.status === 'completed'
-              ? 'Starter is locked because the matchup has already been played.'
-              : 'Starter is locked because scoring has already begun.'}
-          </div>
-        )}
-      </section>
-
-      <section className="panel">
-        <h3 className="panel-title">Current Scores</h3>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: '1rem'
-          }}
-        >
-          <div
-            style={{
-              border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: '12px',
-              padding: '1rem'
-            }}
-          >
-            <div style={{ fontWeight: 700, marginBottom: '0.5rem' }}>
-              {buildSideDisplayLabel(matchup.homePlayers, 'Home Player')}
-            </div>
-            <div className="muted-text">Score Left</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.5rem' }}>
-              {matchup.liveState.homeScoreLeft}
-            </div>
-          </div>
-
-          <div
-            style={{
-              border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: '12px',
-              padding: '1rem'
-            }}
-          >
-            <div style={{ fontWeight: 700, marginBottom: '0.5rem' }}>
-              {buildSideDisplayLabel(matchup.awayPlayers, 'Away Player')}
-            </div>
-            <div className="muted-text">Score Left</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.5rem' }}>
-              {matchup.liveState.awayScoreLeft}
-            </div>
-          </div>
+        <div className="muted-text" style={{ marginTop: '1rem' }}>
+          {hasExistingTurns
+            ? 'Scoring mode is locked because turns have already been entered.'
+            : matchup.status === 'completed'
+              ? 'Scoring mode is locked because this matchup is completed.'
+              : 'Choose how this matchup will be scored.'}
         </div>
       </section>
 
-      <section className="panel">
-        <h3 className="panel-title">
-          {matchup.status === 'completed' ? 'Edit Match History' : 'Enter Turn Score'}
-        </h3>
+      {lockedScoringMode === 'turn_by_turn' ? (
+        <>
+          <section className="panel">
+            <h3 className="panel-title">Starting Turn Control</h3>
 
-        {matchup.status === 'completed' && editingTurnIndex === null ? (
+            <div className="feature-list">
+              <div className="feature-item">
+                <div className="feature-title">Current Starter</div>
+                <div className="muted-text">
+                  {(matchup.liveState?.startingSide ?? 'home') === 'home'
+                    ? `${homePlayerNames[0] ?? homePlayerName} (Home)`
+                    : `${awayPlayerNames[0] ?? awayPlayerName} (Away)`}
+                </div>
+              </div>
+
+              <div className="feature-item">
+                <div className="feature-title">Change Rule</div>
+                <div className="muted-text">
+                  Starting side can only be changed before the first turn is entered.
+                </div>
+              </div>
+            </div>
+
+            {matchup.liveState?.turns?.length === 0 && matchup.status !== 'completed' ? (
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1rem' }}>
+                <button
+                  type="button"
+                  className="secondary-btn"
+                  onClick={() => handleSetStartingSide('home')}
+                >
+                  Home Throws First
+                </button>
+
+                <button
+                  type="button"
+                  className="secondary-btn"
+                  onClick={() => handleSetStartingSide('away')}
+                >
+                  Away Throws First
+                </button>
+              </div>
+            ) : (
+              <div className="muted-text" style={{ marginTop: '1rem' }}>
+                {matchup.status === 'completed'
+                  ? 'Starter is locked because the matchup has already been played.'
+                  : 'Starter is locked because scoring has already begun.'}
+              </div>
+            )}
+          </section>
+
+          <section className="panel">
+            <h3 className="panel-title">Current Scores</h3>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '1rem'
+              }}
+            >
+              <div
+                style={{
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  borderRadius: '12px',
+                  padding: '1rem'
+                }}
+              >
+                <div style={{ fontWeight: 700, marginBottom: '0.5rem' }}>
+                  {buildSideDisplayLabel(matchup.homePlayers, 'Home Player')}
+                </div>
+                <div className="muted-text">Score Left</div>
+                <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.5rem' }}>
+                  {matchup.liveState.homeScoreLeft}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  borderRadius: '12px',
+                  padding: '1rem'
+                }}
+              >
+                <div style={{ fontWeight: 700, marginBottom: '0.5rem' }}>
+                  {buildSideDisplayLabel(matchup.awayPlayers, 'Away Player')}
+                </div>
+                <div className="muted-text">Score Left</div>
+                <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.5rem' }}>
+                  {matchup.liveState.awayScoreLeft}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="panel">
+            <h3 className="panel-title">
+              {matchup.status === 'completed' ? 'Edit Match History' : 'Enter Turn Score'}
+            </h3>
+
+            {matchup.status === 'completed' && editingTurnIndex === null ? (
+              <div className="muted-text" style={{ marginBottom: '1rem' }}>
+                This matchup is completed, but you may still edit any previous turn. If the correction
+                changes the finish, the matchup will automatically reopen.
+              </div>
+            ) : null}
+
+            <form className="auth-form" onSubmit={handleSubmitTurn}>
+              <div className="form-row">
+                <label className="form-label" htmlFor="turnScore">
+                  Turn Score
+                </label>
+                <input
+                  id="turnScore"
+                  className="form-input"
+                  type="number"
+                  min="0"
+                  max="180"
+                  placeholder={
+                    matchup.status === 'completed' && editingTurnIndex === null
+                      ? 'Choose a turn below to edit'
+                      : 'Enter a score from 0 to 180'
+                  }
+                  value={turnScore}
+                  onChange={(event) => setTurnScore(event.target.value)}
+                  disabled={matchup.status === 'completed' && editingTurnIndex === null}
+                />
+              </div>
+
+              {errorMessage ? <div className="form-error">{errorMessage}</div> : null}
+              {successMessage ? <div className="form-success">{successMessage}</div> : null}
+
+              <button
+                type="submit"
+                className="primary-btn auth-submit-btn"
+                disabled={matchup.status === 'completed' && editingTurnIndex === null}
+              >
+                {editingTurnIndex === null ? 'Submit Turn' : 'Save Edited Turn'}
+              </button>
+
+              {showFinishDarts ? (
+                <div style={{ marginTop: '1rem' }}>
+                  <div className="muted-text" style={{ marginBottom: '0.5rem' }}>
+                    This score finishes the leg. Select valid darts used:
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    {finishDartOptions.map((dartsUsed) => (
+                      <button
+                        key={dartsUsed}
+                        type="button"
+                        className="secondary-btn"
+                        onClick={() => handleFinishWithDarts(dartsUsed)}
+                      >
+                        {dartsUsed} Dart{dartsUsed > 1 ? 's' : ''}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </form>
+          </section>
+
+          <section className="panel">
+            <h3 className="panel-title">Turn History</h3>
+
+            {!matchup.liveState.turns.length ? (
+              <div className="muted-text">No turns have been recorded yet.</div>
+            ) : (
+              <div className="feature-list">
+                {matchup.liveState.turns.map((turn, index) => (
+                  <div key={`${turn.createdAt}-${index}`} className="feature-item">
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        gap: '1rem',
+                        alignItems: 'center',
+                        flexWrap: 'wrap'
+                      }}
+                    >
+                      <div>
+                        <div className="feature-title">
+                          Turn {index + 1} •{' '}
+                          {getTurnPlayerLabel(turn, matchup, homePlayerName, awayPlayerName)}
+                        </div>
+                        <div className="muted-text">
+                          Scored {turn.score}
+                          {turn.bust ? ' • Bust' : ''}
+                          {turn.dartsUsed ? ` • ${turn.dartsUsed} dart finish/use` : ''}
+                          {' • '}
+                          Left {turn.resultingScore}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={() => handleEditTurn(turn, index)}
+                      >
+                        Edit Turn
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </>
+      ) : null}
+
+      {lockedScoringMode === 'result_entry' ? (
+        <section className="panel">
+          <h3 className="panel-title">Result Entry Mode</h3>
+
           <div className="muted-text" style={{ marginBottom: '1rem' }}>
-            This matchup is completed, but you may still edit any previous turn. If the correction
-            changes the finish, the matchup will automatically reopen.
+            Use this if the leg was scored manually and you only need to capture the final result and stats.
           </div>
-        ) : null}
 
-        <form className="auth-form" onSubmit={handleSubmitTurn}>
-          <div className="form-row">
-            <label className="form-label" htmlFor="turnScore">
-              Turn Score
-            </label>
-            <input
-              id="turnScore"
+          <div className="feature-list">
+            <div className="feature-item">
+              <label className="form-label">Winner</label>
+              <select
+                className="form-input"
+                value={resultWinnerSide}
+                onChange={(event) => setResultWinnerSide(event.target.value)}
+              >
+                <option value="">Select winner</option>
+                <option value="home">{buildSideDisplayLabel(matchup.homePlayers, 'Home')}</option>
+                <option value="away">{buildSideDisplayLabel(matchup.awayPlayers, 'Away')}</option>
+              </select>
+            </div>
+
+            <div className="feature-item">
+              <label className="form-label">Home Darts Used</label>
+              <input
+                className="form-input"
+                type="number"
+                value={homeDartsUsed}
+                onChange={(event) => setHomeDartsUsed(event.target.value)}
+              />
+            </div>
+
+            <div className="feature-item">
+              <label className="form-label">Away Darts Used</label>
+              <input
+                className="form-input"
+                type="number"
+                value={awayDartsUsed}
+                onChange={(event) => setAwayDartsUsed(event.target.value)}
+              />
+            </div>
+
+            <div className="feature-item">
+              <label className="form-label">Home Tons</label>
+              <input
+                className="form-input"
+                type="number"
+                value={homeTons}
+                onChange={(event) => setHomeTons(event.target.value)}
+              />
+            </div>
+
+            <div className="feature-item">
+              <label className="form-label">Away Tons</label>
+              <input
+                className="form-input"
+                type="number"
+                value={awayTons}
+                onChange={(event) => setAwayTons(event.target.value)}
+              />
+            </div>
+
+            <div className="feature-item">
+              <label className="form-label">Home 180s</label>
+              <input
+                className="form-input"
+                type="number"
+                value={homeOneEighties}
+                onChange={(event) => setHomeOneEighties(event.target.value)}
+              />
+            </div>
+
+            <div className="feature-item">
+              <label className="form-label">Away 180s</label>
+              <input
+                className="form-input"
+                type="number"
+                value={awayOneEighties}
+                onChange={(event) => setAwayOneEighties(event.target.value)}
+              />
+            </div>
+
+            <div className="feature-item">
+              <label className="form-label">Home High Checkout</label>
+              <input
+                className="form-input"
+                type="number"
+                value={homeHighCheckout}
+                onChange={(event) => setHomeHighCheckout(event.target.value)}
+              />
+            </div>
+
+            <div className="feature-item">
+              <label className="form-label">Away High Checkout</label>
+              <input
+                className="form-input"
+                type="number"
+                value={awayHighCheckout}
+                onChange={(event) => setAwayHighCheckout(event.target.value)}
+              />
+            </div>
+          </div>
+
+          <div style={{ marginTop: '1rem' }}>
+            <label className="form-label">Notes</label>
+            <textarea
               className="form-input"
-              type="number"
-              min="0"
-              max="180"
-              placeholder={
-                matchup.status === 'completed' && editingTurnIndex === null
-                  ? 'Choose a turn below to edit'
-                  : 'Enter a score from 0 to 180'
-              }
-              value={turnScore}
-              onChange={(event) => setTurnScore(event.target.value)}
-              disabled={matchup.status === 'completed' && editingTurnIndex === null}
+              rows={3}
+              value={resultNotes}
+              onChange={(event) => setResultNotes(event.target.value)}
+              placeholder="Optional notes"
             />
           </div>
 
-          {errorMessage ? <div className="form-error">{errorMessage}</div> : null}
-          {successMessage ? <div className="form-success">{successMessage}</div> : null}
-
-          <button
-            type="submit"
-            className="primary-btn auth-submit-btn"
-            disabled={matchup.status === 'completed' && editingTurnIndex === null}
-          >
-            {editingTurnIndex === null ? 'Submit Turn' : 'Save Edited Turn'}
-          </button>
-
-          {showFinishDarts ? (
-            <div style={{ marginTop: '1rem' }}>
-              <div className="muted-text" style={{ marginBottom: '0.5rem' }}>
-                This score finishes the leg. Select valid darts used:
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                {finishDartOptions.map((dartsUsed) => (
-                  <button
-                    key={dartsUsed}
-                    type="button"
-                    className="secondary-btn"
-                    onClick={() => handleFinishWithDarts(dartsUsed)}
-                  >
-                    {dartsUsed} Dart{dartsUsed > 1 ? 's' : ''}
-                  </button>
-                ))}
-              </div>
+          {errorMessage ? (
+            <div className="form-error" style={{ marginTop: '1rem' }}>
+              {errorMessage}
             </div>
           ) : null}
-        </form>
-      </section>
 
-      <section className="panel">
-        <h3 className="panel-title">Turn History</h3>
+          {successMessage ? (
+            <div className="form-success" style={{ marginTop: '1rem' }}>
+              {successMessage}
+            </div>
+          ) : null}
 
-        {!matchup.liveState.turns.length ? (
-          <div className="muted-text">No turns have been recorded yet.</div>
-        ) : (
-          <div className="feature-list">
-            {matchup.liveState.turns.map((turn, index) => (
-              <div key={`${turn.createdAt}-${index}`} className="feature-item">
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    gap: '1rem',
-                    alignItems: 'center',
-                    flexWrap: 'wrap'
-                  }}
-                >
-                  <div>
-                    <div className="feature-title">
-                      Turn {index + 1} •{' '}
-                      {getTurnPlayerLabel(turn, matchup, homePlayerName, awayPlayerName)}
-                    </div>
-                    <div className="muted-text">
-                      Scored {turn.score}
-                      {turn.bust ? ' • Bust' : ''}
-                      {turn.dartsUsed ? ` • ${turn.dartsUsed} dart finish/use` : ''}
-                      {' • '}
-                      Left {turn.resultingScore}
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="secondary-btn"
-                    onClick={() => handleEditTurn(turn, index)}
-                  >
-                    Edit Turn
-                  </button>
-                </div>
-              </div>
-            ))}
+          <div style={{ marginTop: '1rem' }}>
+            <button
+              type="button"
+              className="secondary-btn"
+              onClick={handleSubmitResultEntry}
+              disabled={!resultWinnerSide || matchup.status === 'completed'}
+            >
+              Save Result Entry
+            </button>
           </div>
-        )}
-      </section>
+        </section>
+      ) : null}
 
       <section className="panel">
         <h3 className="panel-title">Scoring Rules in this milestone</h3>
+
         <div className="feature-list">
           <div className="feature-item">
             <div className="feature-title">Supported Match Types</div>
             <div className="muted-text">
-              This scorer now supports 501 singles and standard 501 doubles rotation.
+              This scorer currently supports 501 singles and result-entry fallback.
             </div>
           </div>
 

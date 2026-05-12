@@ -27,6 +27,7 @@ import AdminFixturesPage from './pages/AdminFixturesPage';
 import AdminMatchFormatsPage from './pages/AdminMatchFormatsPage';
 import AdminTeamDetailPage from './pages/AdminTeamDetailPage';
 import AdminRegistryPage from './pages/AdminRegistryPage';
+import PublicLiveHubPage from './pages/PublicLiveHubPage';
 
 export default function App() {
   return (
@@ -86,6 +87,11 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
+<Route
+  path="/live"
+  element={<PublicLiveHubPage />}
+/>
 
 <Route
           path="/live/:fixtureId"
