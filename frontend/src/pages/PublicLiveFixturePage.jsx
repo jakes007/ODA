@@ -1,19 +1,39 @@
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
 import EmptyState from '../components/common/EmptyState';
-import { getPublicLiveFixtureData } from '../services/captainData';
+import { getPublicLiveFixtureData } from '../services/captainFixtureService';
 
 export default function PublicLiveFixturePage() {
   const { fixtureId } = useParams();
 
-  const fixture = useMemo(() => {
-    return getPublicLiveFixtureData(fixtureId);
-  }, [fixtureId]);
+  const [fixture, setFixture] = useState(null);
+const [loading, setLoading] = useState(true);
 
-  if (!fixture) {
-    return <EmptyState message="Public live fixture not found." />;
-  }
+useEffect(() => {
+  loadFixture();
+
+  const intervalId = setInterval(() => {
+    loadFixture();
+  }, 5000);
+
+  return () => clearInterval(intervalId);
+}, [fixtureId]);
+
+async function loadFixture() {
+  const liveFixture = await getPublicLiveFixtureData(fixtureId);
+
+  setFixture(liveFixture);
+  setLoading(false);
+}
+
+if (loading) {
+  return <EmptyState message="Loading live fixture..." />;
+}
+
+if (!fixture) {
+  return <EmptyState message="Public live fixture not found." />;
+}
 
   const matchups = fixture.liveSession?.games ?? [];
   const activeMatchups = matchups.filter((game) => game.status === 'in_progress');

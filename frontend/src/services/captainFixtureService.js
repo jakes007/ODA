@@ -6,7 +6,8 @@ import {
   query,
   serverTimestamp,
   updateDoc,
-  where
+  where,
+  orderBy
 } from 'firebase/firestore';
   
   import { db } from '../firebase';
@@ -1379,4 +1380,74 @@ const liveSession = {
           ? 'Both captains have completed the post-match wrap-up.'
           : 'Your post-match wrap-up has been submitted.'
     };
+  }
+
+  export async function getPublicLiveFixtureData(fixtureId) {
+    if (!fixtureId) {
+      return null;
+    }
+  
+    const fixtureSnapshot = await getDoc(doc(db, 'fixtures', fixtureId));
+  
+    if (!fixtureSnapshot.exists()) {
+      return null;
+    }
+  
+    const fixture = {
+      id: fixtureSnapshot.id,
+      ...fixtureSnapshot.data()
+    };
+  
+    const homeTeam = await getTeamById(fixture.homeTeamId);
+    const awayTeam = await getTeamById(fixture.awayTeamId);
+  
+    return {
+      fixtureId: fixture.id,
+      fixtureName: `${homeTeam.name} vs ${awayTeam.name}`,
+      status: fixture.status || 'active',
+      lineupsRevealed: Boolean(fixture.lineupsRevealed),
+  
+      competition: {
+        name: fixture.competitionName || 'Placements',
+        season: fixture.seasonName || '2026'
+      },
+  
+      homeTeam: {
+        teamId: homeTeam.id,
+        teamName: homeTeam.name
+      },
+  
+      awayTeam: {
+        teamId: awayTeam.id,
+        teamName: awayTeam.name
+      },
+  
+      liveSession: fixture.liveSession || {
+        games: [],
+        activeBoardCount: 0
+      },
+  
+      scoreText: fixture.scoreText || '0 - 0',
+  
+      format: {
+        name: fixture.formatName || 'Fixture Format'
+      }
+    };
+  }
+
+  export async function getActivePublicLiveFixtures() {
+    const fixturesQuery = query(
+      fixturesCollection,
+      where('status', '==', 'active')
+    );
+  
+    const snapshot = await getDocs(fixturesQuery);
+  
+    const fixtures = await Promise.all(
+      snapshot.docs.map(async (docItem) => {
+        return getPublicLiveFixtureData(docItem.id);
+      })
+    );
+  
+    return fixtures.filter(Boolean);
   }

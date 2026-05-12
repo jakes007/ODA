@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiFacebook, FiInstagram, FiMail } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
@@ -6,7 +7,9 @@ import StatCard from '../components/common/StatCard';
 import { importedLandingData } from '../data/importedLandingData';
 import { importedStandingsData } from '../data/importedStandingsData';
 import { importedRankingsData } from '../data/importedRankingsData';
-import { getPublicLiveFixtureData } from '../services/captainData';
+import {
+  getActivePublicLiveFixtures
+} from '../services/captainFixtureService';
 import './LandingPage.css';
 
 const upperStandings = importedStandingsData.divisions?.Upper || [];
@@ -48,9 +51,16 @@ export default function LandingPage() {
   const featuredCompetitions = importedLandingData.featuredCompetitions;
   const clubTopThree = getClubTopThree();
 
-  const liveFixtures = ['fixture_001', 'fixture_002', 'fixture_003']
-    .map((fixtureId) => getPublicLiveFixtureData(fixtureId))
-    .filter((fixture) => fixture && fixture.status === 'active');
+  const [liveFixtures, setLiveFixtures] = useState([]);
+
+useEffect(() => {
+  loadLiveFixtures();
+}, []);
+
+async function loadLiveFixtures() {
+  const fixtures = await getActivePublicLiveFixtures();
+  setLiveFixtures(fixtures);
+}
 
   return (
     <div className="page-stack landing-page premium-landing">
