@@ -53,9 +53,15 @@ export default function LandingPage() {
 
   const [liveFixtures, setLiveFixtures] = useState([]);
 
-useEffect(() => {
-  loadLiveFixtures();
-}, []);
+  useEffect(() => {
+    loadLiveFixtures();
+  
+    const intervalId = setInterval(() => {
+      loadLiveFixtures();
+    }, 5000);
+  
+    return () => clearInterval(intervalId);
+  }, []);
 
 async function loadLiveFixtures() {
   const fixtures = await getActivePublicLiveFixtures();
