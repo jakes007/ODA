@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import XLSX from 'xlsx';
 import { createEmptyRegistry } from './playerRegistry.js';
-import { importRegistryRows, importStatsRows } from './importer.js';
+import { importRegistryRows } from './importer.js';
 
 const registryWorkbookPath = path.resolve(
   process.cwd(),
@@ -25,16 +25,13 @@ const outputPath = path.resolve(
 );
 
 const PLAYER_NAME_CORRECTIONS = {
+  'J.P Smith': 'Jean-Pierre Smith',
+  'M. Alexander': 'Magmoed Alexander',
   'Elwil Van Der Westhuizen': 'Herman V/D Westhuizen',
   'Jade Talmarks': 'Jade Talmarkes',
   'EBRAHIEM ISAACS': 'Ebrahiem Isaacs',
   'EUGENE TALMARKES': 'Eugene Talmarkes'
 };
-
-function formatPlayerName(name) {
-  const cleanName = String(name || '').trim();
-  return PLAYER_NAME_CORRECTIONS[cleanName] || cleanName;
-}
 
 function readWorkbookSheetRows(workbookPath, sheetName) {
   const workbook = XLSX.readFile(workbookPath, { cellDates: false });
@@ -60,48 +57,6 @@ function toNumber(value) {
   return Number.isFinite(numericValue) ? numericValue : 0;
 }
 
-function round(value, decimals = 2) {
-  return Number(toNumber(value).toFixed(decimals));
-}
-
-function normalizeKey(value) {
-  return String(value || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '');
-}
-
-function getRawFields(registry, row) {
-  const raw = registry.historicalStatsRaw?.[row.rawStatId];
-  return raw?.rawFields || {};
-}
-
-function readRaw(rawFields, keys) {
-  const rawKeys = Object.keys(rawFields || {});
-
-  for (const wantedKey of keys) {
-    const wanted = normalizeKey(wantedKey);
-
-    const matchingKey = rawKeys.find((rawKey) => {
-      const actual = normalizeKey(rawKey);
-      return actual === wanted || actual.includes(wanted) || wanted.includes(actual);
-    });
-
-    if (matchingKey) {
-      const value = rawFields[matchingKey];
-
-      if (
-        value !== undefined &&
-        value !== null &&
-        String(value).trim() !== ''
-      ) {
-        return value;
-      }
-    }
-  }
-
-  return '';
-}
-
 function normalizeDsa(value) {
   return String(value || '')
     .replace(/^DSA-?/i, '')
@@ -116,200 +71,256 @@ function normalizeName(value) {
     .trim();
 }
 
-function findRegistryPlayerForStatRow(registry, row, rawFields) {
-  const rawDsa = normalizeDsa(
-    readRaw(rawFields, ['Player No', 'DSA', 'DSA No', 'Membership No'])
-  );
+function readField(row, possibleKeys) {
+  const rowKeys = Object.keys(row || {});
 
-  const rawName = normalizeName(
-    readRaw(rawFields, ['Player'])
-  );
+  for (const wantedKey of possibleKeys) {
+    const wanted = normalizeName(wantedKey);
 
-  return (
-    Object.values(registry.players).find((player) => {
-      const playerDsa = normalizeDsa(
-        player.dsaNumber || player.membershipNo
-      );
+    const matchingKey = rowKeys.find((rowKey) => {
+      const actual = normalizeName(rowKey);
+      return actual === wanted || actual.includes(wanted) || wanted.includes(actual);
+    });
 
-      return rawDsa && playerDsa && rawDsa === playerDsa;
-    }) ||
-    Object.values(registry.players).find((player) => {
-      const fullName = normalizeName(player.fullName);
+    if (matchingKey) {
+      const value = row[matchingKey];
 
-      const displayName = normalizeName(
-        player.callingName && player.surname
-          ? `${player.callingName} ${player.surname}`
-          : ''
-      );
+      if (
+        value !== undefined &&
+        value !== null &&
+        String(value).trim() !== ''
+      ) {
+        return value;
+      }
+    }
+  }
 
-      return rawName && (
-        rawName === fullName ||
-        rawName === displayName
-      );
-    }) ||
-    null
-  );
+  return '';
 }
 
-function buildPlayerRankingRows(registry, division, options = {}) {
-  const rows = Object.values(registry.historicalStatsNormalized).filter((row) => {
-    if (row.season !== '2026' || row.division !== division) return false;
+function formatPlayerName(name) {
+  const cleanName = String(name || '').trim();
+  return PLAYER_NAME_CORRECTIONS[cleanName] || cleanName;
+}
 
-    if (options.excludeLatestGameweek) {
-      const rawFields = getRawFields(registry, row);
-      const gw = toNumber(rawFields.GW);
+function buildRegistryLookups(registry) {
+  const byDsa = new Map();
+  const byName = new Map();
 
-      return gw < options.latestGameweek;
+  Object.values(registry.players).forEach((player) => {
+    const dsaNumber = normalizeDsa(player.dsaNumber);
+
+    if (dsaNumber) {
+      byDsa.set(dsaNumber, player);
     }
 
-    return true;
+    const namesToCheck = [
+      player.fullName,
+      player.displayName,
+      player.callingName && player.surname
+        ? `${player.callingName} ${player.surname}`
+        : '',
+      player.firstNames && player.surname
+        ? `${player.firstNames} ${player.surname}`
+        : '',
+      ...(player.aliases || [])
+    ];
+
+    namesToCheck.forEach((name) => {
+      const normalized = normalizeName(name);
+
+      if (normalized) {
+        byName.set(normalized, player);
+      }
+    });
   });
 
-  const players = {};
+  return {
+    byDsa,
+    byName
+  };
+}
 
-  rows.forEach((row) => {
-    if (!row.playerId) return;
-
-    const rawFields = getRawFields(registry, row);
-
-const registryPlayer = findRegistryPlayerForStatRow(
-  registry,
-  row,
-  rawFields
-);
-
-const player = registryPlayer || registry.players[row.playerId];
-
-const key = registryPlayer?.playerId || row.playerId;
-
-    if (!players[key]) {
-      players[key] = {
-        playerId: key,
-        playerName: formatPlayerName(
-          player?.fullName ||
-            (player?.firstNames && player?.surname
-              ? `${player.firstNames} ${player.surname}`
-              : row.displayName || 'Unknown Player')
-        ),
-        clubName: row.clubName || player?.clubName || '',
-        total: 0,
-        dartsUsed: 0,
-        noTons: 0,
-        oneEighties: 0,
-        oneSeventyOnes: 0,
-        highestClose: 0,
-        singlesPlayed: 0,
-        singlesWon: 0,
-        playerOfMatch: 0
-      };
-    }
-
-    const playerRow = players[key];
-
-    playerRow.total += toNumber(
-      readRaw(rawFields, ['Total', 'T/S'])
-    );
-
-    playerRow.dartsUsed += toNumber(
-      readRaw(rawFields, ['Darts Used', 'D/U'])
-    );
-
-    playerRow.noTons += toNumber(
-      readRaw(rawFields, ['No Tons'])
-    );
-
-    playerRow.oneEighties += toNumber(
-      readRaw(rawFields, ["180's", '180s', '180'])
-    );
-
-    playerRow.oneSeventyOnes += toNumber(
-      readRaw(rawFields, ["171's", '171s', '171', '170'])
-    );
-
-    playerRow.highestClose = Math.max(
-      playerRow.highestClose,
-      toNumber(
-        readRaw(rawFields, [
-          'Highest Close',
-          'Highest Close ',
-          'High Close',
-          'H/C',
-          'HC'
-        ])
-      )
-    );
-
-    playerRow.singlesPlayed += toNumber(
-      readRaw(rawFields, ['Singles Played', 'Played', 'P'])
-    );
-
-    playerRow.singlesWon += toNumber(
-      readRaw(rawFields, ['Singles Won', 'Won', 'W'])
-    );
-
-    const potmValue = String(
-      rawFields['Player Of Match'] ??
-      rawFields['Player Of Match '] ??
-      ''
-    ).trim();
-    
-    if (toNumber(potmValue) > 0) {
-      playerRow.playerOfMatch += toNumber(potmValue);
-    }
-  });
-
-  const rankingRows = Object.values(players).map((player) => {
-    const chuckAverage =
-      player.dartsUsed > 0
-        ? round((player.total / player.dartsUsed) * 3, 2)
-        : 0;
-
-    const winPercentage =
-      player.singlesPlayed > 0
-        ? round((player.singlesWon / player.singlesPlayed) * 100, 1)
-        : 0;
-
-    const rankingWeighted = round(
-      chuckAverage * 0.7 + winPercentage * 0.3,
-      3
-    );
-
-    return {
-      ...player,
-      chuckAverage,
-      winPercentage,
-      rankingWeighted
-    };
-  });
-
-  const maxSinglesPlayed = Math.max(
-    0,
-    ...rankingRows.map((row) => row.singlesPlayed)
+function resolvePlayerFromOfficialRow(row, registryLookups) {
+  const rawDsaNumber = normalizeDsa(
+    readField(row, [
+      'DSA Number',
+      'DSA No',
+      'DSA',
+      'Player No',
+      'Player Number'
+    ])
   );
 
-  const minimumQualifyingGames = maxSinglesPlayed * 0.5;
+  if (rawDsaNumber && registryLookups.byDsa.has(rawDsaNumber)) {
+    return registryLookups.byDsa.get(rawDsaNumber);
+  }
 
-  const qualified = rankingRows
-    .filter((row) => row.singlesPlayed >= minimumQualifyingGames)
-    .sort((a, b) => b.rankingWeighted - a.rankingWeighted)
-    .map((row, index) => ({
-      position: index + 1,
-      ...row
-    }));
+  const rawPlayerName = formatPlayerName(
+    readField(row, ['Player', 'Player Name', 'Name'])
+  );
 
-  const alsoPlayed = rankingRows
-    .filter((row) => row.singlesPlayed < minimumQualifyingGames)
-    .sort((a, b) => b.rankingWeighted - a.rankingWeighted)
-    .map((row, index) => ({
-      position: index + 1,
-      ...row
-    }));
+  const normalizedPlayerName = normalizeName(rawPlayerName);
+
+  if (normalizedPlayerName && registryLookups.byName.has(normalizedPlayerName)) {
+    return registryLookups.byName.get(normalizedPlayerName);
+  }
+
+  return null;
+}
+
+function shouldSkipRow(row) {
+  const playerName = String(
+    readField(row, ['Player', 'Player Name', 'Name'])
+  ).trim();
+
+  if (!playerName) return true;
+
+  const lowerName = playerName.toLowerCase();
+
+  if (lowerName.includes('grand total')) return true;
+  if (lowerName.includes('also played')) return true;
+  if (lowerName.includes('players with less')) return true;
+
+  return false;
+}
+
+function buildRowsFromOfficialSheet(sheetRows, division, registryLookups) {
+  const qualified = [];
+  const alsoPlayed = [];
+
+  let currentSection = 'qualified';
+
+  sheetRows.forEach((row) => {
+    const rowText = Object.values(row)
+      .map((value) => String(value || '').toLowerCase())
+      .join(' ');
+
+    if (rowText.includes('also played')) {
+      currentSection = 'alsoPlayed';
+      return;
+    }
+
+    if (shouldSkipRow(row)) {
+      return;
+    }
+
+    const playerNameFromSheet = formatPlayerName(
+      readField(row, ['Player', 'Player Name', 'Name'])
+    );
+
+    const registryPlayer = resolvePlayerFromOfficialRow(row, registryLookups);
+
+    const officialDsaNumber = normalizeDsa(
+      readField(row, [
+        'DSA Number',
+        'DSA No',
+        'DSA',
+        'Player No',
+        'Player Number'
+      ])
+    );
+
+    const playerName =
+      registryPlayer?.fullName ||
+      (registryPlayer?.firstNames && registryPlayer?.surname
+        ? `${registryPlayer.firstNames} ${registryPlayer.surname}`
+        : playerNameFromSheet);
+
+    const playerRow = {
+      position:
+        currentSection === 'qualified'
+          ? qualified.length + 1
+          : alsoPlayed.length + 1,
+
+      playerId:
+        registryPlayer?.playerId ||
+        `unmatched_${division}_${normalizeName(playerNameFromSheet)}`,
+
+      dsaNumber:
+        normalizeDsa(registryPlayer?.dsaNumber || officialDsaNumber || ''),
+
+      playerName,
+
+      clubName: String(readField(row, ['Club'])).trim(),
+
+      ageGroup: String(readField(row, ['Age Group'])).trim(),
+
+      total: toNumber(readField(row, ['Total', 'T/S'])),
+
+      dartsUsed: toNumber(readField(row, ['Darts Used', 'D/U'])),
+
+      tonAverage: toNumber(readField(row, ['Ton Ave', 'Ton Average'])),
+
+      noTons: toNumber(readField(row, ['No Tons', 'Tons'])),
+
+      oneEighties: toNumber(readField(row, ["180's", '180s', '180'])),
+
+      oneSeventyOnes: toNumber(readField(row, ["171's", '171s', '171'])),
+
+      highestClose: toNumber(
+        readField(row, ['Highest Close', 'High Close', 'H/C', 'HC'])
+      ),
+
+      singlesPlayed: toNumber(
+        readField(row, ['Singles Played', 'Played', 'P'])
+      ),
+
+      singlesWon: toNumber(
+        readField(row, ['Singles Won', 'Won', 'W'])
+      ),
+
+      winPercentage: toNumber(
+        readField(row, ['Win %', 'Win Percentage'])
+      ),
+
+      rankingWeighted: toNumber(
+        readField(row, [
+          'Ranking Weighted 70/30 Ave and Win',
+          'Ranking Weighted',
+          'Weighted',
+          'Ranking'
+        ])
+      ),
+
+      playerOfMatch: toNumber(
+        readField(row, ['Player Of Match', 'Player of Match', 'POTM'])
+      ),
+
+      previousPosition: null,
+      rankMovement: 0
+    };
+
+    if (currentSection === 'qualified') {
+      qualified.push(playerRow);
+    } else {
+      alsoPlayed.push(playerRow);
+    }
+  });
 
   return {
     qualified,
     alsoPlayed,
-    minimumQualifyingGames
+    minimumQualifyingGames: null
   };
+}
+
+function applyMovement(currentRows, previousRows) {
+  const previousMap = new Map();
+
+  [...previousRows.qualified, ...previousRows.alsoPlayed].forEach((row) => {
+    const key = row.dsaNumber || normalizeName(row.playerName);
+    previousMap.set(key, row.position);
+  });
+
+  [...currentRows.qualified, ...currentRows.alsoPlayed].forEach((row) => {
+    const key = row.dsaNumber || normalizeName(row.playerName);
+    const previousPosition = previousMap.get(key);
+
+    row.previousPosition = previousPosition ?? null;
+    row.rankMovement =
+      previousPosition == null ? 0 : previousPosition - row.position;
+  });
 }
 
 function main() {
@@ -318,85 +329,38 @@ function main() {
     'Membership'
   );
 
-  const statsRows = readWorkbookSheetRows(
-    statsWorkbookPath,
-    'Stats Input'
-  );
-
   const registry = createEmptyRegistry();
 
   importRegistryRows(registry, registryRows, {
     source: 'registry_import'
   });
 
-  importStatsRows(registry, statsRows, {
-    competitionName: 'Placements',
-    competitionType: 'league',
-    season: '2026',
-    competitionStatus: 'active',
-    associationName: 'Observatory',
-    provinceName: 'Western Cape',
-    sourceWorkbook: path.basename(statsWorkbookPath),
-    sourceSheet: 'Stats Input',
-    defaultRole: 'player'
-  });
+  const registryLookups = buildRegistryLookups(registry);
 
-  function getLatestGameweekForDivision(division) {
-    return Math.max(
-      0,
-      ...statsRows
-        .filter((row) => String(row.Division || '').trim() === division)
-        .map((row) => toNumber(row.GW))
-    );
-  }
+  const upperRows = readWorkbookSheetRows(
+    statsWorkbookPath,
+    'Upper Ranking'
+  );
   
-  const upperLatestGameweek = getLatestGameweekForDivision('Upper');
-  const lowerLatestGameweek = getLatestGameweekForDivision('Lower');
-  
-  const upper = buildPlayerRankingRows(registry, 'Upper');
-  const lower = buildPlayerRankingRows(registry, 'Lower');
-  
-  const previousUpper = buildPlayerRankingRows(registry, 'Upper', {
-    excludeLatestGameweek: true,
-    latestGameweek: upperLatestGameweek
-  });
-  
-  const previousLower = buildPlayerRankingRows(registry, 'Lower', {
-    excludeLatestGameweek: true,
-    latestGameweek: lowerLatestGameweek
-  });
-  
-  function getMovementKey(row) {
-    return row.playerId || row.playerName;
-  }
-  
-  function applyMovement(currentRows, previousRows) {
-    const previousMap = new Map();
-  
-    [...previousRows.qualified, ...previousRows.alsoPlayed].forEach((row) => {
-      previousMap.set(getMovementKey(row), row.position);
-    });
-  
-    [...currentRows.qualified, ...currentRows.alsoPlayed].forEach((row) => {
-      const previousPosition = previousMap.get(getMovementKey(row));
-  
-      row.previousPosition = previousPosition ?? null;
-      row.rankMovement =
-        previousPosition == null ? 0 : previousPosition - row.position;
-    });
-  }
-  
-  applyMovement(upper, previousUpper);
-applyMovement(lower, previousLower);
+  const lowerRows = readWorkbookSheetRows(
+    statsWorkbookPath,
+    'Lower Ranking'
+  );
 
-console.log(
-  upper.qualified.slice(0, 10).map((row) => ({
-    player: row.playerName,
-    current: row.position,
-    previous: row.previousPosition,
-    movement: row.rankMovement
-  }))
-);
+  const upper = buildRowsFromOfficialSheet(
+    upperRows,
+    'Upper',
+    registryLookups
+  );
+
+  const lower = buildRowsFromOfficialSheet(
+    lowerRows,
+    'Lower',
+    registryLookups
+  );
+
+  applyMovement(upper, upper);
+  applyMovement(lower, lower);
 
   const fileContent = `export const importedRankingsData = {
   season: '2026',
@@ -410,7 +374,7 @@ console.log(
 
   fs.writeFileSync(outputPath, fileContent, 'utf8');
 
-  console.log('\n===== FRONTEND RANKINGS EXPORTED =====');
+  console.log('\n===== OFFICIAL FRONTEND RANKINGS EXPORTED =====');
   console.log(`Upper qualified: ${upper.qualified.length}`);
   console.log(`Upper also played: ${upper.alsoPlayed.length}`);
   console.log(`Lower qualified: ${lower.qualified.length}`);

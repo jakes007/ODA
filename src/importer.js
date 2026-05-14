@@ -367,7 +367,15 @@ division: divisionFromRow,
     
 
     const normalizedDsaNumber = normalizeDsaNumber(
-      readFirst(row, ['DSA Number', 'DSA No', 'DSA', 'DSA_NUMBER'])
+      readFirst(row, [
+        'DSA Number',
+        'DSA No',
+        'DSA',
+        'DSA_NUMBER',
+        'Player No',
+        'Player Number',
+        'PlayerNo'
+      ])
     );
 
     const rawPlayerName = readFirst(row, ['Player']);
@@ -396,8 +404,8 @@ division: divisionFromRow,
       }
     }
 
-    // 2. If no DSA match, try name/alias match
-if (!player && rawPlayerName) {
+    // 2. Only fall back to name/alias matching when the stats row has NO DSA number
+if (!player && !normalizedDsaNumber && rawPlayerName) {
   player =
     Object.values(registry.players).find((p) => {
       const namesToCheck = [
@@ -412,8 +420,15 @@ if (!player && rawPlayerName) {
     }) || null;
 }
 
-// 3. If DSA exists but player is still missing, create a player from the stats row
-if (!player && normalizedDsaNumber && rawPlayerName) {
+// 3. If the stats row has a DSA number but it does not exist in the registry,
+// do not auto-create or name-match the player.
+if (!player && normalizedDsaNumber) {
+  exceptionCount++;
+  return;
+}
+
+// 4. If there is no DSA number at all, allow the old fallback flow below.
+if (!player && rawPlayerName) {
   const nameParts = rawPlayerName.trim().split(/\s+/);
   const surname =
     nameParts.length > 1 ? nameParts[nameParts.length - 1] : rawPlayerName;
@@ -426,7 +441,7 @@ if (!player && normalizedDsaNumber && rawPlayerName) {
     surname,
     initials: firstNames.includes('.') ? firstNames.replace('.', '') : '',
     callingName: firstNames,
-    dsaNumber: normalizedDsaNumber,
+    dsaNumber: '',
     clubName: club?.name ?? clubNameFromRow ?? '',
     associationName,
     provinceName,
