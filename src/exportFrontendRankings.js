@@ -10,10 +10,16 @@ const registryWorkbookPath = path.resolve(
   'WC-CTN-O(1).xlsx'
 );
 
-const statsWorkbookPath = path.resolve(
+const upperRankingsWorkbookPath = path.resolve(
   process.cwd(),
   'import-files',
-  'ODA Union Stats 2026 Updated (1).xlsx'
+  'App Upper Rankings.xlsx'
+);
+
+const lowerRankingsWorkbookPath = path.resolve(
+  process.cwd(),
+  'import-files',
+  'App Lower Rankings.xlsx'
 );
 
 const outputPath = path.resolve(
@@ -24,21 +30,38 @@ const outputPath = path.resolve(
   'importedRankingsData.js'
 );
 
-const PLAYER_NAME_CORRECTIONS = {
-  'J.P Smith': 'Jean-Pierre Smith',
-  'M. Alexander': 'Magmoed Alexander',
-  'Elwil Van Der Westhuizen': 'Herman V/D Westhuizen',
-  'Jade Talmarks': 'Jade Talmarkes',
-  'EBRAHIEM ISAACS': 'Ebrahiem Isaacs',
-  'EUGENE TALMARKES': 'Eugene Talmarkes'
-};
+const PLAYER_NAME_OVERRIDES = new Map([
+  ['jpsmith', 'jeanpierresmith']
+]);
 
-function readWorkbookSheetRows(workbookPath, sheetName) {
+const MANUAL_PLAYER_OVERRIDES = new Map([
+  [
+    'nkannemeyer',
+    {
+      playerId: 'manual_DSA-210521',
+      dsaNumber: '210521',
+      fullName: 'Neil Kannemeyer',
+      clubName: 'Cathkin'
+    }
+  ],
+  [
+    'madams',
+    {
+      playerId: 'manual_DSA-180519',
+      dsaNumber: '180519',
+      fullName: 'Melvyn Adams',
+      clubName: 'Cathkin'
+    }
+  ]
+]);
+
+function readWorkbookSheetRows(workbookPath, sheetName = null) {
   const workbook = XLSX.readFile(workbookPath, { cellDates: false });
-  const worksheet = workbook.Sheets[sheetName];
+  const finalSheetName = sheetName || workbook.SheetNames[0];
+  const worksheet = workbook.Sheets[finalSheetName];
 
   if (!worksheet) {
-    throw new Error(`Sheet "${sheetName}" not found in ${workbookPath}`);
+    throw new Error(`Sheet "${finalSheetName}" not found in ${workbookPath}`);
   }
 
   return XLSX.utils.sheet_to_json(worksheet, {
@@ -57,6 +80,16 @@ function toNumber(value) {
   return Number.isFinite(numericValue) ? numericValue : 0;
 }
 
+function normalizePercent(value) {
+  const number = toNumber(value);
+
+  if (number > 0 && number <= 1) {
+    return Number((number * 100).toFixed(1));
+  }
+
+  return number;
+}
+
 function normalizeDsa(value) {
   return String(value || '')
     .replace(/^DSA-?/i, '')
@@ -65,10 +98,12 @@ function normalizeDsa(value) {
 }
 
 function normalizeName(value) {
-  return String(value || '')
+  const normalized = String(value || '')
     .toLowerCase()
     .replace(/[^a-z0-9]/g, '')
     .trim();
+
+  return PLAYER_NAME_OVERRIDES.get(normalized) || normalized;
 }
 
 function readField(row, possibleKeys) {
@@ -79,17 +114,13 @@ function readField(row, possibleKeys) {
 
     const matchingKey = rowKeys.find((rowKey) => {
       const actual = normalizeName(rowKey);
-      return actual === wanted || actual.includes(wanted) || wanted.includes(actual);
+      return actual === wanted;
     });
 
     if (matchingKey) {
       const value = row[matchingKey];
 
-      if (
-        value !== undefined &&
-        value !== null &&
-        String(value).trim() !== ''
-      ) {
+      if (value !== undefined && value !== null && String(value).trim() !== '') {
         return value;
       }
     }
@@ -98,81 +129,118 @@ function readField(row, possibleKeys) {
   return '';
 }
 
-function formatPlayerName(name) {
-  const cleanName = String(name || '').trim();
-  return PLAYER_NAME_CORRECTIONS[cleanName] || cleanName;
+function getRegistryDisplayName(player) {
+  if (!player) return '';
+
+  if (player.fullName) {
+    return String(player.fullName).trim();
+  }
+
+  if (player.firstNames && player.surname) {
+    return `${player.firstNames} ${player.surname}`.trim();
+  }
+
+  if (player.callingName && player.surname) {
+    return `${player.callingName} ${player.surname}`.trim();
+  }
+
+  return '';
+}
+
+function getInitialSurnameKey(name) {
+  const clean = String(name || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!clean) return '';
+
+  const parts = clean.split(' ');
+  if (parts.length < 2) return normalizeName(clean);
+
+  const first = parts[0];
+  const surname = parts[parts.length - 1];
+
+  return normalizeName(`${first.charAt(0)} ${surname}`);
 }
 
 function buildRegistryLookups(registry) {
-  const byDsa = new Map();
-  const byName = new Map();
+  const byFullName = new Map();
+  const byInitialSurname = new Map();
 
   Object.values(registry.players).forEach((player) => {
-    const dsaNumber = normalizeDsa(player.dsaNumber);
+    const displayName = getRegistryDisplayName(player);
+    const fullNameKey = normalizeName(displayName);
 
-    if (dsaNumber) {
-      byDsa.set(dsaNumber, player);
+    if (fullNameKey) {
+      byFullName.set(fullNameKey, player);
     }
 
-    const namesToCheck = [
-      player.fullName,
-      player.displayName,
-      player.callingName && player.surname
-        ? `${player.callingName} ${player.surname}`
-        : '',
-      player.firstNames && player.surname
-        ? `${player.firstNames} ${player.surname}`
-        : '',
-      ...(player.aliases || [])
-    ];
+    const initialSurnameKey = getInitialSurnameKey(displayName);
 
-    namesToCheck.forEach((name) => {
-      const normalized = normalizeName(name);
-
-      if (normalized) {
-        byName.set(normalized, player);
+    if (initialSurnameKey) {
+      if (!byInitialSurname.has(initialSurnameKey)) {
+        byInitialSurname.set(initialSurnameKey, []);
       }
-    });
+
+      byInitialSurname.get(initialSurnameKey).push(player);
+    }
   });
 
   return {
-    byDsa,
-    byName
+    byFullName,
+    byInitialSurname
   };
 }
 
-function resolvePlayerFromOfficialRow(row, registryLookups) {
-  const rawDsaNumber = normalizeDsa(
-    readField(row, [
-      'DSA Number',
-      'DSA No',
-      'DSA',
-      'Player No',
-      'Player Number'
-    ])
-  );
+function resolvePlayerFromRegistry(playerNameFromSheet, division, registryLookups) {
+  const fullNameKey = normalizeName(playerNameFromSheet);
 
-  if (rawDsaNumber && registryLookups.byDsa.has(rawDsaNumber)) {
-    return registryLookups.byDsa.get(rawDsaNumber);
+  if (MANUAL_PLAYER_OVERRIDES.has(fullNameKey)) {
+    return MANUAL_PLAYER_OVERRIDES.get(fullNameKey);
   }
 
-  const rawPlayerName = formatPlayerName(
-    readField(row, ['Player', 'Player Name', 'Name'])
-  );
-
-  const normalizedPlayerName = normalizeName(rawPlayerName);
-
-  if (normalizedPlayerName && registryLookups.byName.has(normalizedPlayerName)) {
-    return registryLookups.byName.get(normalizedPlayerName);
+  // 1. Try exact/full-name match first.
+  if (fullNameKey && registryLookups.byFullName.has(fullNameKey)) {
+    return registryLookups.byFullName.get(fullNameKey);
   }
 
+  // 2. Try initial + surname fallback.
+  const initialSurnameKey = getInitialSurnameKey(playerNameFromSheet);
+  const initialMatches = registryLookups.byInitialSurname.get(initialSurnameKey) || [];
+
+  if (initialMatches.length === 1) {
+    return initialMatches[0];
+  }
+
+  if (initialMatches.length > 1) {
+    console.warn(
+      `[AMBIGUOUS ${division}] "${playerNameFromSheet}" matches multiple registry players. Use full first name in Player Name column.`
+    );
+    return null;
+  }
+
+  console.warn(`[UNMATCHED ${division}] "${playerNameFromSheet}" not found in registry.`);
   return null;
 }
 
-function shouldSkipRow(row) {
+function getPlayerNameFromRankingRow(row) {
   const playerName = String(
-    readField(row, ['Player', 'Player Name', 'Name'])
+    readField(row, ['Player Name', 'Player', 'Name'])
   ).trim();
+
+  const playerSurname = String(
+    readField(row, ['Player Surname', 'Surname'])
+  ).trim();
+
+  if (playerName && playerSurname) {
+    return `${playerName} ${playerSurname}`.trim();
+  }
+
+  return playerName;
+}
+
+function shouldSkipRow(row) {
+  const playerName = getPlayerNameFromRankingRow(row);
 
   if (!playerName) return true;
 
@@ -185,10 +253,9 @@ function shouldSkipRow(row) {
   return false;
 }
 
-function buildRowsFromOfficialSheet(sheetRows, division, registryLookups) {
+function buildRowsFromRankingFile(sheetRows, division, registryLookups) {
   const qualified = [];
   const alsoPlayed = [];
-
   let currentSection = 'qualified';
 
   sheetRows.forEach((row) => {
@@ -205,27 +272,16 @@ function buildRowsFromOfficialSheet(sheetRows, division, registryLookups) {
       return;
     }
 
-    const playerNameFromSheet = formatPlayerName(
-      readField(row, ['Player', 'Player Name', 'Name'])
+    const playerNameFromSheet = getPlayerNameFromRankingRow(row);
+
+    const registryPlayer = resolvePlayerFromRegistry(
+      playerNameFromSheet,
+      division,
+      registryLookups
     );
 
-    const registryPlayer = resolvePlayerFromOfficialRow(row, registryLookups);
-
-    const officialDsaNumber = normalizeDsa(
-      readField(row, [
-        'DSA Number',
-        'DSA No',
-        'DSA',
-        'Player No',
-        'Player Number'
-      ])
-    );
-
-    const playerName =
-      registryPlayer?.fullName ||
-      (registryPlayer?.firstNames && registryPlayer?.surname
-        ? `${registryPlayer.firstNames} ${registryPlayer.surname}`
-        : playerNameFromSheet);
+    const finalPlayerName =
+      getRegistryDisplayName(registryPlayer) || playerNameFromSheet;
 
     const playerRow = {
       position:
@@ -237,12 +293,13 @@ function buildRowsFromOfficialSheet(sheetRows, division, registryLookups) {
         registryPlayer?.playerId ||
         `unmatched_${division}_${normalizeName(playerNameFromSheet)}`,
 
-      dsaNumber:
-        normalizeDsa(registryPlayer?.dsaNumber || officialDsaNumber || ''),
+      dsaNumber: normalizeDsa(registryPlayer?.dsaNumber || ''),
 
-      playerName,
+      playerName: finalPlayerName,
 
-      clubName: String(readField(row, ['Club'])).trim(),
+      clubName:
+  registryPlayer?.clubName ||
+  String(readField(row, ['Club', 'Team'])).trim(),
 
       ageGroup: String(readField(row, ['Age Group'])).trim(),
 
@@ -250,7 +307,7 @@ function buildRowsFromOfficialSheet(sheetRows, division, registryLookups) {
 
       dartsUsed: toNumber(readField(row, ['Darts Used', 'D/U'])),
 
-      tonAverage: toNumber(readField(row, ['Ton Ave', 'Ton Average'])),
+      chuckAverage: toNumber(readField(row, ['Chuck Ave', 'Average', 'Ave'])),
 
       noTons: toNumber(readField(row, ['No Tons', 'Tons'])),
 
@@ -270,7 +327,7 @@ function buildRowsFromOfficialSheet(sheetRows, division, registryLookups) {
         readField(row, ['Singles Won', 'Won', 'W'])
       ),
 
-      winPercentage: toNumber(
+      winPercentage: normalizePercent(
         readField(row, ['Win %', 'Win Percentage'])
       ),
 
@@ -305,24 +362,6 @@ function buildRowsFromOfficialSheet(sheetRows, division, registryLookups) {
   };
 }
 
-function applyMovement(currentRows, previousRows) {
-  const previousMap = new Map();
-
-  [...previousRows.qualified, ...previousRows.alsoPlayed].forEach((row) => {
-    const key = row.dsaNumber || normalizeName(row.playerName);
-    previousMap.set(key, row.position);
-  });
-
-  [...currentRows.qualified, ...currentRows.alsoPlayed].forEach((row) => {
-    const key = row.dsaNumber || normalizeName(row.playerName);
-    const previousPosition = previousMap.get(key);
-
-    row.previousPosition = previousPosition ?? null;
-    row.rankMovement =
-      previousPosition == null ? 0 : previousPosition - row.position;
-  });
-}
-
 function main() {
   const registryRows = readWorkbookSheetRows(
     registryWorkbookPath,
@@ -337,30 +376,20 @@ function main() {
 
   const registryLookups = buildRegistryLookups(registry);
 
-  const upperRows = readWorkbookSheetRows(
-    statsWorkbookPath,
-    'Upper Ranking'
-  );
-  
-  const lowerRows = readWorkbookSheetRows(
-    statsWorkbookPath,
-    'Lower Ranking'
-  );
+  const upperRows = readWorkbookSheetRows(upperRankingsWorkbookPath);
+  const lowerRows = readWorkbookSheetRows(lowerRankingsWorkbookPath);
 
-  const upper = buildRowsFromOfficialSheet(
+  const upper = buildRowsFromRankingFile(
     upperRows,
     'Upper',
     registryLookups
   );
 
-  const lower = buildRowsFromOfficialSheet(
+  const lower = buildRowsFromRankingFile(
     lowerRows,
     'Lower',
     registryLookups
   );
-
-  applyMovement(upper, upper);
-  applyMovement(lower, lower);
 
   const fileContent = `export const importedRankingsData = {
   season: '2026',
@@ -374,7 +403,7 @@ function main() {
 
   fs.writeFileSync(outputPath, fileContent, 'utf8');
 
-  console.log('\n===== OFFICIAL FRONTEND RANKINGS EXPORTED =====');
+  console.log('\n===== FRONTEND RANKINGS EXPORTED FROM APP FILES =====');
   console.log(`Upper qualified: ${upper.qualified.length}`);
   console.log(`Upper also played: ${upper.alsoPlayed.length}`);
   console.log(`Lower qualified: ${lower.qualified.length}`);

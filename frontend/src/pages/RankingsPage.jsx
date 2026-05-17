@@ -171,13 +171,6 @@ export default function RankingsPage() {
             </div>
           ))}
         </div>
-
-        <div className="rankings-section-heading also-played-heading">
-          <h3>Also Played</h3>
-          <p>Players with less than 50% legs played.</p>
-        </div>
-
-        <RankingsTable rows={divisionData.alsoPlayed} />
       </section>
     </div>
   );
