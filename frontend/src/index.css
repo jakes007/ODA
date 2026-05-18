@@ -1045,32 +1045,42 @@ textarea {
   }
 
   .rankings-table th:first-child,
-  .rankings-table td:first-child {
-    position: sticky;
-    left: 0;
-    z-index: 5;
-    min-width: 32px;
-    max-width: 32px;
-    background: #101827;
-  }
+.rankings-table td:first-child {
+  min-width: 42px;
+  max-width: 42px;
+  width: 42px;
+  text-align: center;
+}
 
-  .rankings-table th:nth-child(2),
+.rankings-table th:nth-child(2),
 .rankings-table td:nth-child(2) {
   position: sticky;
-  left: 32px;
+  left: 0;
   z-index: 5;
-  min-width: 120px;
-  max-width: 120px;
+  min-width: 42px;
+  max-width: 42px;
+  width: 42px;
+  background: #101827;
+  text-align: center;
+}
+
+.rankings-table th:nth-child(3),
+.rankings-table td:nth-child(3) {
+  position: sticky;
+  left: 42px;
+  z-index: 5;
+  min-width: 150px;
+  max-width: 150px;
   background: #101827;
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: left !important;
 }
 
-  .rankings-table th:first-child,
-  .rankings-table th:nth-child(2) {
-    z-index: 6;
-  }
+.rankings-table th:nth-child(2),
+.rankings-table th:nth-child(3) {
+  z-index: 6;
+}
 }
 
 .insight-grid {
