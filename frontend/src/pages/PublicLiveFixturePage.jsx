@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
 import EmptyState from '../components/common/EmptyState';
@@ -8,145 +8,201 @@ export default function PublicLiveFixturePage() {
   const { fixtureId } = useParams();
 
   const [fixture, setFixture] = useState(null);
-const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-useEffect(() => {
-  loadFixture();
-
-  const intervalId = setInterval(() => {
+  useEffect(() => {
     loadFixture();
-  }, 4000);
 
-  return () => clearInterval(intervalId);
-}, [fixtureId]);
+    const intervalId = setInterval(() => {
+      loadFixture();
+    }, 4000);
 
-async function loadFixture() {
-  const liveFixture = await getPublicLiveFixtureData(fixtureId);
+    return () => clearInterval(intervalId);
+  }, [fixtureId]);
 
-  setFixture(liveFixture);
-  setLoading(false);
-}
+  async function loadFixture() {
+    const liveFixture = await getPublicLiveFixtureData(fixtureId);
 
-if (loading) {
-  return <EmptyState message="Loading live fixture..." />;
-}
+    setFixture(liveFixture);
+    setLoading(false);
+  }
 
-if (!fixture) {
-  return <EmptyState message="Public live fixture not found." />;
-}
+  const matchups = useMemo(
+    () => fixture?.liveSession?.games ?? [],
+    [fixture]
+  );
 
-  const matchups = fixture.liveSession?.games ?? [];
-  const activeMatchups = matchups.filter((game) => game.status === 'in_progress');
-  const waitingMatchups = matchups.filter((game) => game.status === 'waiting');
-  const completedMatchups = matchups.filter((game) => game.status === 'completed');
-  const matchupsByBlock = groupMatchupsByBlock(matchups);
+  const activeMatchups = matchups.filter(
+    (game) => game.status === 'in_progress'
+  );
+
+  const waitingMatchups = matchups.filter(
+    (game) => game.status === 'waiting'
+  );
+
+  const completedMatchups = matchups.filter(
+    (game) => game.status === 'completed'
+  );
+
+  const groupedBlocks = groupMatchupsByBlock(matchups);
+
+  if (loading) {
+    return <EmptyState message="Loading live fixture..." />;
+  }
+
+  if (!fixture) {
+    return <EmptyState message="Public live fixture not found." />;
+  }
 
   return (
-    <div className="page-stack">
-      <PageHeader
-        title="Live Fixture Viewer"
-        subtitle={`${fixture.fixtureName} • ${fixture.competition.name} ${fixture.competition.season}`}
-      />
+    <div className="public-live-fixture-page">
+      <div className="public-live-page-header-row">
+  <PageHeader
+    title="Live Match Centre"
+    subtitle={`${fixture.fixtureName} • ${fixture.competition?.name ?? 'Competition'} ${fixture.competition?.season ?? ''}`}
+  />
 
-      <section className="panel">
-        <div className="section-heading-row">
-          <h3 className="panel-title">Live Match Overview</h3>
-          <Link to="/" className="text-link">
-            Back to Home
-          </Link>
-        </div>
+  <Link
+    to="/live"
+    className="public-live-back-btn"
+  >
+    ← Back To Hub
+  </Link>
+</div>
 
-        <div className="feature-list">
-          <div className="feature-item">
-            <div className="feature-title">Home Team</div>
-            <div className="muted-text">{fixture.homeTeam.teamName}</div>
-          </div>
+      <section className="public-live-hero">
+        
 
-          <div className="feature-item">
-            <div className="feature-title">Away Team</div>
-            <div className="muted-text">{fixture.awayTeam.teamName}</div>
-          </div>
+      <div className="public-live-score-layout">
+  <div className="public-live-team-side">
+    <div className="public-live-team-logo">
+      {getTeamInitials(fixture.homeTeam?.teamName)}
+    </div>
 
-          <div className="feature-item">
-            <div className="feature-title">Status</div>
-            <div className="muted-text">{formatStatus(fixture.status)}</div>
-          </div>
+    <div className="public-live-team-name">
+      {fixture.homeTeam?.teamName}
+    </div>
+  </div>
 
-          <div className="feature-item">
-            <div className="feature-title">Overall Score</div>
-            <div className="muted-text">{fixture.scoreText}</div>
-          </div>
+  <div className="public-live-centre-section">
+    <div className="public-live-badge">
+      LIVE
+    </div>
 
-          <div className="feature-item">
-            <div className="feature-title">Format</div>
-            <div className="muted-text">{fixture.format?.name ?? 'Fixture format'}</div>
-          </div>
+    <div className="public-live-main-score">
+  <span>{getScoreParts(fixture.scoreText).home}</span>
 
-          <div className="feature-item">
-            <div className="feature-title">Active Boards</div>
-            <div className="muted-text">{fixture.liveSession?.activeBoardCount ?? 0}</div>
-          </div>
+  <div className="public-live-score-divider">
+    -
+  </div>
 
-          <div className="feature-item">
-            <div className="feature-title">Total Matchups</div>
-            <div className="muted-text">{matchups.length}</div>
-          </div>
+  <span>{getScoreParts(fixture.scoreText).away}</span>
+</div>
 
-          <div className="feature-item">
-            <div className="feature-title">Lineups</div>
-            <div className="muted-text">
-              {fixture.lineupsRevealed ? 'Revealed' : 'Hidden until both captains submit'}
-            </div>
-          </div>
-        </div>
+    <div className="public-live-meta-row">
+      <div className="public-live-meta-pill live">
+        ● In Progress
+      </div>
+
+      <div className="public-live-meta-pill">
+        {fixture.liveSession?.activeBoardCount ?? 0} Active Boards
+      </div>
+
+      <div className="public-live-meta-pill">
+        {matchups.length} Matchups
+      </div>
+
+      <div className="public-live-meta-pill">
+        {fixture.format?.name ?? 'Fixture Format'}
+      </div>
+    </div>
+  </div>
+
+  <div className="public-live-team-side public-live-team-side-away">
+    <div className="public-live-team-logo purple">
+      {getTeamInitials(fixture.awayTeam?.teamName)}
+    </div>
+
+    <div className="public-live-team-name">
+      {fixture.awayTeam?.teamName}
+    </div>
+  </div>
+</div>
       </section>
 
-      <section className="panel">
-        <h3 className="panel-title">Progress Board</h3>
+      <section className="public-live-stats-grid">
+        <StatCard
+          icon="◎"
+          value={activeMatchups.length}
+          label="LIVE MATCHUPS"
+        />
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: '1rem'
-          }}
-        >
-          {matchupsByBlock.map((block) => (
+        <StatCard
+          icon="✓"
+          value={completedMatchups.length}
+          label="COMPLETED"
+        />
+
+        <StatCard
+          icon="◌"
+          value={waitingMatchups.length}
+          label="WAITING"
+        />
+
+        <StatCard
+          icon="⚔"
+          value={fixture.liveSession?.activeBoardCount ?? 0}
+          label="ACTIVE BOARDS"
+        />
+      </section>
+
+      <section className="public-live-panel">
+        <div className="public-live-panel-header">
+          <h3>Progress Board</h3>
+
+          <div className="public-live-panel-subtitle">
+            Click any active matchup to watch live scoring
+          </div>
+        </div>
+
+        <div className="public-live-block-grid">
+          {groupedBlocks.map((block) => (
             <div
-              key={`block-${block.blockNumber}`}
-              style={{
-                border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: '12px',
-                padding: '1rem'
-              }}
+              key={block.blockNumber}
+              className="public-live-block-card"
             >
-              <div style={{ fontWeight: 700, marginBottom: '0.75rem' }}>
+              <div className="public-live-block-title">
                 Block {block.blockNumber}
               </div>
 
-              <div style={{ display: 'grid', gap: '0.75rem' }}>
+              <div className="public-live-matchup-list">
                 {block.matchups.map((matchup) => (
-                  <div
+                  <button
                     key={matchup.matchupId}
-                    style={{
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: '10px',
-                      padding: '0.75rem',
-                      background: getMatchupTileBackground(matchup.status),
-                      opacity: matchup.status === 'completed' ? 0.85 : 1
-                    }}
+                    className={`public-live-matchup-card ${matchup.status}`}
                   >
-                    <div style={{ fontWeight: 600, marginBottom: '0.35rem' }}>
-                      {matchup.label}
-                    </div>
+                    <div className="public-live-matchup-top">
+                      <div className="public-live-matchup-title">
+                        {matchup.label}
+                      </div>
 
-                    <div className="muted-text" style={{ fontSize: '0.9rem' }}>
-                      {getMatchupStatusLabel(matchup.status)}
-                      {matchup.status === 'in_progress' && matchup.boardNumber
-                        ? ` • Board ${matchup.boardNumber}`
-                        : ''}
-                    </div>
-                  </div>
+                      
+                      </div>
+
+<div className="public-live-matchup-meta">
+  {getMatchupStatusLabel(matchup.status)}
+
+  {matchup.boardNumber
+    ? ` • Board ${matchup.boardNumber}`
+    : ''}
+</div>
+
+{matchup.status === 'in_progress' && (
+  <div className="public-live-watch-row live">
+    ▶ WATCH LIVE
+  </div>
+)}
+</button>
                 ))}
               </div>
             </div>
@@ -154,92 +210,87 @@ if (!fixture) {
         </div>
       </section>
 
-      <section className="panel">
-        <h3 className="panel-title">Active Matchups</h3>
+      <section className="public-live-panel">
+        <div className="public-live-panel-header">
+          <h3>Live Boards</h3>
+        </div>
 
         {activeMatchups.length === 0 ? (
           <div className="muted-text">
-            {fixture.status === 'completed'
-              ? 'All matchups completed'
-              : 'No matchups are currently active.'}
+            No active boards currently live.
           </div>
         ) : (
-          <div className="captain-fixture-list">
+          <div className="public-live-active-grid">
             {activeMatchups.map((matchup) => (
-              <div key={matchup.matchupId} className="captain-fixture-card">
-                <div className="captain-fixture-main">
-                  <div className="history-title">{matchup.label}</div>
-                  <div className="muted-text">Block {matchup.blockNumber}</div>
-                  <div className="muted-text">{matchup.formatLabel}</div>
-                  <div className="muted-text">Board {matchup.boardNumber}</div>
-                  <div className="muted-text">
-                    Home Left: {matchup.liveState?.homeScoreLeft ?? '-'} • Away Left:{' '}
-                    {matchup.liveState?.awayScoreLeft ?? '-'}
-                  </div>
-                  <div className="muted-text">
-                    Current Throw:{' '}
-                    {getCurrentThrowLabel(matchup)}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="panel">
-        <h3 className="panel-title">Waiting Matchups</h3>
-
-        {waitingMatchups.length === 0 ? (
-          <div className="muted-text">
-            {fixture.status === 'completed'
-              ? 'All matchups completed'
-              : 'No waiting matchups.'}
-          </div>
-        ) : (
-          <div className="captain-fixture-list">
-            {waitingMatchups.map((matchup) => (
-              <div key={matchup.matchupId} className="captain-fixture-card">
-                <div className="captain-fixture-main">
-                  <div className="history-title">{matchup.label}</div>
-                  <div className="muted-text">Block {matchup.blockNumber}</div>
-                  <div className="muted-text">{matchup.formatLabel}</div>
-                  <div className="muted-text">Status: Waiting</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="panel">
-        <h3 className="panel-title">Completed Matchups</h3>
-
-        {completedMatchups.length === 0 ? (
-          <div className="muted-text">No matchups have been completed yet.</div>
-        ) : (
-          <div className="captain-fixture-list">
-            {completedMatchups.map((matchup) => (
               <div
                 key={matchup.matchupId}
-                className="captain-fixture-card"
-                style={{ opacity: 0.85 }}
+                className="public-live-active-card"
               >
-                <div className="captain-fixture-main">
-                  <div className="history-title">{matchup.label}</div>
-                  <div className="muted-text">Block {matchup.blockNumber}</div>
-                  <div className="muted-text">{matchup.formatLabel}</div>
-                  <div className="muted-text">
-                    Winner: {matchup.result?.winnerTeamName ?? 'Recorded'}
-                  </div>
-                  <div className="muted-text">Status: Completed</div>
-                </div>
+                <div className="public-live-board-header">
+  <div>
+    <div className="public-live-active-title">
+      {matchup.label}
+    </div>
 
-                <div className="captain-fixture-side" style={{ minWidth: '120px' }}>
-                  <div className="fixture-score">
-                    {matchup.result?.winnerSide === 'home' ? 'H' : 'A'}
-                  </div>
-                </div>
+    <div className="public-live-active-meta">
+      Board {matchup.boardNumber ?? '-'}
+    </div>
+  </div>
+
+  <div className="public-live-board-live-text">
+    LIVE
+  </div>
+</div>
+
+<div className="public-live-board-layout">
+<div
+  className={`public-live-board-side ${
+    matchup.liveState?.currentTurnSide === 'home'
+      ? 'active'
+      : ''
+  }`}
+>
+  <div className="public-live-board-player-name">
+    {matchup.homePlayerName || 'Home Player'}
+  </div>
+
+  <div className="public-live-board-side-label">
+    HOME LEFT
+  </div>
+
+  <div className="public-live-board-score">
+    {matchup.liveState?.homeScoreLeft ?? 501}
+  </div>
+</div>
+
+  <div className="public-live-board-centre">
+    <div className="public-live-board-vs">
+      VS
+    </div>
+    
+
+  </div>
+
+  <div
+  className={`public-live-board-side ${
+    matchup.liveState?.currentTurnSide === 'away'
+      ? 'active'
+      : ''
+  }`}
+>
+  <div className="public-live-board-player-name">
+    {matchup.awayPlayerName || 'Away Player'}
+  </div>
+
+  <div className="public-live-board-side-label">
+    AWAY LEFT
+  </div>
+
+  <div className="public-live-board-score">
+    {matchup.liveState?.awayScoreLeft ?? 501}
+  </div>
+</div>
+</div>
               </div>
             ))}
           </div>
@@ -249,23 +300,43 @@ if (!fixture) {
   );
 }
 
+function StatCard({ icon, value, label }) {
+  return (
+    <div className="public-live-stat-card">
+      <div className="public-live-stat-icon">
+        {icon}
+      </div>
+
+      <div>
+        <div className="public-live-stat-value">
+          {value}
+        </div>
+
+        <div className="public-live-stat-label">
+          {label}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function groupMatchupsByBlock(matchups) {
-  const blocksMap = new Map();
+  const map = new Map();
 
   matchups.forEach((matchup) => {
-    if (!blocksMap.has(matchup.blockNumber)) {
-      blocksMap.set(matchup.blockNumber, []);
+    if (!map.has(matchup.blockNumber)) {
+      map.set(matchup.blockNumber, []);
     }
 
-    blocksMap.get(matchup.blockNumber).push(matchup);
+    map.get(matchup.blockNumber).push(matchup);
   });
 
-  return Array.from(blocksMap.entries())
-    .sort((a, b) => a[0] - b[0])
-    .map(([blockNumber, blockMatchups]) => ({
-      blockNumber,
-      matchups: blockMatchups.sort((a, b) => a.blockOrder - b.blockOrder)
-    }));
+  return Array.from(map.entries()).map(([blockNumber, blockMatchups]) => ({
+    blockNumber,
+    matchups: blockMatchups.sort(
+      (a, b) => a.blockOrder - b.blockOrder
+    )
+  }));
 }
 
 function getMatchupStatusLabel(status) {
@@ -278,38 +349,42 @@ function getMatchupStatusLabel(status) {
   return labels[status] ?? status;
 }
 
-function getMatchupTileBackground(status) {
-  if (status === 'in_progress') {
-    return 'rgba(255, 165, 0, 0.16)';
-  }
-
-  if (status === 'completed') {
-    return 'rgba(0, 200, 83, 0.16)';
-  }
-
-  return 'rgba(255,255,255,0.03)';
-}
-
-function formatStatus(status) {
-  const labels = {
-    ready_for_lineups: 'Ready For Lineups',
-    waiting_for_opponent: 'Waiting For Opponent',
-    ready_to_play: 'Ready To Play',
-    active: 'Active',
-    completed: 'Completed'
-  };
-
-  return labels[status] ?? status;
-}
-
 function getCurrentThrowLabel(matchup) {
   const side = matchup.liveState?.currentTurnSide ?? 'home';
-  const index = matchup.liveState?.currentPlayerIndex ?? 0;
-  const players = side === 'home' ? matchup.homePlayers : matchup.awayPlayers;
 
-  if (!players || players.length === 0) {
-    return side === 'home' ? 'Home' : 'Away';
+  const index = matchup.liveState?.currentPlayerIndex ?? 0;
+
+  const players =
+    side === 'home'
+      ? matchup.homePlayers
+      : matchup.awayPlayers;
+
+  if (!players?.length) {
+    return side === 'home' ? 'Home Player' : 'Away Player';
   }
 
-  return players[index]?.displayName ?? players[0]?.displayName ?? (side === 'home' ? 'Home' : 'Away');
+  return (
+    players[index]?.displayName ??
+    players[0]?.displayName
+  );
+}
+
+function getTeamInitials(teamName = '') {
+  return teamName
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function getScoreParts(scoreText) {
+  const parts = String(scoreText || '0 - 0')
+    .split('-')
+    .map((part) => part.trim());
+
+  return {
+    home: parts[0] || '0',
+    away: parts[1] || '0'
+  };
 }

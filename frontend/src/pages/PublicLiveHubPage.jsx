@@ -21,8 +21,8 @@ export default function PublicLiveHubPage() {
 
   async function loadFixtures() {
     const liveFixtures = await getActivePublicLiveFixtures();
-
-    setFixtures(liveFixtures);
+  
+    setFixtures(sortLiveFixtures(liveFixtures));
     setLoading(false);
   }
 
@@ -119,10 +119,10 @@ export default function PublicLiveHubPage() {
             <article key={fixture.fixtureId} className="public-live-fixture-card">
               <div className="public-live-card-top">
                 <div>
-                  <div className="public-live-competition">
-                    {fixture.competition?.name || 'Live Fixture'} •{' '}
-                    {fixture.competition?.season || '2026 Season'}
-                  </div>
+                <div className="public-live-competition">
+  {getFixtureDivisionLabel(fixture)} •{' '}
+  {fixture.competition?.season || '2026'}
+</div>
                 </div>
 
                 <span className="public-live-badge">Live</span>
@@ -197,6 +197,65 @@ function getTeamInitials(teamName = '') {
     .join('')
     .slice(0, 2)
     .toUpperCase();
+}
+
+function sortLiveFixtures(fixtures) {
+  return [...fixtures].sort((a, b) => {
+    const aPriority = getFixtureDivisionPriority(a);
+    const bPriority = getFixtureDivisionPriority(b);
+
+    if (aPriority !== bPriority) {
+      return aPriority - bPriority;
+    }
+
+    return String(a.fixtureName || '').localeCompare(String(b.fixtureName || ''));
+  });
+}
+
+function getFixtureDivisionPriority(fixture) {
+  const label = getFixtureDivisionLabel(fixture).toLowerCase();
+
+  if (label.includes('upper')) return 1;
+  if (label.includes('lower')) return 2;
+
+  return 3;
+}
+
+function getFixtureDivisionLabel(fixture) {
+  const searchableText = [
+    fixture.division,
+    fixture.divisionName,
+    fixture.competition?.division,
+    fixture.competition?.divisionName,
+    fixture.competition?.name,
+    fixture.fixtureName,
+    fixture.format?.name,
+    fixture.homeTeam?.teamName,
+    fixture.awayTeam?.teamName
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  const competitionName = fixture.competition?.name || 'Placements';
+
+  if (searchableText.includes('upper')) {
+    return `Upper ${competitionName}`;
+  }
+
+  if (searchableText.includes('lower')) {
+    return `Lower ${competitionName}`;
+  }
+
+  if (searchableText.includes(' 1') || searchableText.includes('1')) {
+    return `Upper ${competitionName}`;
+  }
+
+  if (searchableText.includes(' 2') || searchableText.includes(' 3')) {
+    return `Lower ${competitionName}`;
+  }
+
+  return competitionName;
 }
 
 function formatStatus(status) {
