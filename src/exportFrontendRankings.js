@@ -30,6 +30,18 @@ const outputPath = path.resolve(
   'importedRankingsData.js'
 );
 
+const upperPrevRankingsWorkbookPath = path.resolve(
+  process.cwd(),
+  'import-files',
+  'App Upper Rankings Prev.xlsx'
+);
+
+const lowerPrevRankingsWorkbookPath = path.resolve(
+  process.cwd(),
+  'import-files',
+  'App Lower Rankings Prev.xlsx'
+);
+
 const PLAYER_NAME_OVERRIDES = new Map([
   ['jpsmith', 'jeanpierresmith']
 ]);
@@ -186,27 +198,54 @@ function buildRegistryLookups(registry) {
     }
   });
 
-  return {
-    byFullName,
-    byInitialSurname
-  };
+  const byDsaNumber = new Map();
+
+Object.values(registry.players).forEach((player) => {
+  const normalizedDsa = normalizeDsa(player.dsaNumber);
+
+  if (normalizedDsa) {
+    byDsaNumber.set(normalizedDsa, player);
+  }
+});
+
+return {
+  byDsaNumber,
+  byFullName,
+  byInitialSurname
+};
 }
 
-function resolvePlayerFromRegistry(playerNameFromSheet, division, registryLookups) {
-  const fullNameKey = normalizeName(playerNameFromSheet);
+function resolvePlayerFromRegistry(
+  playerNameFromSheet,
+  dsaNumberFromSheet,
+  division,
+  registryLookups
+) {
+  const normalizedDsa = normalizeDsa(dsaNumberFromSheet);
 
-  if (MANUAL_PLAYER_OVERRIDES.has(fullNameKey)) {
-    return MANUAL_PLAYER_OVERRIDES.get(fullNameKey);
+  // 1. PRIMARY MATCH = DSA NUMBER
+  if (
+    normalizedDsa &&
+    registryLookups.byDsaNumber.has(normalizedDsa)
+  ) {
+    return registryLookups.byDsaNumber.get(normalizedDsa);
   }
 
-  // 1. Try exact/full-name match first.
-  if (fullNameKey && registryLookups.byFullName.has(fullNameKey)) {
+  // 2. FALLBACK = FULL NAME
+  const fullNameKey = normalizeName(playerNameFromSheet);
+
+  if (
+    fullNameKey &&
+    registryLookups.byFullName.has(fullNameKey)
+  ) {
     return registryLookups.byFullName.get(fullNameKey);
   }
 
-  // 2. Try initial + surname fallback.
+  // 3. FALLBACK = INITIAL + SURNAME
   const initialSurnameKey = getInitialSurnameKey(playerNameFromSheet);
-  const initialMatches = registryLookups.byInitialSurname.get(initialSurnameKey) || [];
+
+  const initialMatches =
+    registryLookups.byInitialSurname.get(initialSurnameKey) || [];
 
   if (initialMatches.length === 1) {
     return initialMatches[0];
@@ -214,12 +253,16 @@ function resolvePlayerFromRegistry(playerNameFromSheet, division, registryLookup
 
   if (initialMatches.length > 1) {
     console.warn(
-      `[AMBIGUOUS ${division}] "${playerNameFromSheet}" matches multiple registry players. Use full first name in Player Name column.`
+      `[AMBIGUOUS ${division}] "${playerNameFromSheet}" matches multiple registry players.`
     );
+
     return null;
   }
 
-  console.warn(`[UNMATCHED ${division}] "${playerNameFromSheet}" not found in registry.`);
+  console.warn(
+    `[UNMATCHED ${division}] "${playerNameFromSheet}" | ${normalizedDsa}`
+  );
+
   return null;
 }
 
@@ -276,6 +319,7 @@ function buildRowsFromRankingFile(sheetRows, division, registryLookups) {
 
     const registryPlayer = resolvePlayerFromRegistry(
       playerNameFromSheet,
+      readField(row, ['DSA Number', 'DSA']),
       division,
       registryLookups
     );
@@ -362,6 +406,28 @@ function buildRowsFromRankingFile(sheetRows, division, registryLookups) {
   };
 }
 
+function getMovementKey(row) {
+  return row.dsaNumber || normalizeName(row.playerName);
+}
+
+function applyMovement(currentRows, previousRows) {
+  const previousMap = new Map();
+
+  [...previousRows.qualified, ...previousRows.alsoPlayed].forEach((row) => {
+    previousMap.set(getMovementKey(row), row.position);
+  });
+
+  [...currentRows.qualified, ...currentRows.alsoPlayed].forEach((row) => {
+    const previousPosition = previousMap.get(getMovementKey(row));
+
+
+
+    row.previousPosition = previousPosition ?? null;
+    row.rankMovement =
+      previousPosition == null ? 0 : previousPosition - row.position;
+  });
+}
+
 function main() {
   const registryRows = readWorkbookSheetRows(
     registryWorkbookPath,
@@ -377,19 +443,37 @@ function main() {
   const registryLookups = buildRegistryLookups(registry);
 
   const upperRows = readWorkbookSheetRows(upperRankingsWorkbookPath);
-  const lowerRows = readWorkbookSheetRows(lowerRankingsWorkbookPath);
+const lowerRows = readWorkbookSheetRows(lowerRankingsWorkbookPath);
 
-  const upper = buildRowsFromRankingFile(
-    upperRows,
-    'Upper',
-    registryLookups
-  );
+const upperPrevRows = readWorkbookSheetRows(upperPrevRankingsWorkbookPath);
+const lowerPrevRows = readWorkbookSheetRows(lowerPrevRankingsWorkbookPath);
 
-  const lower = buildRowsFromRankingFile(
-    lowerRows,
-    'Lower',
-    registryLookups
-  );
+const upper = buildRowsFromRankingFile(
+  upperRows,
+  'Upper',
+  registryLookups
+);
+
+const lower = buildRowsFromRankingFile(
+  lowerRows,
+  'Lower',
+  registryLookups
+);
+
+const previousUpper = buildRowsFromRankingFile(
+  upperPrevRows,
+  'Upper Previous',
+  registryLookups
+);
+
+const previousLower = buildRowsFromRankingFile(
+  lowerPrevRows,
+  'Lower Previous',
+  registryLookups
+);
+
+applyMovement(upper, previousUpper);
+applyMovement(lower, previousLower);
 
   const fileContent = `export const importedRankingsData = {
   season: '2026',
