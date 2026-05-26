@@ -73,10 +73,7 @@ export default function PublicLiveFixturePage() {
           {getFixtureDivisionLabel(fixture)} • {fixture.competition?.season ?? '2026'}
         </div>
 
-        <div className="plf-mobile-team-names">
-          <div>{fixture.homeTeam?.teamName}</div>
-          <div>{fixture.awayTeam?.teamName}</div>
-        </div>
+        
 
         <div className="plf-score-row">
           <div className="plf-team-side plf-home-side">
@@ -95,10 +92,22 @@ export default function PublicLiveFixturePage() {
             </div>
 
             <div className="plf-score-line">
-              <span>{scoreParts.home}</span>
-              <span className="plf-score-divider">-</span>
-              <span>{scoreParts.away}</span>
-            </div>
+  <span className="plf-mobile-home-name">
+    {fixture.homeTeam?.teamName}
+  </span>
+
+  <span>{scoreParts.home}</span>
+
+  <span className="plf-score-divider">
+    -
+  </span>
+
+  <span>{scoreParts.away}</span>
+
+  <span className="plf-mobile-away-name">
+    {fixture.awayTeam?.teamName}
+  </span>
+</div>
           </div>
 
           <div className="plf-team-side plf-away-side">
@@ -183,92 +192,15 @@ export default function PublicLiveFixturePage() {
         </div>
       </section>
 
-      <section className="plf-panel">
-        <div className="plf-panel-header">
-          <div>
-            <h3>Live Boards</h3>
-            <p>Active matchups currently being scored.</p>
-          </div>
-        </div>
 
-        {activeMatchups.length === 0 ? (
-          <div className="muted-text">
-            No active boards currently live.
-          </div>
-        ) : (
-          <div className="plf-live-board-grid">
-            {activeMatchups.map((matchup) => {
-              const matchupPlayers = getMatchupPlayerNames(matchup);
+       
 
-              return (
-                <div key={matchup.matchupId} className="plf-live-board-card">
-                  <div className="plf-live-board-header">
-                    <div>
-                      <div className="plf-live-board-title">
-                        {matchup.label}
-                      </div>
 
-                      <div className="plf-live-board-subtitle">
-                        Board {matchup.boardNumber ?? '-'}
-                      </div>
-                    </div>
 
-                    <div className="plf-live-text">
-                      LIVE
-                    </div>
-                  </div>
 
-                  <div className="plf-board-score-layout">
-                    <div
-                      className={`plf-board-player-card ${
-                        matchup.liveState?.currentTurnSide === 'home'
-                          ? 'active'
-                          : ''
-                      }`}
-                    >
-                      <div className="plf-board-player-name">
-                        {matchupPlayers.home}
-                      </div>
 
-                      <div className="plf-board-label">
-                        HOME LEFT
-                      </div>
 
-                      <div className="plf-board-score">
-                        {matchup.liveState?.homeScoreLeft ?? 501}
-                      </div>
-                    </div>
 
-                    <div className="plf-board-vs">
-                      VS
-                    </div>
-
-                    <div
-                      className={`plf-board-player-card ${
-                        matchup.liveState?.currentTurnSide === 'away'
-                          ? 'active'
-                          : ''
-                      }`}
-                    >
-                      <div className="plf-board-player-name">
-                        {matchupPlayers.away}
-                      </div>
-
-                      <div className="plf-board-label">
-                        AWAY LEFT
-                      </div>
-
-                      <div className="plf-board-score">
-                        {matchup.liveState?.awayScoreLeft ?? 501}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
     </div>
   );
 }

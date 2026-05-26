@@ -4893,6 +4893,15 @@ text-overflow: ellipsis; /* ... if too long */
     gap: 18px;
   }
 
+  .plf-header-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .plf-back-link {
+    margin-top: 0;
+  }
+
   .plf-hero-card {
     padding: 18px 14px;
     border-radius: 22px;
@@ -4900,7 +4909,7 @@ text-overflow: ellipsis; /* ... if too long */
 
   .plf-division-label {
     text-align: center;
-    margin-bottom: 14px;
+    margin-bottom: 18px;
     font-size: 11px;
   }
 
@@ -4914,60 +4923,32 @@ text-overflow: ellipsis; /* ... if too long */
   }
 
   .plf-mobile-team-names {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .plf-mobile-team-name {
     color: #ffffff;
-    font-size: 17px;
+    font-size: 1.45rem;
     font-weight: 1000;
-    margin-bottom: 12px;
+    text-align: center;
+    line-height: 1.1;
   }
 
   .plf-centre-score {
-    gap: 12px;
+    gap: 16px;
   }
 
   .plf-score-line {
-    width: 100%;
-    display: grid;
-    grid-template-columns: auto 1fr auto 1fr auto;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    font-size: 38px;
-  }
-
-  .plf-score-line::before {
-    content: attr(data-home-initials);
-  }
-
-  .plf-score-line::after {
-    content: attr(data-away-initials);
-  }
-
-  .plf-score-line::before,
-  .plf-score-line::after {
-    width: 56px;
-    height: 56px;
-    border-radius: 999px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #ffffff;
-    font-size: 18px;
-    font-weight: 1000;
-    background:
-      radial-gradient(circle at top left, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.02) 40%),
-      linear-gradient(135deg, rgba(255, 152, 0, 0.22), rgba(255, 152, 0, 0.05));
-    border: 2px solid rgba(255, 152, 0, 0.5);
-  }
-
-  .plf-score-line::after {
-    background:
-      radial-gradient(circle at top left, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.02) 40%),
-      linear-gradient(135deg, rgba(124, 58, 237, 0.32), rgba(124, 58, 237, 0.08));
-    border-color: rgba(124, 58, 237, 0.65);
+    gap: 16px;
+    font-size: 3.6rem;
+    line-height: 1;
   }
 
   .plf-live-pill {
@@ -4976,14 +4957,15 @@ text-overflow: ellipsis; /* ... if too long */
   }
 
   .plf-meta-row {
-    margin-top: 18px;
+    margin-top: 22px;
     flex-direction: column;
     align-items: center;
+    gap: 10px;
   }
 
   .plf-meta-pill {
-    width: min(230px, 100%);
-    padding: 10px 14px;
+    width: min(260px, 100%);
+    justify-content: center;
   }
 
   .plf-stat-grid {
@@ -5000,29 +4982,68 @@ text-overflow: ellipsis; /* ... if too long */
   }
 
   .plf-board-score-layout {
-    grid-template-columns: 1fr auto 1fr;
-    gap: 8px;
-  }
-
-  .plf-board-player-card {
-    padding: 14px;
-    border-radius: 18px;
-  }
-
-  .plf-board-player-name {
-    font-size: 12px;
-    margin-bottom: 12px;
-  }
-
-  .plf-board-label {
-    font-size: 10px;
-  }
-
-  .plf-board-score {
-    font-size: 38px;
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 
   .plf-board-vs {
+    text-align: center;
     font-size: 12px;
+  }
+
+  .plf-board-player-card {
+    padding: 16px;
+  }
+
+  .plf-board-player-name {
+    font-size: 13px;
+  }
+
+  .plf-board-score {
+    font-size: 42px;
+  }
+}
+
+.plf-mobile-home-name,
+.plf-mobile-away-name {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .plf-home-side,
+  .plf-away-side {
+    display: none;
+  }
+
+  .plf-score-line {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .plf-score-line span:nth-child(2),
+  .plf-score-line span:nth-child(3),
+  .plf-score-line span:nth-child(4) {
+    display: inline-flex;
+  }
+
+  .plf-mobile-home-name,
+  .plf-mobile-away-name {
+    display: block;
+    color: #ffffff;
+    font-size: 1.45rem;
+    font-weight: 1000;
+    text-align: center;
+    line-height: 1.1;
+  }
+
+  .plf-score-line {
+    font-size: 3.6rem;
+    line-height: 1;
+  }
+
+  .plf-score-divider {
+    color: rgba(255,255,255,0.55);
   }
 }
