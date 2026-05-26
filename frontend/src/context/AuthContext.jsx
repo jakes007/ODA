@@ -20,12 +20,12 @@ const mockUsers = [
     displayName: 'Jason Isaacs'
   },
   {
-    id: 'user_captain_nigel',
+    id: 'user_captain_deon',
     email: 'captain2@oda.com',
     password: '123456',
     role: 'captain',
-    playerId: 'registry_DSA-210524',
-    displayName: 'Nigel Maart'
+    playerId: 'registry_DSA-250220',
+    displayName: 'Deon Jacobs'
   },
   {
     id: 'user_admin_jake',

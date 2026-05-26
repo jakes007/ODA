@@ -54,7 +54,13 @@ function formatScore(value) {
 }
 
 function toNumber(value) {
-  const numericValue = Number(String(value ?? '').replace('%', '').replace(',', '').trim());
+  const numericValue = Number(
+    String(value ?? '')
+      .replace('%', '')
+      .replace(',', '')
+      .trim()
+  );
+
   return Number.isFinite(numericValue) ? numericValue : 0;
 }
 
@@ -67,7 +73,11 @@ function readRaw(rawFields, keys) {
   for (const key of keys) {
     const value = rawFields?.[key];
 
-    if (value !== undefined && value !== null && String(value).trim() !== '') {
+    if (
+      value !== undefined &&
+      value !== null &&
+      String(value).trim() !== ''
+    ) {
       return value;
     }
   }
@@ -75,29 +85,122 @@ function readRaw(rawFields, keys) {
   return '';
 }
 
-function getNameSignature(name) {
-  const cleaned = String(name || '')
-    .toLowerCase()
-    .replace(/[^a-z\s.]/g, ' ')
-    .replace(/\s+/g, ' ')
+function loadExistingFixturesData() {
+  if (!fs.existsSync(outputPath)) {
+    return {
+      season: '2026',
+      competitionName: 'Placements',
+      divisions: {
+        Upper: [],
+        Lower: []
+      },
+      generatedAt: null
+    };
+  }
+
+  const fileContent = fs.readFileSync(outputPath, 'utf8');
+
+  const jsonText = fileContent
+    .replace(/^export\s+const\s+importedFixturesData\s+=\s*/, '')
+    .replace(/;\s*$/, '')
     .trim();
 
-  if (!cleaned) {
-    return '';
+  try {
+    return JSON.parse(jsonText);
+  } catch (error) {
+    throw new Error(
+      `Could not parse existing importedFixturesData.js. Please check the file format. ${error.message}`
+    );
+  }
+}
+
+function mergeFixtureDivision(existingFixtures = [], importedFixtures = []) {
+  const fixtureMap = new Map();
+
+  existingFixtures.forEach((fixture) => {
+    fixtureMap.set(fixture.id, fixture);
+  });
+
+  importedFixtures.forEach((fixture) => {
+    fixtureMap.set(fixture.id, fixture);
+  });
+
+  return Array.from(fixtureMap.values()).sort(sortFixturesByDateDesc);
+}
+
+function sortFixturesByDateDesc(a, b) {
+  return parseFixtureDate(b.date) - parseFixtureDate(a.date);
+}
+
+function parseFixtureDate(value) {
+  const raw = clean(value);
+
+  if (!raw) {
+    return new Date(0);
   }
 
-  if (cleaned.includes('.')) {
-    const [initialPart, surnamePart] = cleaned.split('.');
-    const initial = clean(initialPart)[0] || '';
-    const surname = clean(surnamePart).replace(/[^a-z]/g, '');
-    return `${initial}${surname}`;
+  const parsed = new Date(raw);
+
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed;
   }
 
-  const parts = cleaned.split(' ').filter(Boolean);
-  const firstInitial = parts[0]?.[0] || '';
-  const surname = parts[parts.length - 1] || '';
+  const match = raw.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{2,4})$/);
 
-  return `${firstInitial}${surname}`;
+  if (!match) {
+    return new Date(0);
+  }
+
+  const [, day, monthText, yearText] = match;
+
+  const monthMap = {
+    jan: 0,
+    feb: 1,
+    mar: 2,
+    apr: 3,
+    may: 4,
+    jun: 5,
+    jul: 6,
+    aug: 7,
+    sep: 8,
+    oct: 9,
+    nov: 10,
+    dec: 11
+  };
+
+  const month = monthMap[monthText.toLowerCase()];
+  const yearNumber = Number(yearText);
+  const fullYear = yearNumber < 100 ? 2000 + yearNumber : yearNumber;
+
+  return new Date(fullYear, month ?? 0, Number(day));
+}
+
+function buildFullNameFromRaw(rawFields, fallbackName) {
+  const playerName = clean(
+    readRaw(rawFields, ['Player Name', 'Player'])
+  );
+
+  const playerSurname = clean(
+    readRaw(rawFields, ['Player Surname', 'Surname'])
+  );
+
+  const fullName = `${playerName} ${playerSurname}`.trim();
+
+  return fullName || clean(fallbackName);
+}
+
+function buildOpponentNameFromRaw(rawFields, fallbackName) {
+  const opponentName = clean(
+    readRaw(rawFields, ['Opponent', 'Opponent Name'])
+  );
+
+  const opponentSurname = clean(
+    readRaw(rawFields, ['Opponent Surname'])
+  );
+
+  const fullName = `${opponentName} ${opponentSurname}`.trim();
+
+  return fullName || clean(fallbackName);
 }
 
 function buildFixtures(registry, division) {
@@ -114,7 +217,9 @@ function buildFixtures(registry, division) {
     const opponentName = clean(row.opponentTeamName);
     const date = clean(row.matchDate);
 
-    if (!teamName || !opponentName) return;
+    if (!teamName || !opponentName || !date) {
+      return;
+    }
 
     const sortedTeams = [teamName, opponentName].sort();
     const key = `${division}_${date}_${sortedTeams[0]}_${sortedTeams[1]}`;
@@ -150,32 +255,41 @@ function buildFixtures(registry, division) {
   fixtureMap.forEach((fixture) => {
     const rowsForFixture = statRows.filter((row) => {
       const rawFields = getRawFields(registry, row);
-  
+
       const teamName = clean(row.teamName);
       const opponentTeamName = clean(
-        readRaw(rawFields, ['Opponent_1', 'Opponent Team', 'Opponent Team Name'])
+        readRaw(rawFields, [
+          'Opponent_1',
+          'Opponent Team',
+          'Opponent Team Name'
+        ])
       );
       const date = clean(row.matchDate);
-  
+
       if (date !== fixture.date) {
         return false;
       }
-  
+
       return (
-        (teamName === fixture.homeTeam && opponentTeamName === fixture.awayTeam) ||
-        (teamName === fixture.awayTeam && opponentTeamName === fixture.homeTeam)
+        (teamName === fixture.homeTeam &&
+          opponentTeamName === fixture.awayTeam) ||
+        (teamName === fixture.awayTeam &&
+          opponentTeamName === fixture.homeTeam)
       );
     });
-  
+
     fixture.playerRows = rowsForFixture.map((row) => {
       const rawFields = getRawFields(registry, row);
-  
+
       return {
         fixtureId: fixture.id,
         playerId: row.playerId,
-        playerName: row.displayName,
+        playerName: buildFullNameFromRaw(rawFields, row.displayName),
         teamName: formatTeamName(row.teamName),
-        opponentName: row.opponentPlayerName,
+        opponentName: buildOpponentNameFromRaw(
+          rawFields,
+          row.opponentPlayerName
+        ),
         total: toNumber(readRaw(rawFields, ['Total'])),
         dartsUsed: toNumber(row.metrics?.dartsUsed),
         average: toNumber(row.metrics?.average),
@@ -192,12 +306,16 @@ function buildFixtures(registry, division) {
     .map((fixture) => ({
       ...fixture,
       fixtureName: `${fixture.homeTeamDisplay} vs ${fixture.awayTeamDisplay}`,
-      scoreText: `${formatScore(fixture.homeScore)} - ${formatScore(fixture.awayScore)}`
+      scoreText: `${formatScore(fixture.homeScore)} - ${formatScore(
+        fixture.awayScore
+      )}`
     }))
-    .sort((a, b) => new Date(b.date) - new Date(a.date));
+    .sort(sortFixturesByDateDesc);
 }
 
 function main() {
+  const existingData = loadExistingFixturesData();
+
   const registryRows = readWorkbookSheetRows(registryWorkbookPath, 'Membership');
   const statsRows = readWorkbookSheetRows(statsWorkbookPath, 'Stats Input');
 
@@ -219,12 +337,22 @@ function main() {
     defaultRole: 'player'
   });
 
+  const importedUpperFixtures = buildFixtures(registry, 'Upper');
+  const importedLowerFixtures = buildFixtures(registry, 'Lower');
+
   const output = {
-    season: '2026',
-    competitionName: 'Placements',
+    ...existingData,
+    season: existingData.season || '2026',
+    competitionName: existingData.competitionName || 'Placements',
     divisions: {
-      Upper: buildFixtures(registry, 'Upper'),
-      Lower: buildFixtures(registry, 'Lower')
+      Upper: mergeFixtureDivision(
+        existingData.divisions?.Upper || [],
+        importedUpperFixtures
+      ),
+      Lower: mergeFixtureDivision(
+        existingData.divisions?.Lower || [],
+        importedLowerFixtures
+      )
     },
     generatedAt: new Date().toISOString()
   };
@@ -237,11 +365,23 @@ function main() {
 
   fs.writeFileSync(outputPath, fileContent, 'utf8');
 
-  console.log('\n===== FRONTEND FIXTURES DATA EXPORTED =====');
-  console.log(`Upper fixtures: ${output.divisions.Upper.length}`);
-  console.log(`Lower fixtures: ${output.divisions.Lower.length}`);
-  console.log(`Upper player rows: ${output.divisions.Upper.reduce((sum, fixture) => sum + fixture.playerRows.length, 0)}`);
-  console.log(`Lower player rows: ${output.divisions.Lower.reduce((sum, fixture) => sum + fixture.playerRows.length, 0)}`);
+  console.log('\n===== FRONTEND FIXTURES DATA MERGED =====');
+  console.log(`Imported Upper fixtures: ${importedUpperFixtures.length}`);
+  console.log(`Imported Lower fixtures: ${importedLowerFixtures.length}`);
+  console.log(`Final Upper fixtures: ${output.divisions.Upper.length}`);
+  console.log(`Final Lower fixtures: ${output.divisions.Lower.length}`);
+  console.log(
+    `Final Upper player rows: ${output.divisions.Upper.reduce(
+      (sum, fixture) => sum + fixture.playerRows.length,
+      0
+    )}`
+  );
+  console.log(
+    `Final Lower player rows: ${output.divisions.Lower.reduce(
+      (sum, fixture) => sum + fixture.playerRows.length,
+      0
+    )}`
+  );
   console.log(`Written to: ${outputPath}`);
 }
 

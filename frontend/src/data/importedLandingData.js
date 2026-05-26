@@ -3,7 +3,7 @@ export const importedLandingData = {
     "clubs": 8,
     "teams": 21,
     "players": 111,
-    "fixtures": 80
+    "fixtures": 93
   },
   "featuredCompetitions": [
     {
@@ -14,45 +14,45 @@ export const importedLandingData = {
   ],
   "latestResults": [
     {
-      "id": "latest_BOO 1_Guardians 2_13-May-26",
-      "fixtureName": "Best Of Order 1 vs Guardians 2",
-      "scoreText": "08 - 08",
-      "complete": true,
-      "division": "Upper",
-      "date": "13-May-26"
-    },
-    {
-      "id": "latest_Guardians 1_Stallion 2_13-May-26",
-      "fixtureName": "Guardians 1 vs Stallion 2",
-      "scoreText": "14 - 02",
-      "complete": true,
-      "division": "Upper",
-      "date": "13-May-26"
-    },
-    {
-      "id": "latest_Guardians 2_BOO 1_13-May-26",
-      "fixtureName": "Guardians 2 vs Best Of Order 1",
-      "scoreText": "08 - 08",
-      "complete": true,
-      "division": "Upper",
-      "date": "13-May-26"
-    },
-    {
-      "id": "latest_Stallion 1_West Point 1_13-May-26",
-      "fixtureName": "Stallion 1 vs West Point 1",
+      "id": "latest_BOO 1_West Point 1_20-May-26",
+      "fixtureName": "Best Of Order 1 vs West Point 1",
       "scoreText": "12 - 04",
       "complete": true,
       "division": "Upper",
-      "date": "13-May-26"
+      "date": "20-May-26"
     },
     {
-      "id": "latest_West Point 1_Stallion 1_13-May-26",
-      "fixtureName": "West Point 1 vs Stallion 1",
-      "scoreText": "04 - 12",
+      "id": "latest_Guardians 1_Stallion 1_20-May-26",
+      "fixtureName": "Guardians 1 vs Stallion 1",
+      "scoreText": "09 - 07",
       "complete": true,
       "division": "Upper",
-      "date": "13-May-26"
+      "date": "20-May-26"
+    },
+    {
+      "id": "latest_Guardians 2_Cathkin 1_20-May-26",
+      "fixtureName": "Guardians 2 vs Cathkin 1",
+      "scoreText": "08 - 08",
+      "complete": true,
+      "division": "Upper",
+      "date": "20-May-26"
+    },
+    {
+      "id": "latest_Stallion 1_Guardians 1_20-May-26",
+      "fixtureName": "Stallion 1 vs Guardians 1",
+      "scoreText": "07 - 09",
+      "complete": true,
+      "division": "Upper",
+      "date": "20-May-26"
+    },
+    {
+      "id": "latest_BOO 2_Stallion 2_20-May-26",
+      "fixtureName": "Best Of Order 2 vs Stallion 2",
+      "scoreText": "16 - 0",
+      "complete": true,
+      "division": "Upper",
+      "date": "20-May-26"
     }
   ],
-  "generatedAt": "2026-05-14T20:09:28.754Z"
+  "generatedAt": "2026-05-26T06:51:40.041Z"
 };

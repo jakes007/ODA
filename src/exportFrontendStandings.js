@@ -1,20 +1,17 @@
 import fs from 'fs';
 import path from 'path';
 import XLSX from 'xlsx';
-import { createEmptyRegistry } from './playerRegistry.js';
-import { importRegistryRows, importStatsRows } from './importer.js';
-import { buildCompetitionStandings } from './competitionStats.js';
 
-const registryWorkbookPath = path.resolve(
+const upperStandingsWorkbookPath = path.resolve(
   process.cwd(),
   'import-files',
-  'WC-CTN-O(1).xlsx'
+  'Upper Placement Logs.xlsx'
 );
 
-const statsWorkbookPath = path.resolve(
+const lowerStandingsWorkbookPath = path.resolve(
   process.cwd(),
   'import-files',
-  'ODA Union Stats 2026 Updated (1).xlsx'
+  'Lower Placement Logs.xlsx'
 );
 
 const outputPath = path.resolve(
@@ -25,12 +22,34 @@ const outputPath = path.resolve(
   'importedStandingsData.js'
 );
 
-function readWorkbookSheetRows(workbookPath, sheetName) {
+function clean(value) {
+  return String(value ?? '').trim();
+}
+
+function toNumber(value) {
+  const cleaned = clean(value).replace('%', '').replace(',', '');
+  const number = Number(cleaned);
+
+  return Number.isFinite(number) ? number : 0;
+}
+
+function normalizePercent(value) {
+  const number = toNumber(value);
+
+  if (number > 0 && number <= 1) {
+    return Number((number * 100).toFixed(1));
+  }
+
+  return number;
+}
+
+function readWorkbookFirstSheetRows(workbookPath) {
   const workbook = XLSX.readFile(workbookPath, { cellDates: false });
+  const sheetName = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheetName];
 
   if (!worksheet) {
-    throw new Error(`Sheet "${sheetName}" not found in ${workbookPath}`);
+    throw new Error(`No sheet found in ${workbookPath}`);
   }
 
   return XLSX.utils.sheet_to_json(worksheet, {
@@ -39,120 +58,86 @@ function readWorkbookSheetRows(workbookPath, sheetName) {
   });
 }
 
-function findCompetitionId(registry, name, season) {
-  const competition = Object.values(registry.competitions).find(
-    (item) => item.name === name && item.season === season
-  );
+function readField(row, possibleKeys) {
+  const rowKeys = Object.keys(row || {});
 
-  return competition?.competitionId ?? null;
+  for (const wantedKey of possibleKeys) {
+    const matchingKey = rowKeys.find(
+      (key) => clean(key).toLowerCase() === clean(wantedKey).toLowerCase()
+    );
+
+    if (matchingKey) {
+      return row[matchingKey];
+    }
+  }
+
+  return '';
 }
 
-function simplifyStandingsRows(rows) {
-  return rows.map((row) => ({
-    position: row.position,
-    teamName: row.teamName,
-    played: row.played,
-    won: row.won,
-    drawn: row.drawn,
-    lost: row.lost,
-    leaguePoints: row.leaguePoints,
-    legsFor: row.matchPointsFor,
-    legsAgainst: row.matchPointsAgainst,
-    scoreDifference: row.scoreDifference
-  }));
+function buildStandingsRows(rows) {
+  return rows
+    .filter((row) => clean(readField(row, ['Team'])))
+    .map((row, index) => ({
+      position: toNumber(readField(row, ['POS'])) || index + 1,
+      teamName: clean(readField(row, ['Team'])),
+      division: clean(readField(row, ['Division'])),
+      played: toNumber(readField(row, ['GP'])),
+      won: toNumber(readField(row, ['Win'])),
+      drawn: toNumber(readField(row, ['Draw'])),
+      lost: toNumber(readField(row, ['Lost'])),
+      leaguePoints: toNumber(readField(row, ['Pts'])),
+      legsFor: toNumber(readField(row, ['Legs for'])),
+      legsAgainst: toNumber(readField(row, ['Legs Against'])),
+      scoreDifference: toNumber(readField(row, ['LEG AGG.'])),
+      winPercentage: normalizePercent(readField(row, ['Win %'])),
+      total: toNumber(readField(row, ['Total'])),
+      dartsUsed: toNumber(readField(row, ['Darts Used'])),
+      chuckAverage: toNumber(readField(row, ['Chuck Ave'])),
+      noTons: toNumber(readField(row, ['No Tons'])),
+      oneEighties: toNumber(readField(row, ["180's"])),
+      oneSeventyOnes: toNumber(readField(row, ["171's"])),
+      legsPlayed: toNumber(readField(row, ['Legs Played']))
+    }))
+    .sort((a, b) => {
+      if (b.leaguePoints !== a.leaguePoints) {
+        return b.leaguePoints - a.leaguePoints;
+      }
+
+      if (b.scoreDifference !== a.scoreDifference) {
+        return b.scoreDifference - a.scoreDifference;
+      }
+
+      return b.legsFor - a.legsFor;
+    })
+    .map((row, index) => ({
+      ...row,
+      position: index + 1
+    }));
 }
 
 function main() {
-  const registryRows = readWorkbookSheetRows(registryWorkbookPath, 'Membership');
-  const statsRows = readWorkbookSheetRows(statsWorkbookPath, 'Stats Input');
+  const upperRows = readWorkbookFirstSheetRows(upperStandingsWorkbookPath);
+  const lowerRows = readWorkbookFirstSheetRows(lowerStandingsWorkbookPath);
 
-  console.log('\n===== STANDINGS EXPORT DEBUG =====');
-console.log('Stats workbook:', statsWorkbookPath);
-console.log('Stats rows:', statsRows.length);
-console.log('First row keys:', Object.keys(statsRows[0] || {}));
-
-const teamResultsRows = statsRows.filter(
-  (row) => String(row.Player || '').trim().toLowerCase() === 'team results'
-);
-
-console.log('Team Results rows:', teamResultsRows.length);
-console.log('First Team Results row:', teamResultsRows[0]);
-console.log('Sample rows:', statsRows.slice(0, 5));
-
-  const registry = createEmptyRegistry();
-
-  importRegistryRows(registry, registryRows, {
-    source: 'registry_import'
-  });
-
-  const statsImportResult = importStatsRows(registry, statsRows, {
-    competitionName: 'Placements',
-    competitionType: 'league',
-    season: '2026',
-    competitionStatus: 'active',
-    associationName: 'Observatory',
-    provinceName: 'Western Cape',
-    sourceWorkbook: path.basename(statsWorkbookPath),
-    sourceSheet: 'Stats Input',
-    defaultRole: 'player'
-  });
-  
-  console.log('\n===== IMPORT SUMMARY =====');
-  console.log(statsImportResult.summary);
-  
-  console.log('\n===== BLANK TEAMS IN REGISTRY =====');
-  console.log(
-    Object.values(registry.teams).filter(
-      (team) => !String(team.name || '').trim()
-    )
-  );
-  
-  console.log('\n===== LOWER TEAMS IN REGISTRY =====');
-  console.log(
-    Object.values(registry.teams)
-      .filter((team) => team.competitionId === findCompetitionId(registry, 'Placements', '2026'))
-      .map((team) => ({
-        name: team.name,
-        division: team.division,
-        competitionId: team.competitionId
-      }))
-  );
-
-  const competitionId = findCompetitionId(registry, 'Placements', '2026');
-
-  if (!competitionId) {
-    throw new Error('Could not find 2026 Placements competition');
-  }
-
-  const upper = buildCompetitionStandings(registry, competitionId, {
-    season: '2026',
-    division: 'Upper'
-  });
-
-  const lower = buildCompetitionStandings(registry, competitionId, {
-    season: '2026',
-    division: 'Lower'
-  });
+  const upperStandings = buildStandingsRows(upperRows);
+  const lowerStandings = buildStandingsRows(lowerRows);
 
   const fileContent = `export const importedStandingsData = {
   season: '2026',
   competitionName: 'Placements',
   divisions: {
-    Upper: ${JSON.stringify(simplifyStandingsRows(upper.standings), null, 4)},
-    Lower: ${JSON.stringify(simplifyStandingsRows(lower.standings), null, 4)}
-  }
+    Upper: ${JSON.stringify(upperStandings, null, 4)},
+    Lower: ${JSON.stringify(lowerStandings, null, 4)}
+  },
+  generatedAt: '${new Date().toISOString()}'
 };
 `;
 
   fs.writeFileSync(outputPath, fileContent, 'utf8');
 
-  console.log('\n===== FRONTEND STANDINGS EXPORTED =====');
-  console.log(`Upper teams: ${upper.standings.length}`);
-  console.log(`Lower teams: ${lower.standings.length}`);
-  console.log(
-    '\nLOWER TEAMS:\n',
-    lower.standings.map((t) => t.teamName)
-  );
+  console.log('\n===== FRONTEND STANDINGS EXPORTED FROM PLACEMENT LOGS =====');
+  console.log(`Upper teams: ${upperStandings.length}`);
+  console.log(`Lower teams: ${lowerStandings.length}`);
   console.log(`Written to: ${outputPath}`);
 }
 
