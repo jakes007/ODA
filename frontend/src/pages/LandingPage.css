@@ -937,3 +937,24 @@
     padding-right: 0;
   }
 }
+
+@media (max-width: 640px) {
+  .premium-broadcast-badge {
+    display: none;
+  }
+
+  .premium-broadcast-team {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .premium-broadcast-team-text,
+  .premium-broadcast-team-text-right {
+    text-align: center;
+    align-items: center;
+  }
+
+  .premium-broadcast-main {
+    gap: 18px;
+  }
+}

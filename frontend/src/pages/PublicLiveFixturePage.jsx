@@ -4,6 +4,7 @@ import PageHeader from '../components/common/PageHeader';
 import EmptyState from '../components/common/EmptyState';
 import { getPublicLiveFixtureData } from '../services/captainFixtureService';
 
+
 export default function PublicLiveFixturePage() {
   const { fixtureId } = useParams();
 
@@ -144,10 +145,10 @@ export default function PublicLiveFixturePage() {
       </section>
 
       <section className="plf-stat-grid">
-        <StatCard icon="◎" value={activeMatchups.length} label="Live Matchups" />
-        <StatCard icon="✓" value={completedMatchups.length} label="Completed" />
-        <StatCard icon="◌" value={waitingMatchups.length} label="Waiting" />
-        <StatCard icon="⚔" value={fixture.liveSession?.activeBoardCount ?? 0} label="Active Boards" />
+      <StatCard icon="◉" value={activeMatchups.length} label="Live Matchups" />
+<StatCard icon="✓" value={completedMatchups.length} label="Completed" />
+<StatCard icon="◷" value={waitingMatchups.length} label="Waiting" />
+<StatCard icon="⚔" value={fixture.liveSession?.activeBoardCount ?? 0} label="Active Boards" />
       </section>
 
       <section className="plf-panel">
