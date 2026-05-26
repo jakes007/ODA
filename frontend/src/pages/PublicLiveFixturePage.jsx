@@ -96,13 +96,15 @@ export default function PublicLiveFixturePage() {
     {fixture.homeTeam?.teamName}
   </span>
 
-  <span>{scoreParts.home}</span>
+  <div className="plf-score-values">
+    <span>{scoreParts.home}</span>
 
-  <span className="plf-score-divider">
-    -
-  </span>
+    <span className="plf-score-divider">
+      -
+    </span>
 
-  <span>{scoreParts.away}</span>
+    <span>{scoreParts.away}</span>
+  </div>
 
   <span className="plf-mobile-away-name">
     {fixture.awayTeam?.teamName}
