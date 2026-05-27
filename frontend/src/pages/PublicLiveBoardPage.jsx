@@ -157,15 +157,15 @@ function TurnColumn({ title, turns, away = false }) {
           <div key={index} className="plb-turn-row">
             {!away ? (
               <>
-                <div>{turn.scored}</div>
-                <span>→</span>
-                <div>{turn.remaining}</div>
+                <div>{turn.score}</div>
+<span>→</span>
+<div>{turn.resultingScore}</div>
               </>
             ) : (
               <>
-                <div>{turn.remaining}</div>
-                <span>←</span>
-                <div>{turn.scored}</div>
+                <div>{turn.resultingScore}</div>
+<span>←</span>
+<div>{turn.score}</div>
               </>
             )}
           </div>
@@ -194,7 +194,7 @@ function getMatchupPlayerNames(matchup) {
 }
 
 function getCombinedTurns(matchup) {
-  return matchup.liveState?.turnHistory ?? [];
+  return matchup.liveState?.turns ?? [];
 }
 
 function getTurnsForSide(matchup, side) {
