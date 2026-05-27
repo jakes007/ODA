@@ -98,21 +98,77 @@ export default function PublicLiveBoardPage() {
   </div>
 </div>
 
-        <div className="plb-history-board">
-          <TurnColumn title={players.home} turns={getTurnsForSide(matchup, 'home')} />
+<div className="plb-history-board">
+  <div className="plb-turn-column">
+    <div className="plb-turn-title">{players.home}</div>
+  </div>
 
-          <div className="plb-du-column">
-            <div className="plb-du-title">D/U</div>
+  <div className="plb-du-column">
+    <div className="plb-du-title">D/U</div>
+  </div>
 
-            {getDartsUsedList(matchup).map((value, index) => (
-              <div key={index} className="plb-du-bubble">
-                {value}
-              </div>
-            ))}
-          </div>
+  <div className="plb-turn-column away">
+    <div className="plb-turn-title">{players.away}</div>
+  </div>
 
-          <TurnColumn title={players.away} turns={getTurnsForSide(matchup, 'away')} away />
-        </div>
+  {getVisibleHistoryRows(matchup).map((row) => (
+    <div className="plb-history-row" key={row.dartsUsedTotal}>
+      <div className="plb-turn-row">
+      {row.homeTurn ? (
+  <>
+    <div>{row.homeTurn.score}</div>
+    <span>→</span>
+    <div>{row.homeTurn.resultingScore}</div>
+  </>
+) : shouldShowWaitingBlock(row, 'home') ? (
+  <div
+    className={`plb-empty-history ${
+      isActiveWaitingRow(row, currentSide, 'home')
+        ? 'active-waiting'
+        : 'inactive-waiting'
+    }`}
+  >
+    {isActiveWaitingRow(row, currentSide, 'home') ? 'Waiting' : ''}
+  </div>
+) : (
+  <div className="plb-empty-history inactive-waiting" />
+)}
+      </div>
+
+      <div
+  className={`plb-du-bubble ${
+    row.homeTurn && row.awayTurn
+      ? 'completed'
+      : 'pending'
+  }`}
+>
+  {row.dartsUsedTotal}
+</div>
+
+      <div className="plb-turn-row away">
+      {row.awayTurn ? (
+  <>
+    <div>{row.awayTurn.resultingScore}</div>
+    <span>←</span>
+    <div>{row.awayTurn.score}</div>
+  </>
+) : shouldShowWaitingBlock(row, 'away') ? (
+  <div
+    className={`plb-empty-history ${
+      isActiveWaitingRow(row, currentSide, 'away')
+        ? 'active-waiting'
+        : 'inactive-waiting'
+    }`}
+  >
+    {isActiveWaitingRow(row, currentSide, 'away') ? 'Waiting' : ''}
+  </div>
+) : (
+  <div className="plb-empty-history inactive-waiting" />
+)}
+      </div>
+    </div>
+  ))}
+</div>
 
         <div className="plb-stats-grid">
           <StatPill label="AVG" value={getAverage(matchup, 'home')} />
@@ -123,9 +179,48 @@ export default function PublicLiveBoardPage() {
           <StatPill label="180s" value={getCount(matchup, 'away', 180)} away />
           <StatPill label="TON+" value={getTons(matchup, 'away')} away />
         </div>
-      </section>
+        </section>
+
+{matchup.liveState?.winnerSide && (
+  <div className="plb-winner-overlay">
+    <div className="plb-winner-card">
+      <div className="plb-winner-kicker">
+        GAME COMPLETE
+      </div>
+
+      <h2>
+        {getWinnerName(matchup, players)} wins
+      </h2>
+
+      <div className="plb-winner-stats-grid">
+        <WinnerStats
+          playerName={players.home}
+          average={getAverage(matchup, 'home')}
+          oneEighties={getCount(matchup, 'home', 180)}
+          tons={getTons(matchup, 'home')}
+        />
+
+        <WinnerStats
+          playerName={players.away}
+          average={getAverage(matchup, 'away')}
+          oneEighties={getCount(matchup, 'away', 180)}
+          tons={getTons(matchup, 'away')}
+          away
+        />
+      </div>
+
+      <Link
+        to={`/live/${fixtureId}`}
+        className="plb-winner-back-btn"
+      >
+        ← Back To Progress Board
+      </Link>
     </div>
-  );
+  </div>
+)}
+
+</div>
+);
 }
 
 function ScorePanel({ side, active, playerName, score }) {
@@ -144,28 +239,28 @@ function ScorePanel({ side, active, playerName, score }) {
 }
 
 function TurnColumn({ title, turns, away = false }) {
-  const latestTurns = turns.slice(-5).reverse();
+  const visibleTurns = turns.slice(-5);
 
   return (
     <div className={`plb-turn-column ${away ? 'away' : ''}`}>
       <div className="plb-turn-title">{title}</div>
 
-      {latestTurns.length === 0 ? (
+      {visibleTurns.length === 0 ? (
         <div className="plb-empty-history">Waiting for first score</div>
       ) : (
-        latestTurns.map((turn, index) => (
-          <div key={index} className="plb-turn-row">
+        visibleTurns.map((turn, index) => (
+          <div key={`${turn.createdAt}-${index}`} className="plb-turn-row">
             {!away ? (
               <>
                 <div>{turn.score}</div>
-<span>→</span>
-<div>{turn.resultingScore}</div>
+                <span>→</span>
+                <div>{turn.resultingScore}</div>
               </>
             ) : (
               <>
                 <div>{turn.resultingScore}</div>
-<span>←</span>
-<div>{turn.score}</div>
+                <span>←</span>
+                <div>{turn.score}</div>
               </>
             )}
           </div>
@@ -182,6 +277,41 @@ function StatPill({ label, value, away = false }) {
       <strong>{value}</strong>
     </div>
   );
+}
+
+function WinnerStats({ playerName, average, oneEighties, tons, away = false }) {
+  return (
+    <div className={`plb-winner-player-card ${away ? 'away' : ''}`}>
+      <h3>{playerName}</h3>
+
+      <div className="plb-winner-stat-row">
+        <span>AVG</span>
+        <strong>{average}</strong>
+      </div>
+
+      <div className="plb-winner-stat-row">
+        <span>180s</span>
+        <strong>{oneEighties}</strong>
+      </div>
+
+      <div className="plb-winner-stat-row">
+        <span>TON+</span>
+        <strong>{tons}</strong>
+      </div>
+    </div>
+  );
+}
+
+function getWinnerName(matchup, players) {
+  if (matchup.liveState?.winnerSide === 'home') {
+    return players.home;
+  }
+
+  if (matchup.liveState?.winnerSide === 'away') {
+    return players.away;
+  }
+
+  return 'Winner';
 }
 
 function getMatchupPlayerNames(matchup) {
@@ -212,24 +342,60 @@ function getDartsUsedList(matchup) {
 }
 
 function getAverage(matchup, side) {
+  const stats = side === 'home'
+    ? matchup.liveState?.homeStats
+    : matchup.liveState?.awayStats;
+
+  if (stats?.average !== undefined) {
+    return stats.average;
+  }
+
   const turns = getTurnsForSide(matchup, side);
-  if (!turns.length) return '0.00';
 
-  const totalScored = turns.reduce((sum, turn) => sum + Number(turn.scored || 0), 0);
-  const dartsUsed = turns.reduce((sum, turn) => sum + Number(turn.dartsUsed || 3), 0);
+  if (!turns.length) {
+    return '0.00';
+  }
 
-  return dartsUsed ? ((totalScored / dartsUsed) * 3).toFixed(2) : '0.00';
+  const totalScored = turns.reduce(
+    (sum, turn) => sum + Number(turn.score || 0),
+    0
+  );
+
+  const dartsUsed = turns.reduce(
+    (sum, turn) => sum + Number(turn.dartsUsed || 3),
+    0
+  );
+
+  return dartsUsed
+    ? ((totalScored / dartsUsed) * 3).toFixed(2)
+    : '0.00';
 }
 
 function getCount(matchup, side, score) {
+  const stats = side === 'home'
+    ? matchup.liveState?.homeStats
+    : matchup.liveState?.awayStats;
+
+  if (score === 180 && stats?.oneEighties !== undefined) {
+    return stats.oneEighties;
+  }
+
   return getTurnsForSide(matchup, side).filter(
-    (turn) => Number(turn.scored) === score
+    (turn) => Number(turn.score) === score
   ).length;
 }
 
 function getTons(matchup, side) {
+  const stats = side === 'home'
+    ? matchup.liveState?.homeStats
+    : matchup.liveState?.awayStats;
+
+  if (stats?.tons !== undefined) {
+    return stats.tons;
+  }
+
   return getTurnsForSide(matchup, side).filter(
-    (turn) => Number(turn.scored) >= 100
+    (turn) => Number(turn.score) >= 100
   ).length;
 }
 
@@ -242,4 +408,51 @@ function getScoreParts(scoreText) {
     home: parts[0] || '0',
     away: parts[1] || '0'
   };
+}
+
+function getVisibleHistoryRows(matchup) {
+  const homeTurns = getTurnsForSide(matchup, 'home');
+  const awayTurns = getTurnsForSide(matchup, 'away');
+
+  const isLegComplete = Boolean(matchup.liveState?.winnerSide);
+
+  let unlockedRows = Math.max(homeTurns.length, awayTurns.length, 1);
+
+  const lastUnlockedRowComplete =
+    homeTurns.length === awayTurns.length &&
+    homeTurns.length > 0 &&
+    !isLegComplete;
+
+  if (lastUnlockedRowComplete) {
+    unlockedRows += 1;
+  }
+
+  const rows = Array.from({ length: unlockedRows }).map((_, index) => ({
+    rowIndex: index,
+    dartsUsedTotal: (index + 1) * 3,
+    homeTurn: homeTurns[index] || null,
+    awayTurn: awayTurns[index] || null
+  }));
+
+  return rows.slice(-3);
+}
+
+function isActiveWaitingRow(row, currentSide, side) {
+  if (currentSide !== side) {
+    return false;
+  }
+
+  if (side === 'home') {
+    return !row.homeTurn && !row.awayTurn;
+  }
+
+  return Boolean(row.homeTurn) && !row.awayTurn;
+}
+
+function shouldShowWaitingBlock(row, side) {
+  if (side === 'home') {
+    return !row.homeTurn && !row.awayTurn;
+  }
+
+  return Boolean(row.homeTurn) && !row.awayTurn;
 }

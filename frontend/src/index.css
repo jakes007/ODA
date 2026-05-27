@@ -5313,20 +5313,28 @@ text-overflow: ellipsis; /* ... if too long */
 
 .plb-history-board {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 20px;
-  align-items: start;
+  grid-template-columns: 1fr 78px 1fr;
+  gap: 12px 20px;
+  align-items: center;
   padding: 22px;
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.plb-history-row {
+  display: contents;
 }
 
 .plb-turn-title,
 .plb-du-title {
-  margin-bottom: 16px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
   color: #ff9800;
-  text-align: center;
   font-weight: 1000;
   font-size: 1.05rem;
 }
@@ -5336,21 +5344,25 @@ text-overflow: ellipsis; /* ... if too long */
 }
 
 .plb-turn-row {
+  height: 78px;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 14px;
-  margin-bottom: 12px;
 }
 
 .plb-turn-row div {
-  padding: 14px;
+  height: 78px;
+  padding: 0 14px;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.08);
   color: #ffffff;
   text-align: center;
   font-size: 2rem;
   font-weight: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .plb-turn-row span {
@@ -5359,15 +5371,8 @@ text-overflow: ellipsis; /* ... if too long */
   font-weight: 1000;
 }
 
-.plb-turn-column.away .plb-turn-row span {
+.plb-turn-row.away span {
   color: #a855f7;
-}
-
-.plb-du-column {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 13px;
 }
 
 .plb-du-bubble {
@@ -5377,20 +5382,25 @@ text-overflow: ellipsis; /* ... if too long */
   display: flex;
   align-items: center;
   justify-content: center;
+  justify-self: center;
   color: #ffffff;
   background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.12), transparent 42%),
-    rgba(255, 152, 0, 0.14);
-  border: 2px solid rgba(255, 152, 0, 0.55);
-  box-shadow: 0 0 22px rgba(255, 152, 0, 0.18);
-  font-size: 1.5rem;
+    radial-gradient(circle at top left, rgba(255,255,255,0.12), transparent 42%),
+    rgba(255,152,0,0.14);
+  border: 2px solid rgba(255,152,0,0.55);
+  box-shadow: 0 0 18px rgba(255,152,0,0.22);
+  font-size: 1.45rem;
   font-weight: 1000;
 }
 
 .plb-empty-history {
-  color: rgba(255, 255, 255, 0.58);
-  text-align: center;
-  padding: 26px;
+  grid-column: 1 / -1;
+  height: 78px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.45);
+  font-size: 0.9rem;
   font-weight: 800;
 }
 
@@ -5488,4 +5498,183 @@ text-overflow: ellipsis; /* ... if too long */
     min-width: auto;
     font-size: 2rem;
   }
+}
+
+.plb-empty-history.active-waiting {
+  color: #ffffff;
+  background:
+    radial-gradient(circle at top left, rgba(255, 152, 0, 0.24), transparent 45%),
+    rgba(255, 152, 0, 0.12);
+  border: 1px solid rgba(255, 152, 0, 0.5);
+  box-shadow:
+    0 0 24px rgba(255, 152, 0, 0.28),
+    inset 0 0 22px rgba(255, 152, 0, 0.08);
+}
+
+.plb-turn-row.away .plb-empty-history.active-waiting {
+  background:
+    radial-gradient(circle at top left, rgba(168, 85, 247, 0.26), transparent 45%),
+    rgba(168, 85, 247, 0.12);
+  border-color: rgba(168, 85, 247, 0.55);
+  box-shadow:
+    0 0 24px rgba(168, 85, 247, 0.3),
+    inset 0 0 22px rgba(168, 85, 247, 0.08);
+}
+
+.plb-score-panel.active {
+  border-width: 3px;
+  transform: scale(1.015);
+  box-shadow:
+    0 0 42px rgba(255, 152, 0, 0.35),
+    inset 0 0 42px rgba(255, 152, 0, 0.12);
+}
+
+.plb-score-panel.away.active {
+  box-shadow:
+    0 0 42px rgba(168, 85, 247, 0.38),
+    inset 0 0 42px rgba(168, 85, 247, 0.12);
+}
+
+.plb-du-bubble.pending {
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,0.12), transparent 42%),
+    rgba(255,152,0,0.14);
+
+  border: 2px solid rgba(255,152,0,0.55);
+
+  box-shadow:
+    0 0 18px rgba(255,152,0,0.22);
+
+  color: #ffffff;
+}
+
+.plb-du-bubble.completed {
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,0.12), transparent 42%),
+    rgba(34,197,94,0.18);
+
+  border: 2px solid rgba(34,197,94,0.65);
+
+  box-shadow:
+    0 0 22px rgba(34,197,94,0.34);
+
+  color: #ffffff;
+}
+
+.plb-winner-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(2, 6, 15, 0.82);
+  backdrop-filter: blur(14px);
+}
+
+.plb-winner-card {
+  width: min(920px, 100%);
+  border-radius: 32px;
+  padding: 32px;
+  text-align: center;
+  background:
+    radial-gradient(circle at top left, rgba(255, 152, 0, 0.18), transparent 36%),
+    radial-gradient(circle at top right, rgba(168, 85, 247, 0.18), transparent 36%),
+    linear-gradient(135deg, rgba(8, 14, 28, 0.98), rgba(2, 5, 12, 1));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 40px 110px rgba(0, 0, 0, 0.65);
+}
+
+.plb-winner-kicker {
+  color: #22c55e;
+  font-size: 0.85rem;
+  font-weight: 1000;
+  letter-spacing: 0.16em;
+}
+
+.plb-winner-card h2 {
+  margin: 12px 0 26px;
+  color: #ffffff;
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-weight: 1000;
+}
+
+.plb-winner-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.plb-winner-player-card {
+  border-radius: 24px;
+  padding: 22px;
+  background: rgba(255, 152, 0, 0.08);
+  border: 1px solid rgba(255, 152, 0, 0.28);
+}
+
+.plb-winner-player-card.away {
+  background: rgba(168, 85, 247, 0.09);
+  border-color: rgba(168, 85, 247, 0.28);
+}
+
+.plb-winner-player-card h3 {
+  margin: 0 0 18px;
+  color: #ff9800;
+  font-size: 1.35rem;
+  font-weight: 1000;
+}
+
+.plb-winner-player-card.away h3 {
+  color: #a855f7;
+}
+
+.plb-winner-stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  color: #ffffff;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.plb-winner-stat-row span {
+  color: rgba(255, 255, 255, 0.62);
+  font-weight: 900;
+}
+
+.plb-winner-stat-row strong {
+  font-size: 1.25rem;
+  font-weight: 1000;
+}
+
+.plb-winner-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 24px;
+  border-radius: 999px;
+  color: #02040a;
+  background: #ff9800;
+  text-decoration: none;
+  font-weight: 1000;
+}
+
+@media (max-width: 640px) {
+  .plb-winner-card {
+    padding: 22px;
+    border-radius: 24px;
+  }
+
+  .plb-winner-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.plb-empty-history.inactive-waiting {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: transparent;
 }

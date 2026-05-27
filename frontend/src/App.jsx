@@ -32,189 +32,192 @@ import PublicLiveBoardPage from './pages/PublicLiveBoardPage';
 
 export default function App() {
   return (
-    <AppLayout>
+    <>
       <ScrollToTop />
 
       <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/competition/standings" element={<StandingsPage />} />
-        <Route path="/competition/rankings" element={<RankingsPage />} />
-        <Route path="/competition/fixtures" element={<FixturesPage />} />
-        <Route path="/competition/fixtures/:fixtureId" element={<FixtureDetailPage />} />
-        <Route path="/player/:playerId" element={<PlayerProfilePage />} />
-        <Route path="/competition/club-rankings" element={<ClubRankingsPage />} />
         <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <RoleRoute allowedRoles={['player']}>
-                <PlayerDashboardPage />
-              </RoleRoute>
-            </ProtectedRoute>
-          }
+          path="/live/:fixtureId/board/:matchupId"
+          element={<PublicLiveBoardPage />}
         />
 
         <Route
-          path="/captain"
+          path="*"
           element={
-            <ProtectedRoute>
-              <RoleRoute allowedRoles={['captain']}>
-                <CaptainDashboardPage />
-              </RoleRoute>
-            </ProtectedRoute>
-          }
-        />
+            <AppLayout>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
 
-        <Route
-          path="/captain/fixture/:fixtureId/setup"
-          element={
-            <ProtectedRoute>
-              <RoleRoute allowedRoles={['captain']}>
-                <CaptainFixtureSetupPage />
-              </RoleRoute>
-            </ProtectedRoute>
-          }
-        />
+                <Route path="/live" element={<PublicLiveHubPage />} />
+                <Route path="/live/:fixtureId" element={<PublicLiveFixturePage />} />
 
-        <Route
-          path="/captain/fixture/:fixtureId/live"
-          element={
-            <ProtectedRoute>
-              <RoleRoute allowedRoles={['captain']}>
-                <CaptainLiveScoringPage />
-              </RoleRoute>
-            </ProtectedRoute>
-          }
-        />
+                <Route path="/competition/standings" element={<StandingsPage />} />
+                <Route path="/competition/rankings" element={<RankingsPage />} />
+                <Route path="/competition/fixtures" element={<FixturesPage />} />
+                <Route path="/competition/fixtures/:fixtureId" element={<FixtureDetailPage />} />
+                <Route path="/competition/club-rankings" element={<ClubRankingsPage />} />
+                <Route path="/player/:playerId" element={<PlayerProfilePage />} />
 
-<Route
-  path="/live"
-  element={<PublicLiveHubPage />}
-/>
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <RoleRoute allowedRoles={['player']}>
+                        <PlayerDashboardPage />
+                      </RoleRoute>
+                    </ProtectedRoute>
+                  }
+                />
 
-<Route
-          path="/live/:fixtureId"
-          element={<PublicLiveFixturePage />}
-        />
+                <Route
+                  path="/captain"
+                  element={
+                    <ProtectedRoute>
+                      <RoleRoute allowedRoles={['captain']}>
+                        <CaptainDashboardPage />
+                      </RoleRoute>
+                    </ProtectedRoute>
+                  }
+                />
 
-<Route
-  path="/live/:fixtureId/board/:matchupId"
-  element={<PublicLiveBoardPage />}
-/>
+                <Route
+                  path="/captain/fixture/:fixtureId/setup"
+                  element={
+                    <ProtectedRoute>
+                      <RoleRoute allowedRoles={['captain']}>
+                        <CaptainFixtureSetupPage />
+                      </RoleRoute>
+                    </ProtectedRoute>
+                  }
+                />
 
-        <Route
-          path="/captain/fixture/:fixtureId/matchup/:matchupId"
-          element={
-            <ProtectedRoute>
-              <RoleRoute allowedRoles={['captain']}>
-                <CaptainMatchupScoringPage />
-              </RoleRoute>
-            </ProtectedRoute>
-          }
-        />
+                <Route
+                  path="/captain/fixture/:fixtureId/live"
+                  element={
+                    <ProtectedRoute>
+                      <RoleRoute allowedRoles={['captain']}>
+                        <CaptainLiveScoringPage />
+                      </RoleRoute>
+                    </ProtectedRoute>
+                  }
+                />
 
-<Route
-  path="/admin/seasons"
-  element={
-    <ProtectedRoute>
-      <RoleRoute allowedRoles={['admin']}>
-        <AdminSeasonsPage />
-      </RoleRoute>
-    </ProtectedRoute>
-  }
-/>
+                <Route
+                  path="/captain/fixture/:fixtureId/matchup/:matchupId"
+                  element={
+                    <ProtectedRoute>
+                      <RoleRoute allowedRoles={['captain']}>
+                        <CaptainMatchupScoringPage />
+                      </RoleRoute>
+                    </ProtectedRoute>
+                  }
+                />
 
-<Route
-  path="/admin/competitions"
-  element={
-    <ProtectedRoute>
-      <RoleRoute allowedRoles={['admin']}>
-        <AdminCompetitionsPage />
-      </RoleRoute>
-    </ProtectedRoute>
-  }
-/>
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute>
+                      <RoleRoute allowedRoles={['admin']}>
+                        <AdminDashboardPage />
+                      </RoleRoute>
+                    </ProtectedRoute>
+                  }
+                />
 
-<Route
-  path="/admin/divisions"
-  element={
-    <ProtectedRoute>
-      <RoleRoute allowedRoles={['admin']}>
-        <AdminDivisionsPage />
-      </RoleRoute>
-    </ProtectedRoute>
-  }
-/>
+                <Route
+                  path="/admin/seasons"
+                  element={
+                    <ProtectedRoute>
+                      <RoleRoute allowedRoles={['admin']}>
+                        <AdminSeasonsPage />
+                      </RoleRoute>
+                    </ProtectedRoute>
+                  }
+                />
 
-<Route
-  path="/admin/teams"
-  element={
-    <ProtectedRoute>
-      <RoleRoute allowedRoles={['admin']}>
-        <AdminTeamsPage />
-      </RoleRoute>
-    </ProtectedRoute>
-  }
-/>
+                <Route
+                  path="/admin/competitions"
+                  element={
+                    <ProtectedRoute>
+                      <RoleRoute allowedRoles={['admin']}>
+                        <AdminCompetitionsPage />
+                      </RoleRoute>
+                    </ProtectedRoute>
+                  }
+                />
 
-<Route
-  path="/admin/teams/:teamId"
-  element={
-    <ProtectedRoute>
-      <RoleRoute allowedRoles={['admin']}>
-        <AdminTeamDetailPage />
-      </RoleRoute>
-    </ProtectedRoute>
-  }
-/>
+                <Route
+                  path="/admin/divisions"
+                  element={
+                    <ProtectedRoute>
+                      <RoleRoute allowedRoles={['admin']}>
+                        <AdminDivisionsPage />
+                      </RoleRoute>
+                    </ProtectedRoute>
+                  }
+                />
 
-<Route
-  path="/admin/fixtures"
-  element={
-    <ProtectedRoute>
-      <RoleRoute allowedRoles={['admin']}>
-        <AdminFixturesPage />
-      </RoleRoute>
-    </ProtectedRoute>
-  }
-/>
+                <Route
+                  path="/admin/teams"
+                  element={
+                    <ProtectedRoute>
+                      <RoleRoute allowedRoles={['admin']}>
+                        <AdminTeamsPage />
+                      </RoleRoute>
+                    </ProtectedRoute>
+                  }
+                />
 
-<Route
-  path="/admin/match-formats"
-  element={
-    <ProtectedRoute>
-      <RoleRoute allowedRoles={['admin']}>
-        <AdminMatchFormatsPage />
-      </RoleRoute>
-    </ProtectedRoute>
-  }
-/>
+                <Route
+                  path="/admin/teams/:teamId"
+                  element={
+                    <ProtectedRoute>
+                      <RoleRoute allowedRoles={['admin']}>
+                        <AdminTeamDetailPage />
+                      </RoleRoute>
+                    </ProtectedRoute>
+                  }
+                />
 
-<Route
-  path="/admin/registry"
-  element={
-    <ProtectedRoute>
-      <RoleRoute allowedRoles={['admin']}>
-        <AdminRegistryPage />
-      </RoleRoute>
-    </ProtectedRoute>
-  }
-/>
+                <Route
+                  path="/admin/fixtures"
+                  element={
+                    <ProtectedRoute>
+                      <RoleRoute allowedRoles={['admin']}>
+                        <AdminFixturesPage />
+                      </RoleRoute>
+                    </ProtectedRoute>
+                  }
+                />
 
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <RoleRoute allowedRoles={['admin']}>
-                <AdminDashboardPage />
-              </RoleRoute>
-            </ProtectedRoute>
+                <Route
+                  path="/admin/match-formats"
+                  element={
+                    <ProtectedRoute>
+                      <RoleRoute allowedRoles={['admin']}>
+                        <AdminMatchFormatsPage />
+                      </RoleRoute>
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/admin/registry"
+                  element={
+                    <ProtectedRoute>
+                      <RoleRoute allowedRoles={['admin']}>
+                        <AdminRegistryPage />
+                      </RoleRoute>
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </AppLayout>
           }
         />
       </Routes>
-    </AppLayout>
+    </>
   );
 }
-
