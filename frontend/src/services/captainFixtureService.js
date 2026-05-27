@@ -848,41 +848,126 @@ const liveSession = {
       resultingScore = nextScoreLeft;
     }
   
-    const nextTurn = {
-      side: currentSide,
-      playerIndex: matchup.liveState.currentPlayerIndex || 0,
-      score: numericScore,
-      bust,
-      resultingScore,
-      dartsUsed: 3,
-      createdAt: new Date().toISOString()
-    };
-  
-    const updatedLiveState = {
-      ...matchup.liveState,
-      [scoreKey]: bust ? currentScoreLeft : resultingScore,
-      currentTurnSide: winnerSide
-        ? currentSide
-        : getNextTurnSide(currentSide),
-      turns: [...(matchup.liveState.turns || []), nextTurn],
-      winnerSide
-    };
-  
-    const updatedMatchup = {
-      ...matchup,
-      status: winnerSide ? 'completed' : 'in_progress',
-      liveState: updatedLiveState,
-      result: winnerSide
-        ? {
-            winnerSide,
-            winnerTeamName:
-              winnerSide === 'home'
-                ? fixture.homeTeamName || 'Home'
-                : fixture.awayTeamName || 'Away'
-          }
-        : matchup.result || null,
-      boardNumber: winnerSide ? null : matchup.boardNumber
-    };
+    const existingTurns = matchup.liveState.turns || [];
+
+const nextTurn = {
+  side: currentSide,
+  playerIndex: matchup.liveState.currentPlayerIndex || 0,
+  score: numericScore,
+  bust,
+  resultingScore,
+  dartsUsed: Number(dartsUsed || 3),
+  createdAt: new Date().toISOString()
+};
+
+const nextTurns = [
+  ...existingTurns,
+  nextTurn
+];
+
+const homeTurns = nextTurns.filter(
+  (turn) => turn.side === 'home'
+);
+
+const awayTurns = nextTurns.filter(
+  (turn) => turn.side === 'away'
+);
+
+const homeTotalScored = homeTurns.reduce(
+  (total, turn) => total + Number(turn.score || 0),
+  0
+);
+
+const awayTotalScored = awayTurns.reduce(
+  (total, turn) => total + Number(turn.score || 0),
+  0
+);
+
+const homeDartsUsed = homeTurns.reduce(
+  (total, turn) => total + Number(turn.dartsUsed || 3),
+  0
+);
+
+const awayDartsUsed = awayTurns.reduce(
+  (total, turn) => total + Number(turn.dartsUsed || 3),
+  0
+);
+
+const homeAverage =
+  homeDartsUsed > 0
+    ? ((homeTotalScored / homeDartsUsed) * 3).toFixed(2)
+    : '0.00';
+
+const awayAverage =
+  awayDartsUsed > 0
+    ? ((awayTotalScored / awayDartsUsed) * 3).toFixed(2)
+    : '0.00';
+
+const home180s = homeTurns.filter(
+  (turn) => Number(turn.score) === 180
+).length;
+
+const away180s = awayTurns.filter(
+  (turn) => Number(turn.score) === 180
+).length;
+
+const homeTons = homeTurns.filter(
+  (turn) => Number(turn.score) >= 100
+).length;
+
+const awayTons = awayTurns.filter(
+  (turn) => Number(turn.score) >= 100
+).length;
+
+const updatedLiveState = {
+  ...matchup.liveState,
+
+  [scoreKey]: bust
+    ? currentScoreLeft
+    : resultingScore,
+
+  currentTurnSide: winnerSide
+    ? currentSide
+    : getNextTurnSide(currentSide),
+
+  turns: nextTurns,
+
+  winnerSide,
+
+  homeStats: {
+    average: homeAverage,
+    oneEighties: home180s,
+    tons: homeTons,
+    dartsUsed: homeDartsUsed
+  },
+
+  awayStats: {
+    average: awayAverage,
+    oneEighties: away180s,
+    tons: awayTons,
+    dartsUsed: awayDartsUsed
+  }
+};
+
+const updatedMatchup = {
+  ...matchup,
+  status: winnerSide ? 'completed' : 'in_progress',
+  liveState: updatedLiveState,
+
+  result: winnerSide
+    ? {
+        winnerSide,
+        winnerTeamName:
+          winnerSide === 'home'
+            ? fixture.homeTeamName || 'Home'
+            : fixture.awayTeamName || 'Away'
+      }
+    : matchup.result || null,
+
+  boardNumber: winnerSide
+    ? null
+    : matchup.boardNumber
+};
   
     const nextGames = games.map((game) =>
       game.matchupId === matchupId ? updatedMatchup : game

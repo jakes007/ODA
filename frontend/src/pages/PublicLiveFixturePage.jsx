@@ -168,11 +168,11 @@ export default function PublicLiveFixturePage() {
 
               <div className="plf-matchup-list">
                 {block.matchups.map((matchup) => (
-                  <button
-                    key={matchup.matchupId}
-                    type="button"
-                    className={`plf-matchup-card ${matchup.status}`}
-                  >
+                  <Link
+                  key={matchup.matchupId}
+                  to={`/live/${fixture.fixtureId}/board/${matchup.matchupId}`}
+                  className={`plf-matchup-card ${matchup.status}`}
+                >
                     <div className="plf-matchup-title">
                       {matchup.label}
                     </div>
@@ -187,7 +187,7 @@ export default function PublicLiveFixturePage() {
                         ▶ WATCH LIVE
                       </div>
                     )}
-                  </button>
+                  </Link>
                 ))}
               </div>
             </div>

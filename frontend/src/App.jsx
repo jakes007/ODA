@@ -28,6 +28,7 @@ import AdminMatchFormatsPage from './pages/AdminMatchFormatsPage';
 import AdminTeamDetailPage from './pages/AdminTeamDetailPage';
 import AdminRegistryPage from './pages/AdminRegistryPage';
 import PublicLiveHubPage from './pages/PublicLiveHubPage';
+import PublicLiveBoardPage from './pages/PublicLiveBoardPage';
 
 export default function App() {
   return (
@@ -97,6 +98,11 @@ export default function App() {
           path="/live/:fixtureId"
           element={<PublicLiveFixturePage />}
         />
+
+<Route
+  path="/live/:fixtureId/board/:matchupId"
+  element={<PublicLiveBoardPage />}
+/>
 
         <Route
           path="/captain/fixture/:fixtureId/matchup/:matchupId"
