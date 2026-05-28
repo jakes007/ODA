@@ -140,11 +140,9 @@ export default function CaptainDashboardPage() {
         />
       </section>
 
-      <section className="captain-command-focus-grid">
-        <ActionCard fixture={nextActionFixture} />
-
-        <LiveCard fixture={liveFixture} />
-      </section>
+      <section className="captain-command-live-wide">
+  <LiveCard fixture={liveFixture || nextActionFixture} />
+</section>
 
       <section className="captain-command-tools-card">
         <div className="captain-command-section-head">
@@ -197,21 +195,29 @@ export default function CaptainDashboardPage() {
 function TeamCard({ team, fixtures, stats }) {
   return (
     <article className="captain-command-team-card">
-      <div className="captain-command-team-mark">
-        {getTeamInitials(team.name)}
+      <div className="captain-command-team-top">
+        <div className="captain-command-team-mark">
+          {getTeamInitials(team.name)}
+        </div>
+
+        <div className="captain-command-team-body">
+          <div className="captain-command-kicker captain-command-team-kicker">
+            My Team
+          </div>
+
+          <h2>{team.name}</h2>
+
+          <p>
+            {team.divisionName || 'Division'} • {team.competitionName || 'Competition'}
+          </p>
+        </div>
       </div>
 
-      <div className="captain-command-team-body">
-        <div className="captain-command-kicker">My Team</div>
-        <h2>{team.name}</h2>
-        <p>{team.divisionName || 'Division'} • {team.competitionName || 'Competition'}</p>
-
-        <div className="captain-command-mini-stats">
-          <MiniStat label="Fixtures" value={fixtures.length} />
-          <MiniStat label="Ready" value={stats.readyToPlay} />
-          <MiniStat label="Live" value={stats.active} />
-          <MiniStat label="Done" value={stats.completed} />
-        </div>
+      <div className="captain-command-mini-stats">
+        <MiniStat label="Fixtures" value={fixtures.length} />
+        <MiniStat label="Ready" value={stats.readyToPlay} />
+        <MiniStat label="Live" value={stats.active} />
+        <MiniStat label="Done" value={stats.completed} />
       </div>
     </article>
   );
@@ -221,33 +227,46 @@ function NextFixtureCard({ fixture, team }) {
   if (!fixture) {
     return (
       <article className="captain-command-next-card">
-        <div className="captain-command-kicker purple">Next Fixture</div>
-        <h2>No fixture scheduled</h2>
-        <p className="captain-command-muted">No upcoming fixture is linked to this team.</p>
+        <div className="captain-command-next-top">
+          <div className="captain-command-kicker purple">
+            Next Fixture
+          </div>
+
+          <h2>No fixture scheduled</h2>
+
+          <p className="captain-command-muted">
+            No upcoming fixture is linked to this team.
+          </p>
+        </div>
       </article>
     );
   }
 
   const opponent = getOpponentName(fixture, team);
+  const isLive = fixture.status === 'active';
 
   return (
     <article className="captain-command-next-card">
-      <div className="captain-command-kicker purple">Next Fixture</div>
+      <div className="captain-command-next-top">
+        <div className="captain-command-kicker purple">
+          {isLive ? 'Current Fixture' : 'Next Fixture'}
+        </div>
 
-      <h2>vs {opponent}</h2>
+        <h2>vs {opponent}</h2>
 
-      <div className="captain-command-meta-row">
-        <span>{fixture.fixtureDate || 'No date'}</span>
-        <span>{fixture.fixtureTime || 'Time TBC'}</span>
+        <div className="captain-command-meta-row">
+          <span>{fixture.fixtureDate || 'No date'}</span>
+          <span>{fixture.fixtureTime || 'Time TBC'}</span>
+        </div>
       </div>
 
       <div className="captain-command-next-stats">
-        <div>
+        <div className="captain-command-stat-hover-tile">
           <strong>{formatStatus(fixture.status || 'upcoming')}</strong>
           <span>Status</span>
         </div>
 
-        <div>
+        <div className="captain-command-stat-hover-tile">
           <strong>{fixture.scoreText || '0 - 0'}</strong>
           <span>Score</span>
         </div>
