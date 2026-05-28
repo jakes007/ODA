@@ -5721,3 +5721,1215 @@ text-overflow: ellipsis; /* ... if too long */
   font-size: 0.82rem;
   font-weight: 800;
 }
+
+.captain-control-page {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.captain-control-header,
+.captain-control-hero,
+.captain-control-main-grid,
+.captain-control-bottom-grid {
+  width: 100%;
+}
+
+.captain-control-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+
+.captain-control-header h1 {
+  margin: 4px 0;
+  font-size: clamp(28px, 4vw, 42px);
+}
+
+.captain-control-header p,
+.captain-control-muted {
+  color: rgba(255,255,255,0.62);
+}
+
+.captain-control-kicker {
+  color: #ff9800;
+  font-size: 12px;
+  font-weight: 1000;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.captain-control-kicker.purple {
+  color: #a855f7;
+}
+
+.captain-control-header-badge,
+.captain-control-live-pill {
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-weight: 1000;
+  background: rgba(255,152,0,0.12);
+  border: 1px solid rgba(255,152,0,0.32);
+  color: #ff9800;
+}
+
+.captain-control-hero {
+  display: grid;
+  grid-template-columns: 1.25fr 0.9fr;
+  gap: 18px;
+}
+
+.captain-control-team-card,
+.captain-control-next-card,
+.captain-control-action-card,
+.captain-control-live-card,
+.captain-control-tools,
+.captain-control-fixtures-panel,
+.captain-control-panel {
+  border-radius: 24px;
+  padding: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(255,152,0,0.08), transparent 34%),
+    linear-gradient(180deg, rgba(18,24,38,0.95), rgba(7,11,20,0.95));
+  border: 1px solid rgba(255,255,255,0.09);
+  box-shadow: 0 22px 60px rgba(0,0,0,0.38);
+}
+
+.captain-control-team-card {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.captain-control-team-mark {
+  width: 118px;
+  height: 118px;
+  border-radius: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff9800;
+  font-size: 34px;
+  font-weight: 1000;
+  background: rgba(255,152,0,0.09);
+  border: 1px solid rgba(255,152,0,0.34);
+  box-shadow: 0 0 38px rgba(255,152,0,0.22);
+}
+
+.captain-control-team-info h2,
+.captain-control-next-card h2,
+.captain-control-action-card h2 {
+  margin: 8px 0;
+  font-size: clamp(26px, 3vw, 38px);
+}
+
+.captain-control-team-info p,
+.captain-control-next-card p,
+.captain-control-action-card p {
+  color: rgba(255,255,255,0.68);
+}
+
+.captain-control-team-stats,
+.captain-control-countdown {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.captain-control-countdown {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.captain-control-mini-stat,
+.captain-control-countdown div {
+  text-align: center;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.045);
+}
+
+.captain-control-mini-stat strong,
+.captain-control-countdown strong {
+  display: block;
+  color: #ff9800;
+  font-size: 24px;
+  font-weight: 1000;
+}
+
+.captain-control-mini-stat span,
+.captain-control-countdown span {
+  color: rgba(255,255,255,0.58);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.captain-control-next-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: rgba(255,255,255,0.7);
+  margin-top: 14px;
+}
+
+.captain-control-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.captain-control-action-card {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  border-color: rgba(255,152,0,0.34);
+  box-shadow:
+    0 22px 60px rgba(0,0,0,0.42),
+    0 0 34px rgba(255,152,0,0.12);
+}
+
+.captain-control-action-icon {
+  width: 108px;
+  height: 108px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44px;
+  background: rgba(255,152,0,0.08);
+  border: 1px solid rgba(255,152,0,0.38);
+}
+
+.captain-control-action-content {
+  flex: 1;
+}
+
+.captain-control-action-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.captain-control-action-top span {
+  color: #ff9800;
+  font-size: 12px;
+  font-weight: 1000;
+}
+
+.captain-control-primary-action,
+.captain-control-live-btn {
+  margin-top: 18px;
+  min-height: 54px;
+  width: 100%;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: #111827;
+  font-weight: 1000;
+  background: linear-gradient(135deg, #ff9800, #ff6d00);
+  box-shadow: 0 20px 50px rgba(255,109,0,0.32);
+}
+
+.captain-control-live-card.active {
+  border-color: rgba(168,85,247,0.28);
+}
+
+.captain-control-section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.captain-control-section-head h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.captain-control-live-title {
+  font-size: 24px;
+  font-weight: 1000;
+}
+
+.captain-control-live-title span {
+  color: rgba(255,255,255,0.45);
+  margin: 0 8px;
+}
+
+.captain-control-live-score {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 18px;
+  align-items: center;
+  text-align: center;
+}
+
+.captain-control-live-score strong {
+  color: #ff9800;
+  font-size: 48px;
+  font-weight: 1000;
+}
+
+.captain-control-live-score div:last-child strong {
+  color: #a855f7;
+}
+
+.captain-control-live-score span {
+  color: rgba(255,255,255,0.6);
+  font-weight: 900;
+}
+
+.captain-control-empty-live {
+  min-height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.55);
+}
+
+.captain-control-tools h3 {
+  margin: 0 0 16px;
+}
+
+.captain-control-tool-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+}
+
+.captain-control-tool-card {
+  min-height: 116px;
+  border-radius: 18px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.045);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.captain-control-tool-card div {
+  font-size: 30px;
+}
+
+.captain-control-tool-card strong {
+  text-align: center;
+  font-size: 13px;
+}
+
+.captain-control-fixture-list,
+.captain-control-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.captain-control-fixture-row {
+  display: grid;
+  grid-template-columns: 82px 1fr 140px 150px 160px;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.045);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.captain-control-status-dot,
+.captain-control-fixture-status {
+  border-radius: 999px;
+  padding: 7px 10px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 1000;
+  background: rgba(255,152,0,0.12);
+  color: #ff9800;
+}
+
+.captain-control-status-dot.active {
+  color: #ff4d4f;
+  background: rgba(255,77,79,0.12);
+}
+
+.captain-control-status-dot.ready_to_play {
+  color: #22c55e;
+  background: rgba(34,197,94,0.12);
+}
+
+.captain-control-status-dot.completed {
+  color: #22c55e;
+  background: rgba(34,197,94,0.12);
+}
+
+.captain-control-fixture-teams {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.captain-control-fixture-teams span,
+.captain-control-fixture-date span {
+  color: rgba(255,255,255,0.58);
+  font-size: 12px;
+}
+
+.captain-control-fixture-date {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.captain-control-row-btn {
+  min-height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 900;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.captain-control-bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.captain-control-snapshot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.captain-control-snapshot-card,
+.captain-control-result-row {
+  border-radius: 16px;
+  padding: 16px;
+  background: rgba(255,255,255,0.045);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.captain-control-snapshot-card span,
+.captain-control-result-row span {
+  display: block;
+  color: rgba(255,255,255,0.6);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.captain-control-snapshot-card strong,
+.captain-control-result-row strong {
+  display: block;
+  margin-top: 6px;
+  color: #ff9800;
+  font-size: 24px;
+  font-weight: 1000;
+}
+
+.captain-control-loading {
+  padding: 24px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.045);
+  color: rgba(255,255,255,0.7);
+}
+
+@media (max-width: 1100px) {
+  .captain-control-hero,
+  .captain-control-main-grid,
+  .captain-control-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .captain-control-tool-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .captain-control-fixture-row {
+    grid-template-columns: 80px 1fr 130px;
+  }
+
+  .captain-control-fixture-status,
+  .captain-control-row-btn {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .captain-control-header,
+  .captain-control-team-card,
+  .captain-control-action-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .captain-control-team-mark,
+  .captain-control-action-icon {
+    width: 84px;
+    height: 84px;
+  }
+
+  .captain-control-team-stats,
+  .captain-control-tool-grid,
+  .captain-control-snapshot-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .captain-control-fixture-row {
+    grid-template-columns: 1fr;
+  }
+
+  .captain-control-row-btn {
+    width: 100%;
+  }
+}
+
+.captain-command-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.captain-command-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.captain-command-header h1 {
+  margin: 6px 0;
+  color: #ffffff;
+  font-size: clamp(30px, 4vw, 46px);
+  line-height: 1;
+  font-weight: 1000;
+  letter-spacing: -0.04em;
+}
+
+.captain-command-header p,
+.captain-command-muted {
+  color: rgba(226, 232, 240, 0.68);
+}
+
+.captain-command-kicker {
+  color: #ff9800;
+  font-size: 0.75rem;
+  font-weight: 1000;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.captain-command-kicker.purple {
+  color: #a855f7;
+}
+
+.captain-command-role-pill,
+.captain-command-live-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 18px;
+  border-radius: 999px;
+  color: #ff9800;
+  background: rgba(255, 152, 0, 0.11);
+  border: 1px solid rgba(255, 152, 0, 0.35);
+  font-weight: 1000;
+}
+
+.captain-command-top-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 18px;
+}
+
+.captain-command-focus-grid,
+.captain-command-bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.captain-command-team-card,
+.captain-command-next-card,
+.captain-command-action-card,
+.captain-command-live-card,
+.captain-command-tools-card,
+.captain-command-fixtures-card,
+.captain-command-panel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 152, 0, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(17, 24, 39, 0.96), rgba(7, 11, 20, 0.96));
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.captain-command-team-card {
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  align-items: center;
+  gap: 26px;
+}
+
+.captain-command-team-mark {
+  width: 132px;
+  height: 132px;
+  border-radius: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff9800;
+  font-size: 38px;
+  font-weight: 1000;
+  background:
+    radial-gradient(circle at top left, rgba(255, 152, 0, 0.22), transparent 42%),
+    rgba(255, 152, 0, 0.07);
+  border: 1px solid rgba(255, 152, 0, 0.34);
+  box-shadow:
+    0 0 36px rgba(255, 152, 0, 0.18),
+    inset 0 0 24px rgba(255, 152, 0, 0.06);
+}
+
+.captain-command-team-body h2,
+.captain-command-next-card h2,
+.captain-command-action-card h2 {
+  margin: 8px 0;
+  color: #ffffff;
+  font-size: clamp(28px, 3.2vw, 42px);
+  line-height: 1.05;
+  font-weight: 1000;
+  letter-spacing: -0.03em;
+}
+
+.captain-command-team-body p,
+.captain-command-next-card p,
+.captain-command-action-card p {
+  margin: 0;
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.captain-command-mini-stats {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 92px));
+  gap: 12px;
+}
+
+.captain-command-mini-stat,
+.captain-command-next-stats div {
+  min-height: 84px;
+  border-radius: 18px;
+  padding: 12px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.captain-command-mini-stat strong,
+.captain-command-next-stats strong {
+  display: block;
+  color: #ff9800;
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 1000;
+}
+
+.captain-command-mini-stat span,
+.captain-command-next-stats span {
+  display: block;
+  margin-top: 8px;
+  color: rgba(226, 232, 240, 0.62);
+  font-size: 0.68rem;
+  font-weight: 1000;
+  text-transform: uppercase;
+}
+
+.captain-command-meta-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  color: rgba(226, 232, 240, 0.74);
+  font-weight: 700;
+}
+
+.captain-command-next-stats {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.captain-command-action-card {
+  display: grid;
+  grid-template-columns: 118px 1fr;
+  gap: 24px;
+  align-items: center;
+  min-height: 270px;
+  border-color: rgba(255, 152, 0, 0.32);
+  box-shadow:
+    0 22px 70px rgba(0, 0, 0, 0.42),
+    0 0 36px rgba(255, 152, 0, 0.12);
+}
+
+.captain-command-action-card.idle {
+  border-color: rgba(34, 197, 94, 0.22);
+}
+
+.captain-command-action-icon {
+  width: 118px;
+  height: 118px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff9800;
+  background: rgba(255, 152, 0, 0.08);
+  border: 1px solid rgba(255, 152, 0, 0.4);
+  box-shadow:
+    0 0 36px rgba(255, 152, 0, 0.18),
+    inset 0 0 24px rgba(255, 152, 0, 0.06);
+}
+
+.captain-command-action-icon svg {
+  width: 52px;
+  height: 52px;
+}
+
+.captain-command-action-top,
+.captain-command-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.captain-command-action-top span,
+.captain-command-section-head span {
+  color: rgba(226, 232, 240, 0.7);
+  font-weight: 800;
+}
+
+.captain-command-primary-btn,
+.captain-command-live-btn {
+  margin-top: 20px;
+  min-height: 58px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: #101827;
+  font-weight: 1000;
+  background: linear-gradient(135deg, #ff9800, #ff6d00);
+  box-shadow:
+    0 20px 48px rgba(255, 109, 0, 0.32),
+    0 0 34px rgba(255, 152, 0, 0.16);
+}
+
+.captain-command-live-card {
+  min-height: 270px;
+  border-color: rgba(168, 85, 247, 0.24);
+}
+
+.captain-command-section-head h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 1000;
+}
+
+.captain-command-live-title {
+  margin-top: 24px;
+  color: #ffffff;
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 1000;
+}
+
+.captain-command-live-title span {
+  margin: 0 12px;
+  color: rgba(226, 232, 240, 0.42);
+}
+
+.captain-command-live-score {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.captain-command-live-score strong {
+  color: #ff9800;
+  font-size: 58px;
+  line-height: 1;
+  font-weight: 1000;
+}
+
+.captain-command-live-score div:last-child strong {
+  color: #a855f7;
+}
+
+.captain-command-live-score span {
+  display: block;
+  margin-top: 4px;
+  color: rgba(226, 232, 240, 0.65);
+  font-size: 0.8rem;
+  font-weight: 1000;
+  text-transform: uppercase;
+}
+
+.captain-command-live-score em {
+  color: rgba(226, 232, 240, 0.55);
+  font-style: normal;
+  font-size: 30px;
+  font-weight: 1000;
+}
+
+.captain-command-live-empty {
+  min-height: 168px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(226, 232, 240, 0.54);
+}
+
+.captain-command-tools-card {
+  padding: 20px 24px 24px;
+}
+
+.captain-command-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.captain-command-tool-tile {
+  min-height: 102px;
+  border-radius: 18px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  background:
+    radial-gradient(circle at top, rgba(255, 152, 0, 0.05), transparent 45%),
+    rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.captain-command-tool-icon {
+  width: 48px;
+  height: 48px;
+  color: #ff9800;
+}
+
+.captain-command-tool-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.captain-command-tool-tile strong {
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 1000;
+}
+
+.captain-command-fixture-list,
+.captain-command-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.captain-command-fixture-row {
+  min-height: 72px;
+  display: grid;
+  grid-template-columns: 94px 1fr 150px 150px 170px;
+  align-items: stretch;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.042);
+  border: 1px solid rgba(255, 255, 255, 0.075);
+}
+
+.captain-command-status-badge,
+.captain-command-fixture-status {
+  min-height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff9800;
+  background: rgba(255, 152, 0, 0.12);
+  font-size: 0.7rem;
+  font-weight: 1000;
+}
+
+.captain-command-status-badge.active {
+  color: #ff4d4f;
+  background: rgba(255, 77, 79, 0.13);
+}
+
+.captain-command-status-badge.completed {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.13);
+}
+
+.captain-command-status-badge.ready_to_play {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.13);
+}
+
+.captain-command-fixture-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.captain-command-fixture-main strong {
+  color: #ffffff;
+}
+
+.captain-command-fixture-main span,
+.captain-command-fixture-date span {
+  color: rgba(226, 232, 240, 0.62);
+  font-size: 0.78rem;
+}
+
+.captain-command-fixture-date strong {
+  color: #ffffff;
+}
+
+.captain-command-row-btn {
+  min-height: 42px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 1000;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,0.08),
+      rgba(255,255,255,0.03)
+    );
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 10px 24px rgba(0,0,0,0.22);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.captain-command-row-btn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255,152,0,0.32);
+  box-shadow:
+    0 14px 32px rgba(255,152,0,0.16),
+    0 0 20px rgba(255,152,0,0.12);
+}
+
+.captain-command-snapshot-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.captain-command-snapshot-tile,
+.captain-command-result-row {
+  border-radius: 16px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.captain-command-snapshot-tile span,
+.captain-command-result-row span {
+  display: block;
+  color: rgba(226, 232, 240, 0.62);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.captain-command-snapshot-tile strong,
+.captain-command-result-row strong {
+  display: block;
+  margin-top: 8px;
+  color: #ff9800;
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 1000;
+}
+
+.captain-command-loading {
+  padding: 24px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(226, 232, 240, 0.72);
+}
+
+@media (max-width: 1180px) {
+  .captain-command-top-grid,
+  .captain-command-focus-grid,
+  .captain-command-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .captain-command-tools-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .captain-command-fixture-row {
+    grid-template-columns: 90px 1fr 150px;
+  }
+
+  .captain-command-fixture-status,
+  .captain-command-row-btn {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .captain-command-page {
+    gap: 14px;
+  }
+
+  .captain-command-header {
+    flex-direction: column;
+  }
+
+  .captain-command-team-card,
+  .captain-command-action-card {
+    grid-template-columns: 1fr;
+  }
+
+  .captain-command-team-mark,
+  .captain-command-action-icon {
+    width: 86px;
+    height: 86px;
+    border-radius: 24px;
+  }
+
+  .captain-command-mini-stats,
+  .captain-command-tools-grid,
+  .captain-command-snapshot-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .captain-command-fixture-row {
+    grid-template-columns: 1fr;
+  }
+
+  .captain-command-row-btn {
+    width: 100%;
+  }
+
+  .captain-command-live-score strong {
+    font-size: 44px;
+  }
+}
+
+/* ===== CAPTAIN DASHBOARD POLISH PASS ===== */
+
+.captain-command-header h1 {
+  font-size: clamp(28px, 3.4vw, 40px);
+}
+
+.captain-command-top-grid {
+  grid-template-columns: 1.05fr 0.95fr;
+}
+
+.captain-command-team-card,
+.captain-command-next-card {
+  padding: 20px;
+}
+
+.captain-command-team-card {
+  grid-template-columns: 96px 1fr;
+  gap: 22px;
+}
+
+.captain-command-team-mark {
+  width: 96px;
+  height: 96px;
+  border-radius: 26px;
+  font-size: 30px;
+}
+
+.captain-command-team-body h2,
+.captain-command-next-card h2 {
+  font-size: clamp(26px, 2.8vw, 36px);
+}
+
+.captain-command-mini-stats {
+  margin-top: 16px;
+}
+
+.captain-command-mini-stat,
+.captain-command-next-stats div {
+  min-height: 74px;
+}
+
+.captain-command-focus-grid {
+  grid-template-columns: 0.82fr 1.18fr;
+}
+
+.captain-command-action-card,
+.captain-command-live-card {
+  min-height: 240px;
+}
+
+.captain-command-live-card.active {
+  border-color: rgba(168, 85, 247, 0.42);
+  box-shadow:
+    0 22px 70px rgba(0, 0, 0, 0.44),
+    0 0 42px rgba(168, 85, 247, 0.16);
+}
+
+.captain-command-live-pill {
+  animation: captainLivePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes captainLivePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(255, 77, 79, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 24px rgba(255, 77, 79, 0.35);
+  }
+}
+
+.captain-command-live-score strong {
+  font-size: 66px;
+}
+
+.captain-command-fixture-row {
+  padding: 10px 14px;
+  min-height: 66px;
+}
+
+.captain-command-row-btn {
+  min-height: 38px;
+}
+
+.captain-command-tool-tile,
+.captain-command-row-btn,
+.captain-command-primary-btn,
+.captain-command-live-btn {
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.captain-command-tool-tile:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 152, 0, 0.38);
+  box-shadow:
+    0 12px 32px rgba(255, 152, 0, 0.14),
+    inset 0 0 24px rgba(255, 152, 0, 0.04);
+}
+
+.captain-command-row-btn:hover,
+.captain-command-primary-btn:hover,
+.captain-command-live-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 18px 42px rgba(255, 109, 0, 0.34),
+    0 0 28px rgba(255, 152, 0, 0.18);
+}
+
+.captain-command-panel {
+  min-height: 330px;
+}
+
+.captain-command-snapshot-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.captain-command-snapshot-tile {
+  min-height: 92px;
+}
+
+.captain-command-result-row {
+  display: grid;
+  grid-template-columns: 90px 1fr auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.captain-command-result-row strong {
+  margin-top: 0;
+  font-size: 24px;
+}
+
+.captain-command-result-row span {
+  font-size: 0.85rem;
+}
+
+@media (max-width: 1180px) {
+  .captain-command-focus-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .captain-command-header h1 {
+    font-size: 30px;
+  }
+
+  .captain-command-team-card,
+  .captain-command-next-card,
+  .captain-command-action-card,
+  .captain-command-live-card,
+  .captain-command-tools-card,
+  .captain-command-fixtures-card,
+  .captain-command-panel {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .captain-command-team-card {
+    grid-template-columns: 1fr;
+  }
+
+  .captain-command-team-mark {
+    width: 82px;
+    height: 82px;
+    font-size: 26px;
+  }
+
+  .captain-command-live-score strong {
+    font-size: 46px;
+  }
+
+  .captain-command-result-row {
+    grid-template-columns: 1fr;
+  }
+}

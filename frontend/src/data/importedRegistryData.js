@@ -1,5 +1,5 @@
 export const importedRegistryData = {
-  "generatedAt": "2026-05-27T07:28:36.094Z",
+  "generatedAt": "2026-05-28T08:42:12.994Z",
   "summary": {
     "players": 112,
     "clubs": 8
@@ -15,7 +15,7 @@ export const importedRegistryData = {
     },
     {
       "clubName": "Cathkin",
-      "playerCount": 13
+      "playerCount": 14
     },
     {
       "clubName": "Eastside",
@@ -1308,7 +1308,7 @@ export const importedRegistryData = {
       "callingName": "",
       "initials": "N",
       "surname": "Kannemeyer",
-      "clubName": "",
+      "clubName": "Cathkin",
       "status": "Active",
       "category": "PDM",
       "associationName": "Observatory",
