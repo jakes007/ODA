@@ -192,8 +192,10 @@ export default function CaptainDashboardPage() {
       </section>
 
       <section className="captain-command-results-wide">
-  <RecentResultsCard fixtures={recentCompletedFixtures} />
-</section>
+  <RecentResultsCard
+  fixtures={recentCompletedFixtures}
+  team={mainTeam}
+/></section>
     </div>
   );
 }
@@ -441,7 +443,7 @@ function SnapshotCard({ stats }) {
   );
 }
 
-function RecentResultsCard({ fixtures }) {
+function RecentResultsCard({ fixtures, team }) {
   
 
   return (
@@ -467,12 +469,28 @@ function RecentResultsCard({ fixtures }) {
   const homeScore = Number(score.home || 0);
   const awayScore = Number(score.away || 0);
 
-  const resultType =
-    homeScore === awayScore
-      ? 'draw'
-      : homeScore > awayScore
-      ? 'win'
-      : 'loss';
+  const myTeamId =
+  team?.id ||
+  fixture.myTeamId ||
+  fixture.teamId;
+
+const isMyTeamHome =
+  fixture.homeTeamId === myTeamId;
+
+const myTeamScore = isMyTeamHome
+  ? homeScore
+  : awayScore;
+
+const opponentScore = isMyTeamHome
+  ? awayScore
+  : homeScore;
+
+const resultType =
+  myTeamScore === opponentScore
+    ? 'draw'
+    : myTeamScore > opponentScore
+    ? 'win'
+    : 'loss';
 
   return (
     <div

@@ -19,6 +19,13 @@ import { importedFixturesData } from '../data/importedFixturesData';
   
   const fixturesCollection = collection(db, 'fixtures');
 
+  function normalizeTeamName(name) {
+    return String(name || '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  
   function findImportedFixtureMatch(fixture, homeTeamName, awayTeamName) {
     const allImportedFixtures = [
       ...(importedFixturesData?.divisions?.Upper || []),
@@ -26,15 +33,21 @@ import { importedFixturesData } from '../data/importedFixturesData';
     ];
   
     return allImportedFixtures.find((importedFixture) => {
+      const importedHome =
+        importedFixture.homeTeamDisplay ||
+        importedFixture.homeTeamName ||
+        importedFixture.homeTeam;
+  
+      const importedAway =
+        importedFixture.awayTeamDisplay ||
+        importedFixture.awayTeamName ||
+        importedFixture.awayTeam;
+  
       const sameTeams =
-        importedFixture.homeTeamDisplay === homeTeamName &&
-        importedFixture.awayTeamDisplay === awayTeamName;
+        normalizeTeamName(importedHome) === normalizeTeamName(homeTeamName) &&
+        normalizeTeamName(importedAway) === normalizeTeamName(awayTeamName);
   
-      const sameDate =
-        String(importedFixture.date || '').trim() ===
-        String(fixture.fixtureDate || '').trim();
-  
-      return sameTeams && sameDate;
+      return sameTeams;
     });
   }
   
@@ -84,9 +97,9 @@ import { importedFixturesData } from '../data/importedFixturesData';
           awayTeamName: awayTeam.name,
         
           scoreText:
-            fixture.scoreText ||
-            importedFixture?.scoreText ||
-            `${fixture.score?.home ?? 0} - ${fixture.score?.away ?? 0}`,
+  fixture.scoreText ||
+  importedFixture?.scoreText ||
+  `${importedFixture?.homeScore ?? fixture.score?.home ?? 0} - ${importedFixture?.awayScore ?? fixture.score?.away ?? 0}`,
         
           importedScoreText: importedFixture?.scoreText || null,
           importedHomeScore: importedFixture?.homeScore ?? null,
