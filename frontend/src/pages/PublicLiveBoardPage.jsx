@@ -193,21 +193,33 @@ export default function PublicLiveBoardPage() {
       </h2>
 
       <div className="plb-winner-stats-grid">
-        <WinnerStats
-          playerName={players.home}
-          average={getAverage(matchup, 'home')}
-          oneEighties={getCount(matchup, 'home', 180)}
-          tons={getTons(matchup, 'home')}
-        />
+  <WinnerStats
+    playerName={players.home}
+    average={getAverage(matchup, 'home')}
+    oneEighties={getCount(matchup, 'home', 180)}
+    tons={getTons(matchup, 'home')}
+    highestScore={getHighestScore(matchup, 'home')}
+    totalDarts={getTotalDarts(matchup, 'home')}
+    scoreLeft={matchup.liveState?.homeScoreLeft}
+    checkout={getCheckoutScore(matchup, 'home')}
+    checkoutDarts={getCheckoutDarts(matchup, 'home')}
+    winner={matchup.liveState?.winnerSide === 'home'}
+  />
 
-        <WinnerStats
-          playerName={players.away}
-          average={getAverage(matchup, 'away')}
-          oneEighties={getCount(matchup, 'away', 180)}
-          tons={getTons(matchup, 'away')}
-          away
-        />
-      </div>
+  <WinnerStats
+    playerName={players.away}
+    average={getAverage(matchup, 'away')}
+    oneEighties={getCount(matchup, 'away', 180)}
+    tons={getTons(matchup, 'away')}
+    highestScore={getHighestScore(matchup, 'away')}
+    totalDarts={getTotalDarts(matchup, 'away')}
+    scoreLeft={matchup.liveState?.awayScoreLeft}
+    checkout={getCheckoutScore(matchup, 'away')}
+    checkoutDarts={getCheckoutDarts(matchup, 'away')}
+    winner={matchup.liveState?.winnerSide === 'away'}
+    away
+  />
+</div>
 
       <Link
         to={`/live/${fixtureId}`}
@@ -279,10 +291,43 @@ function StatPill({ label, value, away = false }) {
   );
 }
 
-function WinnerStats({ playerName, average, oneEighties, tons, away = false }) {
+function WinnerStats({
+  playerName,
+  average,
+  oneEighties,
+  tons,
+  highestScore,
+  totalDarts,
+  scoreLeft,
+  checkout,
+  checkoutDarts,
+  winner,
+  away = false
+}) {
   return (
     <div className={`plb-winner-player-card ${away ? 'away' : ''}`}>
-      <h3>{playerName}</h3>
+      <div className="plb-winner-player-header">
+        <h3>{playerName}</h3>
+
+        {winner && (
+          <span className="plb-winner-badge">
+            WINNER
+          </span>
+        )}
+      </div>
+
+      {winner ? (
+        <div className="plb-checkout-banner">
+          Checkout {checkout}
+          <span>
+            • {checkoutDarts} dart finish
+          </span>
+        </div>
+      ) : (
+        <div className="plb-score-left-banner">
+          {scoreLeft} Remaining
+        </div>
+      )}
 
       <div className="plb-winner-stat-row">
         <span>AVG</span>
@@ -298,6 +343,16 @@ function WinnerStats({ playerName, average, oneEighties, tons, away = false }) {
         <span>TON+</span>
         <strong>{tons}</strong>
       </div>
+
+      <div className="plb-winner-stat-row">
+        <span>Highest Score</span>
+        <strong>{highestScore}</strong>
+      </div>
+
+      <div className="plb-winner-stat-row">
+        <span>Total Darts</span>
+        <strong>{totalDarts}</strong>
+      </div>
     </div>
   );
 }
@@ -312,6 +367,47 @@ function getWinnerName(matchup, players) {
   }
 
   return 'Winner';
+}
+
+function getHighestScore(matchup, side) {
+  const turns = getTurnsForSide(matchup, side);
+
+  if (!turns.length) {
+    return 0;
+  }
+
+  return Math.max(...turns.map((turn) => Number(turn.score || 0)));
+}
+
+function getTotalDarts(matchup, side) {
+  return getTurnsForSide(matchup, side).reduce(
+    (sum, turn) => sum + Number(turn.dartsUsed || 3),
+    0
+  );
+}
+
+function getCheckoutScore(matchup, side) {
+  const turns = getTurnsForSide(matchup, side);
+
+  if (!turns.length) {
+    return 0;
+  }
+
+  const finalTurn = turns[turns.length - 1];
+
+  return finalTurn.score || 0;
+}
+
+function getCheckoutDarts(matchup, side) {
+  const turns = getTurnsForSide(matchup, side);
+
+  if (!turns.length) {
+    return 0;
+  }
+
+  const finalTurn = turns[turns.length - 1];
+
+  return finalTurn.dartsUsed || 3;
 }
 
 function getMatchupPlayerNames(matchup) {
