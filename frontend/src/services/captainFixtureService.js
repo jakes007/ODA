@@ -12,10 +12,31 @@ import {
   
   import { db } from '../firebase';
   import { getTeamById } from './adminTeamService';
+  
 
 import { importedRegistryData } from '../data/importedRegistryData';
+import { importedFixturesData } from '../data/importedFixturesData';
   
   const fixturesCollection = collection(db, 'fixtures');
+
+  function findImportedFixtureMatch(fixture, homeTeamName, awayTeamName) {
+    const allImportedFixtures = [
+      ...(importedFixturesData?.divisions?.Upper || []),
+      ...(importedFixturesData?.divisions?.Lower || [])
+    ];
+  
+    return allImportedFixtures.find((importedFixture) => {
+      const sameTeams =
+        importedFixture.homeTeamDisplay === homeTeamName &&
+        importedFixture.awayTeamDisplay === awayTeamName;
+  
+      const sameDate =
+        String(importedFixture.date || '').trim() ===
+        String(fixture.fixtureDate || '').trim();
+  
+      return sameTeams && sameDate;
+    });
+  }
   
   export async function getCaptainFixtures(teamId) {
     if (!teamId) return [];
@@ -51,10 +72,25 @@ import { importedRegistryData } from '../data/importedRegistryData';
         const homeTeam = await getTeamById(fixture.homeTeamId);
         const awayTeam = await getTeamById(fixture.awayTeamId);
   
+        const importedFixture = findImportedFixtureMatch(
+          fixture,
+          homeTeam.name,
+          awayTeam.name
+        );
+        
         return {
           ...fixture,
           homeTeamName: homeTeam.name,
-          awayTeamName: awayTeam.name
+          awayTeamName: awayTeam.name,
+        
+          scoreText:
+            fixture.scoreText ||
+            importedFixture?.scoreText ||
+            `${fixture.score?.home ?? 0} - ${fixture.score?.away ?? 0}`,
+        
+          importedScoreText: importedFixture?.scoreText || null,
+          importedHomeScore: importedFixture?.homeScore ?? null,
+          importedAwayScore: importedFixture?.awayScore ?? null
         };
       })
     );

@@ -110,8 +110,14 @@ export default function CaptainDashboardPage() {
   const nextActionFixture = getNextActionFixture(uniqueFixtures);
   const nextFixture = getNextFixture(uniqueFixtures);
   const recentCompletedFixtures = uniqueFixtures
-    .filter((fixture) => fixture.status === 'completed' || fixture.complete)
-    .slice(0, 4);
+  .filter((fixture) => fixture.status === 'completed' || fixture.complete)
+  .sort((a, b) => {
+    const dateA = new Date(`${a.fixtureDate || ''} ${a.fixtureTime || '00:00'}`);
+    const dateB = new Date(`${b.fixtureDate || ''} ${b.fixtureTime || '00:00'}`);
+
+    return dateB - dateA;
+  })
+  .slice(0, 4);
 
   return (
     <div className="captain-command-page">
@@ -140,9 +146,11 @@ export default function CaptainDashboardPage() {
         />
       </section>
 
-      <section className="captain-command-live-wide">
-  <LiveCard fixture={liveFixture || nextActionFixture} />
-</section>
+      {liveFixture && (
+  <section className="captain-command-live-wide">
+    <LiveCard fixture={liveFixture} />
+  </section>
+)}
 
       <section className="captain-command-tools-card">
         <div className="captain-command-section-head">
@@ -183,11 +191,9 @@ export default function CaptainDashboardPage() {
         </div>
       </section>
 
-      <section className="captain-command-bottom-grid">
-        <SnapshotCard stats={stats} />
-
-        <RecentResultsCard fixtures={recentCompletedFixtures} />
-      </section>
+      <section className="captain-command-results-wide">
+  <RecentResultsCard fixtures={recentCompletedFixtures} />
+</section>
     </div>
   );
 }
@@ -267,9 +273,9 @@ function NextFixtureCard({ fixture, team }) {
         </div>
 
         <div className="captain-command-stat-hover-tile">
-          <strong>{fixture.scoreText || '0 - 0'}</strong>
-          <span>Score</span>
-        </div>
+  <strong>{fixture.scoreText || '0 - 0'}</strong>
+  <span>Score</span>
+</div>
       </div>
     </article>
   );
@@ -332,7 +338,12 @@ function LiveCard({ fixture }) {
     );
   }
 
-  const score = getScoreParts(fixture.scoreText);
+  const score = getScoreParts(
+    fixture.scoreText ||
+    fixture.finalScore ||
+    fixture.result ||
+    `${fixture.score?.home ?? fixture.score?.homeScore ?? fixture.homeScore ?? fixture.homeTeamScore ?? 0} - ${fixture.score?.away ?? fixture.score?.awayScore ?? fixture.awayScore ?? fixture.awayTeamScore ?? 0}`
+  );
 
   return (
     <article className="captain-command-live-card active">
@@ -390,22 +401,24 @@ function FixtureRow({ fixture, team }) {
       </div>
 
       <div className="captain-command-fixture-main">
-        <strong>{fixture.homeTeamName || 'Home'} vs {fixture.awayTeamName || 'Away'}</strong>
-        <span>Opponent: {opponent}</span>
-      </div>
+  <strong>{fixture.homeTeamName || 'Home'} vs {fixture.awayTeamName || 'Away'}</strong>
+</div>
 
       <div className="captain-command-fixture-date">
         <strong>{fixture.fixtureDate || 'No date'}</strong>
         <span>{fixture.fixtureTime || ''}</span>
       </div>
 
-      <div className="captain-command-fixture-status">
-        {formatStatus(fixture.status || 'upcoming')}
-      </div>
+      <div className={`captain-command-fixture-status ${fixture.status || 'upcoming'}`}>
+  {formatStatus(fixture.status || 'upcoming')}
+</div>
 
-      <Link to={getCaptainFixtureRoute(fixture)} className="captain-command-row-btn">
-        {getActionButtonText(fixture)}
-      </Link>
+<Link
+  to={getCaptainFixtureRoute(fixture)}
+  className={`captain-command-row-btn ${fixture.status || 'upcoming'}`}
+>
+  {getActionButtonText(fixture)}
+</Link>
     </div>
   );
 }
@@ -429,6 +442,8 @@ function SnapshotCard({ stats }) {
 }
 
 function RecentResultsCard({ fixtures }) {
+  
+
   return (
     <article className="captain-command-panel">
       <div className="captain-command-section-head">
@@ -441,12 +456,53 @@ function RecentResultsCard({ fixtures }) {
           <p className="captain-command-muted">No completed fixtures yet.</p>
         )}
 
-        {fixtures.map((fixture) => (
-          <div key={fixture.id} className="captain-command-result-row">
-            <strong>{fixture.scoreText || 'Result'}</strong>
-            <span>{fixture.homeTeamName || 'Home'} vs {fixture.awayTeamName || 'Away'}</span>
-          </div>
-        ))}
+{fixtures.map((fixture) => {
+  const score = getScoreParts(
+    fixture.scoreText ||
+    fixture.finalScore ||
+    fixture.result ||
+    `${fixture.score?.home ?? fixture.score?.homeScore ?? 0} - ${fixture.score?.away ?? fixture.score?.awayScore ?? 0}`
+  );
+  
+  const homeScore = Number(score.home || 0);
+  const awayScore = Number(score.away || 0);
+
+  const resultType =
+    homeScore === awayScore
+      ? 'draw'
+      : homeScore > awayScore
+      ? 'win'
+      : 'loss';
+
+  return (
+    <div
+      key={fixture.id}
+      className={`captain-command-result-row ${resultType}`}
+    >
+      <div className={`captain-command-result-pill ${resultType}`}>
+        {resultType.toUpperCase()}
+      </div>
+
+      <div className="captain-command-result-content">
+      <div className="captain-command-result-score">
+  {homeScore} - {awayScore}
+</div>
+
+        <div className="captain-command-result-match">
+          {fixture.homeTeamName || 'Home'} vs {fixture.awayTeamName || 'Away'}
+        </div>
+
+        <div className="captain-command-result-meta">
+          Finished Match • Completed Fixture
+        </div>
+      </div>
+
+      <div className="captain-command-result-side">
+        FINAL
+      </div>
+    </div>
+  );
+})}
       </div>
     </article>
   );

@@ -6340,6 +6340,7 @@ text-overflow: ellipsis; /* ... if too long */
 .captain-command-mini-stat,
 .captain-command-next-stats div {
   min-height: 94px;
+  width: 100%;
   border-radius: 18px;
   padding: 12px;
   text-align: center;
@@ -6373,6 +6374,14 @@ text-overflow: ellipsis; /* ... if too long */
   min-height: 74px;
 }
 
+.captain-command-mini-stat,
+.captain-command-next-stats div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 .captain-command-mini-stat strong,
 .captain-command-next-stats strong {
   display: block;
@@ -6399,6 +6408,20 @@ text-overflow: ellipsis; /* ... if too long */
   margin-top: 18px;
   color: rgba(226, 232, 240, 0.74);
   font-weight: 700;
+}
+
+.captain-command-next-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 28px;
+  min-height: 260px;
+}
+
+.captain-command-next-top {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .captain-command-next-card {
@@ -6465,6 +6488,7 @@ text-overflow: ellipsis; /* ... if too long */
   align-items: center;
   justify-content: space-between;
   gap: 14px;
+  margin-bottom: 22px;
 }
 
 .captain-command-action-top span,
@@ -6634,25 +6658,28 @@ text-overflow: ellipsis; /* ... if too long */
   font-weight: 1000;
 }
 
-.captain-command-status-badge.active {
+.captain-command-status-badge.active,
+.captain-command-fixture-status.active {
   color: #ff4d4f;
-  background: rgba(255, 77, 79, 0.13);
+  background: rgba(255, 77, 79, 0.16);
 }
 
-.captain-command-status-badge.completed {
+.captain-command-status-badge.completed,
+.captain-command-fixture-status.completed {
   color: #22c55e;
-  background: rgba(34, 197, 94, 0.13);
+  background: rgba(34, 197, 94, 0.15);
 }
 
-.captain-command-status-badge.ready_to_play {
+.captain-command-status-badge.ready_to_play,
+.captain-command-fixture-status.ready_to_play {
   color: #22c55e;
-  background: rgba(34, 197, 94, 0.13);
+  background: rgba(34, 197, 94, 0.15);
 }
 
 .captain-command-fixture-main {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  height: 100%;
 }
 
 .captain-command-fixture-main strong {
@@ -6665,8 +6692,17 @@ text-overflow: ellipsis; /* ... if too long */
   font-size: 0.78rem;
 }
 
-.captain-command-fixture-date strong {
+.captain-command-fixture-date strong,
+.captain-command-fixture-date span {
   color: #ffffff;
+  line-height: 1;
+}
+
+.captain-command-fixture-date {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
 }
 
 .captain-command-row-btn {
@@ -6703,8 +6739,10 @@ text-overflow: ellipsis; /* ... if too long */
 
 .captain-command-snapshot-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
 }
 
 .captain-command-snapshot-tile,
@@ -6718,17 +6756,17 @@ text-overflow: ellipsis; /* ... if too long */
 .captain-command-snapshot-tile span,
 .captain-command-result-row span {
   display: block;
-  color: rgba(226, 232, 240, 0.62);
-  font-size: 0.78rem;
-  font-weight: 850;
+  color: rgba(226, 232, 240, 0.68);
+  font-size: 0.95rem;
+  font-weight: 900;
 }
 
 .captain-command-snapshot-tile strong,
 .captain-command-result-row strong {
   display: block;
-  margin-top: 8px;
+  margin-top: 14px;
   color: #ff9800;
-  font-size: 26px;
+  font-size: 42px;
   line-height: 1;
   font-weight: 1000;
 }
@@ -6817,8 +6855,18 @@ text-overflow: ellipsis; /* ... if too long */
 }
 
 .captain-command-team-card {
-  grid-template-columns: 96px 1fr;
-  gap: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 28px;
+  min-height: 260px;
+}
+
+.captain-command-team-top {
+  display: grid;
+  grid-template-columns: 112px 1fr;
+  align-items: start;
+  gap: 24px;
 }
 
 .captain-command-team-mark {
@@ -6939,6 +6987,8 @@ text-overflow: ellipsis; /* ... if too long */
 
 .captain-command-panel {
   min-height: 330px;
+  display: flex;
+  flex-direction: column;
 }
 
 .captain-command-snapshot-grid {
@@ -6946,23 +6996,156 @@ text-overflow: ellipsis; /* ... if too long */
 }
 
 .captain-command-snapshot-tile {
-  min-height: 92px;
+  min-height: 135px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .captain-command-result-row {
+  min-height: 92px;
   display: grid;
-  grid-template-columns: 90px 1fr auto;
+  grid-template-columns: 110px 1fr 90px;
   align-items: center;
-  gap: 14px;
+  gap: 18px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,0.05),
+      rgba(255,255,255,0.025)
+    );
+  border: 1px solid rgba(255,255,255,0.08);
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.captain-command-result-row strong {
-  margin-top: 0;
-  font-size: 24px;
+.captain-command-result-row:hover {
+  transform: translateY(-2px);
 }
 
-.captain-command-result-row span {
-  font-size: 0.85rem;
+.captain-command-result-row.win {
+  border-color: rgba(34,197,94,0.24);
+}
+
+.captain-command-result-row.loss {
+  border-color: rgba(255,77,79,0.24);
+}
+
+.captain-command-result-row.draw {
+  border-color: rgba(255,152,0,0.24);
+}
+
+.captain-command-result-pill {
+  min-height: 42px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.74rem;
+  font-weight: 1000;
+  letter-spacing: 0.08em;
+}
+
+.captain-command-result-pill.win {
+  color: #22c55e;
+  background: rgba(34,197,94,0.16);
+  border: 1px solid rgba(34,197,94,0.3);
+}
+
+.captain-command-result-pill.loss {
+  color: #ff4d4f;
+  background: rgba(255,77,79,0.16);
+  border: 1px solid rgba(255,77,79,0.3);
+}
+
+.captain-command-result-pill.draw {
+  color: #ff9800;
+  background: rgba(255,152,0,0.16);
+  border: 1px solid rgba(255,152,0,0.3);
+}
+
+.captain-command-result-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.captain-command-result-score {
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 1000;
+  line-height: 1;
+}
+
+.captain-command-result-match {
+  color: rgba(226,232,240,0.88);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.captain-command-result-meta {
+  color: rgba(226,232,240,0.48);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.captain-command-result-side {
+  color: rgba(255,255,255,0.34);
+  font-size: 0.7rem;
+  font-weight: 1000;
+  letter-spacing: 0.08em;
+  text-align: right;
+}
+
+.captain-command-result-status {
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 1000;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.captain-command-result-status.win {
+  color: #22c55e;
+  background: rgba(34,197,94,0.16);
+  border: 1px solid rgba(34,197,94,0.32);
+}
+
+.captain-command-result-status.loss {
+  color: #ff4d4f;
+  background: rgba(255,77,79,0.16);
+  border: 1px solid rgba(255,77,79,0.32);
+}
+
+.captain-command-result-status.draw {
+  color: #ff9800;
+  background: rgba(255,152,0,0.16);
+  border: 1px solid rgba(255,152,0,0.32);
+}
+
+.captain-command-result-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.captain-command-result-meta {
+  color: rgba(226,232,240,0.52);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 @media (max-width: 1180px) {
@@ -7051,4 +7234,35 @@ text-overflow: ellipsis; /* ... if too long */
   margin-top: 28px;
   min-height: 62px;
   font-size: 18px;
+}
+
+.captain-command-tools-card .captain-command-section-head {
+  margin-bottom: 28px;
+}
+
+.captain-command-row-btn.active {
+  background: rgba(255, 77, 79, 0.18);
+  border-color: rgba(255, 77, 79, 0.38);
+  color: #ffffff;
+  box-shadow: 0 0 24px rgba(255, 77, 79, 0.16);
+}
+
+.captain-command-row-btn.upcoming {
+  background: rgba(255, 152, 0, 0.16);
+  border-color: rgba(255, 152, 0, 0.34);
+  color: #ffffff;
+}
+
+.captain-command-row-btn.completed {
+  background: rgba(34, 197, 94, 0.16);
+  border-color: rgba(34, 197, 94, 0.34);
+  color: #ffffff;
+}
+
+.captain-command-results-wide {
+  width: 100%;
+}
+
+.captain-command-results-wide .captain-command-panel {
+  min-height: auto;
 }
