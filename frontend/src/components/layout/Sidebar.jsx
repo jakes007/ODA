@@ -1,6 +1,12 @@
+import { useEffect, useMemo, useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { useAuth } from '../../context/AuthContext';
+import { db } from '../../firebase';
+
 import guardiansLogo from '../../assets/guardians-logo.png';
+import seagullsLogo from '../../assets/seagulls-logo.png';
+import defaultTeamLogo from '../../assets/default-team-logo.png';
 import odaLogo from '../../assets/oda2-logo.png';
 
 const publicNavItems = [
@@ -12,10 +18,67 @@ const publicNavItems = [
   { to: '/player/player_jason', label: 'Player Profile', icon: 'user' }
 ];
 
+const teamLogoMap = {
+  guardians: guardiansLogo,
+  seagulls: seagullsLogo
+};
+
 export default function Sidebar({ mobile = false, isOpen = false, onClose = null }) {
   const { currentUser, isAuthenticated, logout } = useAuth();
+  const [captainTeam, setCaptainTeam] = useState(null);
 
   const isCaptain = isAuthenticated && currentUser?.role === 'captain';
+
+  useEffect(() => {
+    async function loadCaptainTeam() {
+      if (!isCaptain || !currentUser?.playerId) {
+        setCaptainTeam(null);
+        return;
+      }
+
+      const teamsQuery = query(
+        collection(db, 'teams'),
+        where('captainPlayerId', '==', currentUser.playerId)
+      );
+
+      const snapshot = await getDocs(teamsQuery);
+
+      if (snapshot.empty) {
+        setCaptainTeam(null);
+        return;
+      }
+
+      const teamDoc = snapshot.docs[0];
+
+      setCaptainTeam({
+        id: teamDoc.id,
+        ...teamDoc.data()
+      });
+    }
+
+    loadCaptainTeam();
+  }, [isCaptain, currentUser?.playerId]);
+
+  const teamName = useMemo(() => {
+    return (
+      captainTeam?.name ||
+      captainTeam?.teamName ||
+      currentUser?.teamName ||
+      currentUser?.team?.teamName ||
+      currentUser?.team?.name ||
+      'Team'
+    );
+  }, [captainTeam, currentUser]);
+
+  const teamLogo = useMemo(() => {
+    const cleanTeamName = teamName.toLowerCase();
+
+    return (
+      Object.entries(teamLogoMap).find(([key]) =>
+        cleanTeamName.includes(key)
+      )?.[1] || defaultTeamLogo
+    );
+  }, [teamName]);
 
   const sidebarClassName = mobile
     ? `sidebar premium-sidebar mobile-sidebar${isOpen ? ' open' : ''}`
@@ -44,15 +107,15 @@ export default function Sidebar({ mobile = false, isOpen = false, onClose = null
 
             <div className="sidebar-logo-wrap">
               <img
-                src={isCaptain ? guardiansLogo : odaLogo}
-                alt={isCaptain ? 'Guardians Dart Club' : 'Observatory Darts Association'}
+                src={isCaptain ? teamLogo : odaLogo}
+                alt={isCaptain ? `${teamName} logo` : 'Observatory Darts Association'}
               />
             </div>
 
             <div className="sidebar-brand-copy">
               {isCaptain ? (
                 <>
-                  <strong>Guardians 3</strong>
+                  <strong>{teamName}</strong>
                   <span>Captain Portal</span>
                 </>
               ) : (

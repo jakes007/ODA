@@ -10,6 +10,7 @@ export default function CaptainDashboardPage() {
   const [teams, setTeams] = useState([]);
   const [fixtures, setFixtures] = useState([]);
   const [loading, setLoading] = useState(true);
+const [activeModal, setActiveModal] = useState(null);
 
   useEffect(() => {
     loadDashboard();
@@ -109,15 +110,14 @@ export default function CaptainDashboardPage() {
   const liveFixture = uniqueFixtures.find((fixture) => fixture.status === 'active');
   const nextActionFixture = getNextActionFixture(uniqueFixtures);
   const nextFixture = getNextFixture(uniqueFixtures);
-  const recentCompletedFixtures = uniqueFixtures
+  const completedFixtures = uniqueFixtures
   .filter((fixture) => fixture.status === 'completed' || fixture.complete)
   .sort((a, b) => {
     const dateA = new Date(`${a.fixtureDate || ''} ${a.fixtureTime || '00:00'}`);
     const dateB = new Date(`${b.fixtureDate || ''} ${b.fixtureTime || '00:00'}`);
 
     return dateB - dateA;
-  })
-  .slice(0, 4);
+  });
 
   return (
     <div className="captain-command-page">
@@ -152,21 +152,36 @@ export default function CaptainDashboardPage() {
   </section>
 )}
 
-      <section className="captain-command-tools-card">
-        <div className="captain-command-section-head">
-          <h2>Quick Tools</h2>
-          <span>Captain shortcuts</span>
-        </div>
+<section className="captain-command-tools-card">
+  <div className="captain-command-section-head">
+    <h2>Captain Command Centre</h2>
+    <span>Useful captain tools</span>
+  </div>
 
-        <div className="captain-command-tools-grid">
-          <QuickTool icon="team" label="Team Management" />
-          <QuickTool icon="lineup" label="Submit Lineup" />
-          <QuickTool icon="target" label="Live Scoring" />
-          <QuickTool icon="stats" label="Team Stats" />
-          <QuickTool icon="calendar" label="Fixture History" />
-          <QuickTool icon="swap" label="Substitutions" />
-        </div>
-      </section>
+  <div className="captain-command-tools-grid premium-command-tools">
+    <QuickTool
+      icon="calendar"
+      label="Fixture History"
+      description="View completed fixtures by month"
+      onClick={() => setActiveModal('history')}
+    />
+
+    <QuickTool
+      icon="stats"
+      label="Team Statistics"
+      description="Review team performance summary"
+      onClick={() => setActiveModal('stats')}
+    />
+
+    <QuickTool
+      icon="target"
+      label={liveFixture ? 'Open Live Match' : 'No Live Match'}
+      description={liveFixture ? 'Continue the current live fixture' : 'No active fixture right now'}
+      to={liveFixture ? getCaptainFixtureRoute(liveFixture) : null}
+      disabled={!liveFixture}
+    />
+  </div>
+</section>
 
       <section className="captain-command-fixtures-card">
         <div className="captain-command-section-head">
@@ -191,11 +206,22 @@ export default function CaptainDashboardPage() {
         </div>
       </section>
 
-      <section className="captain-command-results-wide">
-  <RecentResultsCard
-  fixtures={recentCompletedFixtures}
-  team={mainTeam}
-/></section>
+      {activeModal === 'history' ? (
+  <FixtureHistoryModal
+    fixtures={completedFixtures}
+    team={mainTeam}
+    onClose={() => setActiveModal(null)}
+  />
+) : null}
+
+{activeModal === 'stats' ? (
+  <TeamStatsModal
+    fixtures={uniqueFixtures}
+    stats={stats}
+    team={mainTeam}
+    onClose={() => setActiveModal(null)}
+  />
+) : null}
     </div>
   );
 }
@@ -381,15 +407,37 @@ function LiveCard({ fixture }) {
   );
 }
 
-function QuickTool({ icon, label }) {
-  return (
-    <div className="captain-command-tool-tile">
+function QuickTool({ icon, label, description, onClick, to, disabled = false }) {
+  const content = (
+    <>
       <div className="captain-command-tool-icon">
         <Icon name={icon} />
       </div>
 
-      <strong>{label}</strong>
-    </div>
+      <div className="captain-command-tool-copy">
+        <strong>{label}</strong>
+        <span>{description}</span>
+      </div>
+    </>
+  );
+
+  if (to && !disabled) {
+    return (
+      <Link to={to} className="captain-command-tool-tile premium-tool-action">
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      className="captain-command-tool-tile premium-tool-action"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {content}
+    </button>
   );
 }
 
@@ -524,6 +572,135 @@ const resultType =
       </div>
     </article>
   );
+}
+
+function FixtureHistoryModal({ fixtures, team, onClose }) {
+  const groupedFixtures = groupFixturesByMonth(fixtures);
+
+  return (
+    <div className="captain-modal-backdrop">
+      <section className="captain-premium-modal">
+        <div className="captain-premium-modal-head">
+          <div>
+            <div className="captain-command-kicker">Fixture History</div>
+            <h2>Completed Fixtures</h2>
+          </div>
+
+          <button type="button" className="captain-modal-close" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+
+        {!fixtures.length ? (
+          <p className="captain-command-muted">No completed fixtures yet.</p>
+        ) : (
+          <div className="captain-history-groups">
+            {Object.entries(groupedFixtures).map(([monthLabel, monthFixtures]) => (
+              <div key={monthLabel} className="captain-history-month">
+                <h3>{monthLabel}</h3>
+
+                <div className="captain-history-list">
+                  {monthFixtures.map((fixture) => {
+                    const score = getScoreParts(
+                      fixture.scoreText ||
+                      fixture.finalScore ||
+                      fixture.result ||
+                      `${fixture.score?.home ?? fixture.score?.homeScore ?? 0} - ${fixture.score?.away ?? fixture.score?.awayScore ?? 0}`
+                    );
+
+                    return (
+                      <div key={fixture.id} className="captain-history-row">
+                        <div>
+                          <strong>{fixture.homeTeamName || 'Home'} vs {fixture.awayTeamName || 'Away'}</strong>
+                          <span>{fixture.fixtureDate || 'No date'} • {fixture.fixtureTime || 'Time TBC'}</span>
+                        </div>
+
+                        <div className="captain-history-score">
+                          {score.home} - {score.away}
+                        </div>
+
+                        <Link to={getCaptainFixtureRoute(fixture)} className="captain-history-btn">
+                          Open Fixture
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function TeamStatsModal({ fixtures, stats, team, onClose }) {
+  const completed = fixtures.filter((fixture) => fixture.status === 'completed' || fixture.complete);
+  const wins = completed.filter((fixture) => getFixtureResultType(fixture, team) === 'win').length;
+  const losses = completed.filter((fixture) => getFixtureResultType(fixture, team) === 'loss').length;
+  const draws = completed.filter((fixture) => getFixtureResultType(fixture, team) === 'draw').length;
+
+  return (
+    <div className="captain-modal-backdrop">
+      <section className="captain-premium-modal">
+        <div className="captain-premium-modal-head">
+          <div>
+            <div className="captain-command-kicker">Team Statistics</div>
+            <h2>{team.name}</h2>
+          </div>
+
+          <button type="button" className="captain-modal-close" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+
+        <div className="captain-stats-modal-grid">
+          <MiniStat label="Fixtures" value={fixtures.length} />
+          <MiniStat label="Live" value={stats.active} />
+          <MiniStat label="Completed" value={stats.completed} />
+          <MiniStat label="Ready" value={stats.readyToPlay} />
+          <MiniStat label="Wins" value={wins} />
+          <MiniStat label="Losses" value={losses} />
+          <MiniStat label="Draws" value={draws} />
+          <MiniStat label="Win Rate" value={completed.length ? `${Math.round((wins / completed.length) * 100)}%` : '0%'} />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function groupFixturesByMonth(fixtures) {
+  return fixtures.reduce((groups, fixture) => {
+    const date = fixture.fixtureDate ? new Date(fixture.fixtureDate) : null;
+    const label = date && !Number.isNaN(date.getTime())
+      ? date.toLocaleDateString('en-ZA', { month: 'long', year: 'numeric' })
+      : 'Unscheduled';
+
+    return {
+      ...groups,
+      [label]: [...(groups[label] || []), fixture]
+    };
+  }, {});
+}
+
+function getFixtureResultType(fixture, team) {
+  const score = getScoreParts(
+    fixture.scoreText ||
+    fixture.finalScore ||
+    fixture.result ||
+    `${fixture.score?.home ?? fixture.score?.homeScore ?? 0} - ${fixture.score?.away ?? fixture.score?.awayScore ?? 0}`
+  );
+
+  const homeScore = Number(score.home || 0);
+  const awayScore = Number(score.away || 0);
+  const isMyTeamHome = fixture.homeTeamId === team?.id;
+
+  const myScore = isMyTeamHome ? homeScore : awayScore;
+  const opponentScore = isMyTeamHome ? awayScore : homeScore;
+
+  if (myScore === opponentScore) return 'draw';
+  return myScore > opponentScore ? 'win' : 'loss';
 }
 
 function MiniStat({ label, value }) {
