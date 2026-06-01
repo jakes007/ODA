@@ -1,9 +1,9 @@
 export const importedLandingData = {
   "summary": {
     "clubs": 8,
-    "teams": 20,
+    "teams": 21,
     "players": 112,
-    "fixtures": 14
+    "fixtures": 106
   },
   "featuredCompetitions": [
     {
@@ -14,45 +14,45 @@ export const importedLandingData = {
   ],
   "latestResults": [
     {
-      "id": "latest_BOO 2_Stallion 2_20-May-26",
-      "fixtureName": "Best Of Order 2 vs Stallion 2",
-      "scoreText": "16 - 0",
+      "id": "latest_BOO 1_Guardians 1_27-May-26",
+      "fixtureName": "Best Of Order 1 vs Guardians 1",
+      "scoreText": "22 - 10",
       "complete": true,
       "division": "Upper",
-      "date": "20-May-26"
+      "date": "27-May-26"
     },
     {
-      "id": "latest_Guardians 1_Stallion 1_20-May-26",
-      "fixtureName": "Guardians 1 vs Stallion 1",
-      "scoreText": "09 - 07",
+      "id": "latest_Guardians 1_BOO 1_27-May-26",
+      "fixtureName": "Guardians 1 vs Best Of Order 1",
+      "scoreText": "10 - 22",
       "complete": true,
       "division": "Upper",
-      "date": "20-May-26"
+      "date": "27-May-26"
     },
     {
-      "id": "latest_BOO 1_West Point 1_20-May-26",
-      "fixtureName": "Best Of Order 1 vs West Point 1",
-      "scoreText": "12 - 04",
+      "id": "latest_Guardians 2_Stallion 1_27-May-26",
+      "fixtureName": "Guardians 2 vs Stallion 1",
+      "scoreText": "19 - 13",
       "complete": true,
       "division": "Upper",
-      "date": "20-May-26"
+      "date": "27-May-26"
     },
     {
-      "id": "latest_Guardians 2_Cathkin 1_20-May-26",
-      "fixtureName": "Guardians 2 vs Cathkin 1",
-      "scoreText": "08 - 08",
+      "id": "latest_Stallion 1_Guardians 2_27-May-26",
+      "fixtureName": "Stallion 1 vs Guardians 2",
+      "scoreText": "13 - 19",
       "complete": true,
       "division": "Upper",
-      "date": "20-May-26"
+      "date": "27-May-26"
     },
     {
-      "id": "latest_Cathkin 1_Guardians 2_20-May-26",
-      "fixtureName": "Cathkin 1 vs Guardians 2",
-      "scoreText": "08 - 08",
+      "id": "latest_BOO 2_West Point 1_27-May-26",
+      "fixtureName": "Best Of Order 2 vs West Point 1",
+      "scoreText": "19 - 13",
       "complete": true,
       "division": "Upper",
-      "date": "20-May-26"
+      "date": "27-May-26"
     }
   ],
-  "generatedAt": "2026-05-27T07:29:08.042Z"
+  "generatedAt": "2026-06-01T07:35:57.326Z"
 };
