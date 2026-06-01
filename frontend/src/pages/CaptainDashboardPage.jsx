@@ -25,9 +25,42 @@ const [activeModal, setActiveModal] = useState(null);
     try {
       const loadedTeams = await getTeams();
 
-      const captainTeams = loadedTeams.filter(
-        (team) => team.captainPlayerId === currentUser.playerId
-      );
+if (import.meta.env.DEV) {
+  const allTeamFixtureGroups = await Promise.all(
+    loadedTeams.map((team) => getCaptainFixtures(team.id))
+  );
+
+  const allFixturesMap = new Map();
+
+  allTeamFixtureGroups.flat().forEach((fixture) => {
+    allFixturesMap.set(fixture.id, fixture);
+  });
+
+  const allFixtures = Array.from(allFixturesMap.values());
+
+  console.table(
+    loadedTeams.map((team) => {
+      const summary = getTeamResultSummary(allFixtures, team);
+
+      return {
+        team: team.name,
+        fixtures: summary.fixtures,
+        completed: summary.completed,
+        wins: summary.wins,
+        losses: summary.losses,
+        draws: summary.draws,
+        winRate: summary.winRate,
+        goalsFor: summary.pointsFor,
+        goalsAgainst: summary.pointsAgainst,
+        difference: summary.pointsDifference
+      };
+    })
+  );
+}
+
+const captainTeams = loadedTeams.filter(
+  (team) => team.captainPlayerId === currentUser.playerId
+);
 
       setTeams(captainTeams);
 
@@ -810,6 +843,60 @@ function Icon({ name }) {
       {paths[name] || paths.target}
     </svg>
   );
+}
+
+function getTeamResultSummary(fixtures, team) {
+  const teamFixtures = fixtures.filter(
+    (fixture) =>
+      fixture.homeTeamId === team?.id ||
+      fixture.awayTeamId === team?.id
+  );
+
+  const completed = teamFixtures.filter(
+    (fixture) => fixture.status === 'completed' || fixture.complete
+  );
+
+  let wins = 0;
+  let losses = 0;
+  let draws = 0;
+  let pointsFor = 0;
+  let pointsAgainst = 0;
+
+  completed.forEach((fixture) => {
+    const score = getScoreParts(
+      fixture.scoreText ||
+      fixture.finalScore ||
+      fixture.result ||
+      `${fixture.score?.home ?? fixture.score?.homeScore ?? 0} - ${fixture.score?.away ?? fixture.score?.awayScore ?? 0}`
+    );
+
+    const homeScore = Number(score.home || 0);
+    const awayScore = Number(score.away || 0);
+
+    const isHome = fixture.homeTeamId === team?.id;
+
+    const myScore = isHome ? homeScore : awayScore;
+    const opponentScore = isHome ? awayScore : homeScore;
+
+    pointsFor += myScore;
+    pointsAgainst += opponentScore;
+
+    if (myScore > opponentScore) wins += 1;
+    else if (myScore < opponentScore) losses += 1;
+    else draws += 1;
+  });
+
+  return {
+    fixtures: teamFixtures.length,
+    completed: completed.length,
+    wins,
+    losses,
+    draws,
+    pointsFor,
+    pointsAgainst,
+    pointsDifference: pointsFor - pointsAgainst,
+    winRate: completed.length ? `${Math.round((wins / completed.length) * 100)}%` : '0%'
+  };
 }
 
 function getDashboardStats(fixtures) {

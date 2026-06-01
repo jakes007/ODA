@@ -8569,3 +8569,53 @@ text-overflow: ellipsis; /* ... if too long */
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== PUBLIC LIVE BOARD - RESULT ENTRY NOTICE ===== */
+
+.plb-result-entry-notice {
+  margin-top: 28px;
+  padding: 24px;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background:
+    radial-gradient(circle at left, rgba(255, 152, 0, 0.2), transparent 34%),
+    linear-gradient(135deg, rgba(255,255,255,0.055), rgba(255,255,255,0.02)),
+    rgba(12, 18, 34, 0.94);
+  border: 1px solid rgba(255, 152, 0, 0.36);
+  box-shadow:
+    0 0 34px rgba(255, 152, 0, 0.14),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.plb-result-entry-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  color: #05070f;
+  font-size: 1.8rem;
+  font-weight: 1000;
+  background: linear-gradient(135deg, #ffb13b, #ff7a00);
+  box-shadow: 0 0 28px rgba(255, 152, 0, 0.28);
+  flex-shrink: 0;
+}
+
+.plb-result-entry-notice strong,
+.plb-result-entry-notice span {
+  display: block;
+}
+
+.plb-result-entry-notice strong {
+  color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 1000;
+}
+
+.plb-result-entry-notice span {
+  margin-top: 6px;
+  color: rgba(226, 232, 240, 0.68);
+  font-weight: 800;
+}

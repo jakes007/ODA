@@ -1586,11 +1586,89 @@ const updatedMatchup = {
     return fixtures.filter(Boolean);
   }
 
+  export async function setCaptainMatchupScoringMode({
+    fixtureId,
+    captainPlayerId,
+    matchupId,
+    scoringMode
+  }) {
+    if (!['turn_by_turn', 'result_entry'].includes(scoringMode)) {
+      return {
+        success: false,
+        message: 'Invalid scoring mode.'
+      };
+    }
+  
+    const fixtureSnapshot = await getDoc(doc(db, 'fixtures', fixtureId));
+  
+    if (!fixtureSnapshot.exists()) {
+      return {
+        success: false,
+        message: 'Fixture not found.'
+      };
+    }
+  
+    const fixture = {
+      id: fixtureSnapshot.id,
+      ...fixtureSnapshot.data()
+    };
+  
+    const homeTeam = await getTeamById(fixture.homeTeamId);
+  
+    if (homeTeam.captainPlayerId !== captainPlayerId) {
+      return {
+        success: false,
+        message: 'Only the home captain can change scoring mode.'
+      };
+    }
+  
+    const games = fixture.liveSession?.games || [];
+  
+    const targetMatchup = games.find((game) => game.matchupId === matchupId);
+  
+    if (!targetMatchup) {
+      return {
+        success: false,
+        message: 'Matchup not found.'
+      };
+    }
+  
+    if ((targetMatchup.liveState?.turns || []).length > 0) {
+      return {
+        success: false,
+        message: 'Scoring mode cannot be changed after turns have been entered.'
+      };
+    }
+  
+    const nextGames = games.map((game) =>
+      game.matchupId === matchupId
+        ? {
+            ...game,
+            scoringMode
+          }
+        : game
+    );
+  
+    await updateDoc(doc(db, 'fixtures', fixtureId), {
+      'liveSession.games': nextGames
+    });
+  
+    return {
+      success: true,
+      message:
+        scoringMode === 'result_entry'
+          ? 'This matchup will be scored by result entry.'
+          : 'This matchup will be scored turn by turn.'
+    };
+  }
+
   export async function submitCaptainMatchupResultEntry({
     fixtureId,
     captainPlayerId,
     matchupId,
     winnerSide,
+    homeScoreLeft,
+    awayScoreLeft,
     homeDartsUsed,
     awayDartsUsed,
     homeTons,
@@ -1640,6 +1718,51 @@ const updatedMatchup = {
         message: 'Matchup not found.'
       };
     }
+
+    const numericHomeScoreLeft = Number(homeScoreLeft);
+const numericAwayScoreLeft = Number(awayScoreLeft);
+
+if (
+  !Number.isInteger(numericHomeScoreLeft) ||
+  !Number.isInteger(numericAwayScoreLeft) ||
+  numericHomeScoreLeft < 0 ||
+  numericHomeScoreLeft > 501 ||
+  numericAwayScoreLeft < 0 ||
+  numericAwayScoreLeft > 501
+) {
+  return {
+    success: false,
+    message: 'Score left must be a whole number between 0 and 501.'
+  };
+}
+
+if (winnerSide === 'home' && numericHomeScoreLeft !== 0) {
+  return {
+    success: false,
+    message: 'Home is selected as winner, so Home Score Left must be 0.'
+  };
+}
+
+if (winnerSide === 'away' && numericAwayScoreLeft !== 0) {
+  return {
+    success: false,
+    message: 'Away is selected as winner, so Away Score Left must be 0.'
+  };
+}
+
+if (winnerSide === 'home' && numericAwayScoreLeft === 0) {
+  return {
+    success: false,
+    message: 'Away cannot also have 0 remaining if Home won.'
+  };
+}
+
+if (winnerSide === 'away' && numericHomeScoreLeft === 0) {
+  return {
+    success: false,
+    message: 'Home cannot also have 0 remaining if Away won.'
+  };
+}
   
     const updatedMatchup = {
       ...matchup,
@@ -1654,7 +1777,15 @@ const updatedMatchup = {
             : fixture.awayTeamName || 'Away',
         resultEntry: true
       },
+      liveState: {
+        ...(matchup.liveState || {}),
+        homeScoreLeft: numericHomeScoreLeft,
+        awayScoreLeft: numericAwayScoreLeft,
+        winnerSide
+      },
       summaryResult: {
+        homeScoreLeft: numericHomeScoreLeft,
+        awayScoreLeft: numericAwayScoreLeft,
         homeDartsUsed: Number(homeDartsUsed || 0),
         awayDartsUsed: Number(awayDartsUsed || 0),
         homeTons: Number(homeTons || 0),

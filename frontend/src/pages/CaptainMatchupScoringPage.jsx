@@ -8,7 +8,8 @@ import {
   submitCaptainMatchupTurn,
   setCaptainMatchupStartingSide,
   updateCaptainMatchupTurn,
-  submitCaptainMatchupResultEntry
+  submitCaptainMatchupResultEntry,
+  setCaptainMatchupScoringMode
 } from '../services/captainFixtureService';
 
 export default function CaptainMatchupScoringPage() {
@@ -25,10 +26,12 @@ export default function CaptainMatchupScoringPage() {
   const [scoringMode, setScoringMode] = useState('turn_by_turn');
 
   const [resultWinnerSide, setResultWinnerSide] = useState('');
-  const [homeDartsUsed, setHomeDartsUsed] = useState('');
-  const [awayDartsUsed, setAwayDartsUsed] = useState('');
-  const [homeTons, setHomeTons] = useState('');
-  const [awayTons, setAwayTons] = useState('');
+  const [homeScoreLeft, setHomeScoreLeft] = useState('');
+const [awayScoreLeft, setAwayScoreLeft] = useState('');
+const [homeDartsUsed, setHomeDartsUsed] = useState('');
+const [awayDartsUsed, setAwayDartsUsed] = useState('');
+const [homeTons, setHomeTons] = useState('');
+const [awayTons, setAwayTons] = useState('');
   const [homeOneEighties, setHomeOneEighties] = useState('');
   const [awayOneEighties, setAwayOneEighties] = useState('');
   const [homeHighCheckout, setHomeHighCheckout] = useState('');
@@ -110,6 +113,48 @@ export default function CaptainMatchupScoringPage() {
     matchup.liveState?.currentTurnSide === 'home'
       ? homePlayerNames[matchup.liveState?.currentPlayerIndex ?? 0] ?? homePlayerName
       : awayPlayerNames[matchup.liveState?.currentPlayerIndex ?? 0] ?? awayPlayerName;
+
+async function handleSetScoringMode(nextMode) {
+  const result = await setCaptainMatchupScoringMode({
+    fixtureId,
+    captainPlayerId: currentUser.playerId,
+    matchupId,
+    scoringMode: nextMode
+  });
+
+  if (!result.success) {
+    setErrorMessage(result.message);
+    setSuccessMessage('');
+    return;
+  }
+
+  setScoringMode(nextMode);
+  setErrorMessage('');
+  setSuccessMessage(result.message);
+
+  await loadScoringData();
+}
+
+async function handleSetScoringMode(nextMode) {
+  const result = await setCaptainMatchupScoringMode({
+    fixtureId,
+    captainPlayerId: currentUser.playerId,
+    matchupId,
+    scoringMode: nextMode
+  });
+
+  if (!result.success) {
+    setErrorMessage(result.message);
+    setSuccessMessage('');
+    return;
+  }
+
+  setScoringMode(nextMode);
+  setErrorMessage('');
+  setSuccessMessage(result.message);
+
+  await loadScoringData();
+}
 
   async function handleSetStartingSide(startingSide) {
     const result = await setCaptainMatchupStartingSide({
@@ -220,6 +265,8 @@ export default function CaptainMatchupScoringPage() {
       captainPlayerId: currentUser.playerId,
       matchupId,
       winnerSide: resultWinnerSide,
+      homeScoreLeft,
+      awayScoreLeft,
       homeDartsUsed,
       awayDartsUsed,
       homeTons,
@@ -306,23 +353,23 @@ export default function CaptainMatchupScoringPage() {
         <h3 className="panel-title">Scoring Mode</h3>
 
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            className={lockedScoringMode === 'turn_by_turn' ? 'primary-btn' : 'secondary-btn'}
-            disabled={hasExistingTurns || matchup.status === 'completed'}
-            onClick={() => setScoringMode('turn_by_turn')}
-          >
-            Turn-by-Turn
-          </button>
+        <button
+  type="button"
+  className={lockedScoringMode === 'turn_by_turn' ? 'primary-btn' : 'secondary-btn'}
+  disabled={hasExistingTurns || matchup.status === 'completed'}
+  onClick={() => handleSetScoringMode('turn_by_turn')}
+>
+  Turn-by-Turn
+</button>
 
-          <button
-            type="button"
-            className={lockedScoringMode === 'result_entry' ? 'primary-btn' : 'secondary-btn'}
-            disabled={hasExistingTurns || matchup.status === 'completed'}
-            onClick={() => setScoringMode('result_entry')}
-          >
-            Result Entry
-          </button>
+<button
+  type="button"
+  className={lockedScoringMode === 'result_entry' ? 'primary-btn' : 'secondary-btn'}
+  disabled={hasExistingTurns || matchup.status === 'completed'}
+  onClick={() => handleSetScoringMode('result_entry')}
+>
+  Result Entry
+</button>
         </div>
 
         <div className="muted-text" style={{ marginTop: '1rem' }}>
@@ -565,6 +612,32 @@ export default function CaptainMatchupScoringPage() {
                 <option value="away">{buildSideDisplayLabel(matchup.awayPlayers, 'Away')}</option>
               </select>
             </div>
+
+            <div className="feature-item">
+  <label className="form-label">Home Score Left</label>
+  <input
+    className="form-input"
+    type="number"
+    min="0"
+    max="501"
+    value={homeScoreLeft}
+    onChange={(event) => setHomeScoreLeft(event.target.value)}
+    placeholder="Winner must be 0"
+  />
+</div>
+
+<div className="feature-item">
+  <label className="form-label">Away Score Left</label>
+  <input
+    className="form-input"
+    type="number"
+    min="0"
+    max="501"
+    value={awayScoreLeft}
+    onChange={(event) => setAwayScoreLeft(event.target.value)}
+    placeholder="Loser score remaining"
+  />
+</div>
 
             <div className="feature-item">
               <label className="form-label">Home Darts Used</label>
