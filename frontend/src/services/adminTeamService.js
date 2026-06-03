@@ -33,7 +33,7 @@ export async function createTeam({
 
   const docRef = await addDoc(teamsCollection, {
     name: cleanTeamName,
-    clubName: cleanTeamName,
+    clubName: cleanClubName,
     seasonId,
     competitionId,
     divisionId,
@@ -81,7 +81,7 @@ export async function updateTeam({
 
   await updateDoc(doc(db, 'teams', teamId), {
     name: cleanTeamName,
-    clubName: cleanTeamName,
+    clubName: cleanClubName,
     seasonId,
     competitionId,
     divisionId
