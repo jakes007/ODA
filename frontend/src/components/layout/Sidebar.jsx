@@ -92,19 +92,21 @@ export default function Sidebar({ mobile = false, isOpen = false, onClose = null
   return (
     <aside className={sidebarClassName}>
       <div className="sidebar-inner">
+        {mobile ? (
+          <div className="mobile-sidebar-header">
+            <button
+              className="mobile-close-btn"
+              onClick={onClose}
+              aria-label="Close navigation"
+              type="button"
+            >
+              X
+            </button>
+          </div>
+        ) : null}
+
         <div className="sidebar-top-content">
           <div className="sidebar-brand-row">
-            {mobile ? (
-              <button
-                className="mobile-close-btn"
-                onClick={onClose}
-                aria-label="Close navigation"
-                type="button"
-              >
-                ✕
-              </button>
-            ) : null}
-
             <div className="sidebar-logo-wrap">
               <img
                 src={isCaptain ? teamLogo : odaLogo}
@@ -174,6 +176,32 @@ export default function Sidebar({ mobile = false, isOpen = false, onClose = null
             </>
           ) : null}
 
+          {mobile && !isAuthenticated ? (
+            <>
+              <NavLink
+                to="/login"
+                onClick={mobile ? onClose : undefined}
+                className={({ isActive }) =>
+                  `sidebar-link sidebar-login-link${isActive ? ' active' : ''}`
+                }
+              >
+                <Icon name="login" />
+                <span>Login</span>
+              </NavLink>
+
+              <NavLink
+                to="/register"
+                onClick={mobile ? onClose : undefined}
+                className={({ isActive }) =>
+                  `sidebar-link sidebar-register-link${isActive ? ' active' : ''}`
+                }
+              >
+                <Icon name="shield" />
+                <span>Request Access</span>
+              </NavLink>
+            </>
+          ) : null}
+
           <div className="sidebar-version">v1.0.0</div>
         </div>
       </div>
@@ -190,6 +218,7 @@ function Icon({ name }) {
     calendar: <><path d="M7 2v4" /><path d="M17 2v4" /><path d="M3 9h18" /><rect x="3" y="4" width="18" height="17" rx="2" /></>,
     user: <><circle cx="12" cy="7" r="4" /><path d="M5.5 21a6.5 6.5 0 0 1 13 0" /></>,
     shield: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" /><path d="m9 12 2 2 4-5" /></>,
+    login: <><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><path d="m10 17 5-5-5-5" /><path d="M15 12H3" /></>,
     logout: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></>
   };
 

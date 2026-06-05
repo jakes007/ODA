@@ -37,25 +37,6 @@ function groupRowsByPlayer(rows) {
   );
 }
 
-function getNameSignature(name) {
-  const cleaned = String(name || '')
-    .toLowerCase()
-    .replace(/[^a-z\s]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-
-  const parts = cleaned.split(' ').filter(Boolean);
-
-  if (!parts.length) {
-    return '';
-  }
-
-  const firstInitial = parts[0][0] || '';
-  const surname = parts[parts.length - 1] || '';
-
-  return `${firstInitial}${surname}`;
-}
-
 function groupPlayersByTeam(fixture) {
   const homeRows = [];
   const awayRows = [];

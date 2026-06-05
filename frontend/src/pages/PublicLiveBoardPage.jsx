@@ -459,16 +459,6 @@ function getTurnsForSide(matchup, side) {
   return getCombinedTurns(matchup).filter((turn) => turn.side === side);
 }
 
-function getDartsUsedList(matchup) {
-  const turns = getCombinedTurns(matchup).slice(-5).reverse();
-
-  if (!turns.length) {
-    return [3, 6, 9];
-  }
-
-  return turns.map((turn, index) => turn.dartsUsedTotal ?? (index + 1) * 3);
-}
-
 function getAverage(matchup, side) {
   if (matchup.scoringMode === 'result_entry') {
     const dartsUsed = getTotalDarts(matchup, side);

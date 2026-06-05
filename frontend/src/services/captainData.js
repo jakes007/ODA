@@ -495,11 +495,6 @@ function getPlayerFromSquad(sideData, playerId) {
   return sideData.squad.find((player) => player.playerId === playerId) ?? null;
 }
 
-function getBenchPlayersForSide(sideData) {
-  const currentLineupIds = new Set(sideData.currentLineup.filter(Boolean));
-  return sideData.squad.filter((player) => !currentLineupIds.has(player.playerId));
-}
-
 function getOpponentSquadForCaptain(fixture, captainSide) {
   const opponentSide = getOpponentSide(captainSide);
   return fixture.sides[opponentSide]?.squad ?? [];
@@ -1222,7 +1217,6 @@ function buildLiveStateFromTurns(
     const side = originalTurn.side;
     const score = Number(originalTurn.score);
     const dartsUsed = originalTurn.dartsUsed ?? 3;
-    const scoreKey = side === 'home' ? 'homeScoreLeft' : 'awayScoreLeft';
     const currentScoreLeft = side === 'home' ? homeScoreLeft : awayScoreLeft;
     const proposedScoreLeft = currentScoreLeft - score;
 

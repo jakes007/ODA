@@ -1,6 +1,7 @@
 .premium-landing {
   position: relative;
   overflow: hidden;
+  max-width: 100%;
 }
 
 .premium-landing::before {
@@ -64,6 +65,8 @@
 }
 
 .premium-hero {
+  max-width: 100%;
+  min-width: 0;
   min-height: 430px;
   display: grid;
   grid-template-columns: 1.35fr 0.95fr;
@@ -116,23 +119,27 @@
 
 .premium-hero .page-header {
   margin-bottom: 0;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .premium-hero .page-title,
 .premium-hero h1,
 .premium-hero h2 {
-  max-width: 760px;
+  max-width: min(760px, 100%);
   font-size: clamp(2.2rem, 5vw, 4.2rem);
   line-height: 1.03;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   margin-bottom: 1rem;
+  overflow-wrap: break-word;
 }
 
 .premium-hero .page-subtitle {
-  max-width: 640px;
+  max-width: min(640px, 100%);
   font-size: 1.02rem;
   line-height: 1.75;
   color: rgba(233, 240, 255, 0.8);
+  overflow-wrap: break-word;
 }
 
 .premium-hero-actions {
@@ -614,7 +621,7 @@
 
   .premium-hero-content,
   .premium-hero-stats {
-    width: 100%;
+    max-width: 100%;
     min-width: 0;
   }
 
@@ -666,6 +673,7 @@
     padding: 1.25rem;
     min-height: auto;
     gap: 1rem;
+    overflow: hidden;
   }
 
   .premium-hero-content,
@@ -676,12 +684,15 @@
 
   .premium-association-badge {
     font-size: 0.72rem;
+    max-width: 100%;
+    white-space: normal;
   }
 
   .premium-hero .page-title,
   .premium-hero h1,
   .premium-hero h2 {
-    font-size: clamp(2rem, 9vw, 2.8rem);
+    font-size: 2.15rem;
+    line-height: 1.08;
   }
 
   .premium-hero .page-subtitle {
@@ -691,7 +702,13 @@
 
   .premium-hero-stats {
     grid-template-columns: 1fr 1fr;
-    width: 100%;
+    max-width: 100%;
+    gap: 0.85rem;
+  }
+
+  .premium-hero-stats .stat-card {
+    min-width: 0;
+    padding: 1rem 0.75rem;
   }
 
     .premium-live-heading-wrap {

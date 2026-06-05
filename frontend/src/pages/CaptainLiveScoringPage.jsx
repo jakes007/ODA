@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
 import EmptyState from '../components/common/EmptyState';
@@ -14,7 +14,6 @@ export default function CaptainLiveScoringPage() {
   const { fixtureId } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const [refreshKey, setRefreshKey] = useState(0);
   const [errors, setErrors] = useState([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [outgoingPlayerId, setOutgoingPlayerId] = useState('');
@@ -27,7 +26,7 @@ export default function CaptainLiveScoringPage() {
 
 useEffect(() => {
   loadLiveFixture();
-}, [fixtureId, currentUser?.playerId, refreshKey]);
+}, [fixtureId, currentUser?.playerId]);
 
 async function loadLiveFixture() {
   if (!fixtureId || !currentUser?.playerId) {
@@ -129,10 +128,6 @@ if (!fixture) {
 
   const wrapUpOpponentSquad = fixture.opponentTeam?.squad ?? [];
   const matchupsByBlock = groupMatchupsByBlock(matchups);
-
-  function refreshPage() {
-    setRefreshKey((value) => value + 1);
-  }
 
   async function handleStartMatchup(matchupId) {
     const result = await startCaptainFixtureMatchup({

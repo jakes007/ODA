@@ -135,27 +135,6 @@ async function handleSetScoringMode(nextMode) {
   await loadScoringData();
 }
 
-async function handleSetScoringMode(nextMode) {
-  const result = await setCaptainMatchupScoringMode({
-    fixtureId,
-    captainPlayerId: currentUser.playerId,
-    matchupId,
-    scoringMode: nextMode
-  });
-
-  if (!result.success) {
-    setErrorMessage(result.message);
-    setSuccessMessage('');
-    return;
-  }
-
-  setScoringMode(nextMode);
-  setErrorMessage('');
-  setSuccessMessage(result.message);
-
-  await loadScoringData();
-}
-
   async function handleSetStartingSide(startingSide) {
     const result = await setCaptainMatchupStartingSide({
       fixtureId,

@@ -9,12 +9,7 @@ import {
   withdrawCaptainFixtureLineup,
   startCaptainFixtureLiveMatch
 } from '../services/captainFixtureService';
-import {
-  submitCaptainLineup,
-  validateCaptainLineup,
-  startCaptainFixtureLiveScoring,
-  withdrawCaptainLineupSubmission
-} from '../services/captainData';
+import { validateCaptainLineup } from '../services/captainData';
 
 export default function CaptainFixtureSetupPage() {
   const { fixtureId } = useParams();
@@ -60,29 +55,6 @@ async function loadFixtureSetup({ forceLineupSync = false } = {}) {
   setLoading(false);
 }
 
-  const lineupPlayers = useMemo(() => {
-    if (!fixture) return [];
-
-    return lineup
-      .map((playerId, index) => {
-        if (!playerId) {
-          return {
-            empty: true,
-            slotNumber: index + 1
-          };
-        }
-
-        const player = fixture.myTeam.squad.find((squadPlayer) => squadPlayer.playerId === playerId);
-
-        return player
-          ? { ...player, slotNumber: index + 1 }
-          : {
-              empty: true,
-              slotNumber: index + 1
-            };
-      });
-  }, [fixture, lineup]);
-
   const benchPlayers = useMemo(() => {
     if (!fixture) return [];
 
@@ -103,7 +75,6 @@ async function loadFixtureSetup({ forceLineupSync = false } = {}) {
     fixture.status !== 'active';
 
   const canStartMatch = fixture.status === 'ready_to_play';
-  const isWaitingForOpponent = fixture.status === 'waiting_for_opponent';
   const mySubmissionExists = fixture.myTeam.submitted;
 
   function handleLineupChange(index, nextPlayerId) {

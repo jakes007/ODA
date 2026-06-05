@@ -122,8 +122,11 @@ async function loadLiveFixtures() {
           <div className="premium-empty-state">No fixtures are currently live.</div>
         ) : (
           <div className="premium-broadcast-list">
-            {liveFixtures.map((fixture) => (
-              <div key={fixture.fixtureId} className="premium-broadcast-card">
+            {liveFixtures.map((fixture, index) => (
+              <div
+                key={fixture.fixtureId || fixture.id || `${fixture.fixtureName}-${index}`}
+                className="premium-broadcast-card"
+              >
                 <div className="premium-broadcast-main">
                   <div className="premium-broadcast-team premium-broadcast-team-left">
                     <div className="premium-broadcast-badge premium-broadcast-badge-home">
@@ -196,8 +199,14 @@ async function loadLiveFixtures() {
         </div>
 
         <div className="featured-competition-grid">
-          {featuredCompetitions.map((competition) => (
-            <div key={competition.competitionId} className="premium-info-card featured-competition-card">
+          {featuredCompetitions.map((competition, index) => (
+            <div
+              key={
+                competition.competitionId ||
+                `${competition.name}-${competition.season}-${index}`
+              }
+              className="premium-info-card featured-competition-card"
+            >
               <div>
                 <div className="premium-card-title">
                   {competition.name} • {competition.season}
@@ -248,7 +257,10 @@ async function loadLiveFixtures() {
 
           <div className="premium-list">
             {standingsSnapshot.map((team, index) => (
-              <div key={team.teamId} className="premium-list-row">
+              <div
+                key={team.teamId || `${team.teamName}-${index}`}
+                className="premium-list-row"
+              >
                 <span>
                   {index + 1}. {formatTeamDisplayName(team.teamName)}
                 </span>

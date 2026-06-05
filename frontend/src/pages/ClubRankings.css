@@ -204,7 +204,12 @@
 }
 
 .club-ranking-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   width: 100%;
+  min-height: 44px;
   cursor: pointer;
   background: transparent;
   border: 0;
@@ -214,8 +219,9 @@
 
 .club-ranking-chevron {
   display: inline-flex;
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
   align-items: center;
   justify-content: center;
   border-radius: 999px;

@@ -6,8 +6,7 @@ import {
   query,
   serverTimestamp,
   updateDoc,
-  where,
-  orderBy
+  where
 } from 'firebase/firestore';
   
   import { db } from '../firebase';
@@ -228,7 +227,7 @@ import { importedFixturesData } from '../data/importedFixturesData';
       },
       opponentTeam: {
         teamName: opponentTeam.name,
-        squad: Boolean(fixture.lineupsRevealed)
+        squad: fixture.lineupsRevealed
           ? buildSquadFromPlayerIds(opponentTeam.squadPlayerIds || [])
           : [],
       
@@ -242,7 +241,7 @@ import { importedFixturesData } from '../data/importedFixturesData';
             ? fixture.awayLineupSubmittedAt || null
             : fixture.homeLineupSubmittedAt || null,
       
-        submittedLineup: Boolean(fixture.lineupsRevealed)
+        submittedLineup: fixture.lineupsRevealed
           ? captainSide === 'home'
             ? fixture.awayLineupPlayerIds || []
             : fixture.homeLineupPlayerIds || []
@@ -859,6 +858,15 @@ const liveSession = {
       id: fixtureSnapshot.id,
       ...fixtureSnapshot.data()
     };
+
+    const homeTeam = await getTeamById(fixture.homeTeamId);
+  
+    if (homeTeam.captainPlayerId !== captainPlayerId) {
+      return {
+        success: false,
+        message: 'Only the home captain can submit turns.'
+      };
+    }
   
     const games = fixture.liveSession?.games || [];
     const matchup = games.find((game) => game.matchupId === matchupId);

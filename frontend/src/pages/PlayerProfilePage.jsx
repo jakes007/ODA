@@ -325,24 +325,24 @@ const backLabel =
       ? 'Club Rankings'
       : 'Player Profiles';
 
-  if (!playerId) {
-    return <PlayerDirectory returnPath={location.pathname} />;
-  }
-
-  const registryPlayer = findRegistryPlayer(playerId);
-
-  if (!registryPlayer) {
-    return <PlayerDirectory returnPath="/player/player_jason" />;
-  }
+  const registryPlayer = playerId ? findRegistryPlayer(playerId) : null;
 
   const playerContexts = useMemo(
-    () => findStatContextsForRegistryPlayer(registryPlayer),
+    () => (registryPlayer ? findStatContextsForRegistryPlayer(registryPlayer) : []),
     [registryPlayer]
   );
 
   const [selectedContextKey, setSelectedContextKey] = useState(
     playerContexts[0]?.contextKey || ''
   );
+
+  if (!playerId) {
+    return <PlayerDirectory returnPath={location.pathname} />;
+  }
+
+  if (!registryPlayer) {
+    return <PlayerDirectory returnPath="/player/player_jason" />;
+  }
 
   const player =
     playerContexts.find((context) => context.contextKey === selectedContextKey) ||

@@ -290,16 +290,6 @@ function getScoreParts(scoreText) {
   };
 }
 
-function getMatchupPlayerNames(matchup) {
-  const label = String(matchup.label || '');
-  const parts = label.split(' vs ');
-
-  return {
-    home: parts[0]?.trim() || 'Home Player',
-    away: parts[1]?.trim() || 'Away Player'
-  };
-}
-
 function getFixtureDivisionLabel(fixture) {
   const searchableText = [
     fixture?.division,

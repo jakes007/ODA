@@ -141,7 +141,6 @@ const captainTeams = loadedTeams.filter(
 
   const stats = getDashboardStats(uniqueFixtures);
   const liveFixture = uniqueFixtures.find((fixture) => fixture.status === 'active');
-  const nextActionFixture = getNextActionFixture(uniqueFixtures);
   const nextFixture = getNextFixture(uniqueFixtures);
   const completedFixtures = uniqueFixtures
   .filter((fixture) => fixture.status === 'completed' || fixture.complete)
@@ -233,7 +232,6 @@ const captainTeams = loadedTeams.filter(
             <FixtureRow
               key={fixture.id}
               fixture={fixture}
-              team={mainTeam}
             />
           ))}
         </div>
@@ -474,9 +472,7 @@ function QuickTool({ icon, label, description, onClick, to, disabled = false }) 
   );
 }
 
-function FixtureRow({ fixture, team }) {
-  const opponent = getOpponentName(fixture, team);
-
+function FixtureRow({ fixture }) {
   return (
     <div className="captain-command-fixture-row">
       <div className={`captain-command-status-badge ${fixture.status || 'upcoming'}`}>
@@ -607,7 +603,7 @@ const resultType =
   );
 }
 
-function FixtureHistoryModal({ fixtures, team, onClose }) {
+function FixtureHistoryModal({ fixtures, onClose }) {
   const groupedFixtures = groupFixturesByMonth(fixtures);
 
   return (
@@ -907,12 +903,6 @@ function getDashboardStats(fixtures) {
     readyToPlay: fixtures.filter((fixture) => fixture.status === 'ready_to_play').length,
     completed: fixtures.filter((fixture) => fixture.status === 'completed' || fixture.complete).length
   };
-}
-
-function getNextActionFixture(fixtures) {
-  return fixtures.find((fixture) =>
-    ['active', 'ready_to_play', 'ready_for_lineups', 'waiting_for_opponent'].includes(fixture.status)
-  );
 }
 
 function getNextFixture(fixtures) {
