@@ -1868,9 +1868,183 @@ textarea {
   opacity: 0.7;
 }
 
+.mobile-auth-secondary-link,
+.register-mobile-form {
+  display: none;
+}
+
+.mobile-register-actions {
+  display: flex;
+  gap: 10px;
+}
+
 @media (max-width: 768px) {
   .app-content {
     padding-bottom: 110px;
+  }
+
+  .login-page,
+  .register-page {
+    min-height: calc(100dvh - 76px);
+    padding: 18px 16px 104px;
+    border-radius: 0;
+    background-position: center top;
+  }
+
+  .login-shell {
+    gap: 14px;
+  }
+
+  .login-hero-panel {
+    padding: 8px 4px 4px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .login-hero-panel .page-header {
+    margin: 0;
+  }
+
+  .login-hero-panel .page-title {
+    font-size: 1.8rem;
+    line-height: 1.1;
+  }
+
+  .login-hero-panel .page-subtitle {
+    max-width: 34rem;
+    margin-top: 8px;
+    font-size: 0.96rem;
+    line-height: 1.55;
+  }
+
+  .login-feature-list,
+  .login-card-header {
+    display: none;
+  }
+
+  .login-card {
+    padding: 20px 18px;
+    border-radius: 20px;
+  }
+
+  .login-card .auth-form {
+    gap: 16px;
+  }
+
+  .login-card .form-input {
+    min-height: 52px;
+  }
+
+  .mobile-auth-secondary-link {
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ff9800;
+    font-size: 0.88rem;
+    font-weight: 900;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .register-desktop-form {
+    display: none;
+  }
+
+  .register-mobile-form {
+    display: flex;
+  }
+
+  .mobile-register-progress {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .mobile-register-progress-step {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    color: rgba(226, 232, 240, 0.5);
+    font-size: 0.68rem;
+    text-align: center;
+  }
+
+  .mobile-register-progress-step span {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.045);
+    font-weight: 950;
+  }
+
+  .mobile-register-progress-step strong {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-register-progress-step.active,
+  .mobile-register-progress-step.complete {
+    color: #ff9800;
+  }
+
+  .mobile-register-progress-step.active span,
+  .mobile-register-progress-step.complete span {
+    border-color: rgba(255, 152, 0, 0.65);
+    background: rgba(255, 152, 0, 0.14);
+    color: #ffb23e;
+  }
+
+  .mobile-register-step-heading {
+    padding-top: 2px;
+  }
+
+  .mobile-register-step-heading span {
+    color: rgba(226, 232, 240, 0.56);
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .mobile-register-step-heading h3 {
+    margin: 5px 0 0;
+    color: #ffffff;
+    font-size: 1.25rem;
+  }
+
+  .mobile-register-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .mobile-register-review-note {
+    margin: 0;
+    padding: 13px 14px;
+    border-left: 3px solid #ff9800;
+    color: rgba(226, 232, 240, 0.72);
+    background: rgba(255, 152, 0, 0.08);
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .mobile-register-actions .login-submit-btn {
+    flex: 1;
+    margin-top: 0;
+  }
+
+  .mobile-register-back-btn {
+    min-width: 92px;
   }
 }
 

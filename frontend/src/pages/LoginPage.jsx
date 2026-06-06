@@ -122,9 +122,11 @@ export default function LoginPage() {
             <button type="submit" className="primary-btn auth-submit-btn login-submit-btn">
               Login
             </button>
-          </form>
 
-    
+            <Link to="/register" className="mobile-auth-secondary-link">
+              Request access
+            </Link>
+          </form>
         </section>
       </section>
     </div>
