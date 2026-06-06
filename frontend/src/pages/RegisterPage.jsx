@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import { ArrowLeft, ArrowRight, LockKeyhole, Mail, Phone, ShieldCheck, User } from 'lucide-react';
 import PageHeader from '../components/common/PageHeader';
 
 const initialFormValues = {
@@ -15,9 +16,9 @@ const initialFormValues = {
 };
 
 const mobileSteps = [
-  { id: 1, shortLabel: 'Personal', title: 'Your details' },
-  { id: 2, shortLabel: 'Membership', title: 'Membership details' },
-  { id: 3, shortLabel: 'Account', title: 'Secure your account' }
+  { id: 1, shortLabel: 'Personal' },
+  { id: 2, shortLabel: 'Membership' },
+  { id: 3, shortLabel: 'Account' }
 ];
 
 export default function RegisterPage() {
@@ -95,36 +96,28 @@ export default function RegisterPage() {
               ))}
             </div>
 
-            <div className="mobile-register-step-heading">
-              <span>Step {mobileStep} of 3</span>
-              <h3>{mobileSteps[mobileStep - 1].title}</h3>
-            </div>
-
             <div className="mobile-register-fields">
               {mobileStep === 1 ? (
                 <>
-                  <AccessField prefix="mobile" name="firstNames" label="First Names" placeholder="Enter your first names" value={formValues.firstNames} onChange={updateField} />
-                  <AccessField prefix="mobile" name="surname" label="Surname" placeholder="Enter your surname" value={formValues.surname} onChange={updateField} />
-                  <AccessField prefix="mobile" name="email" label="Email Address" placeholder="Enter your email" type="email" value={formValues.email} onChange={updateField} />
-                  <AccessField prefix="mobile" name="cellNumber" label="Cell Number" placeholder="Enter your cell number" value={formValues.cellNumber} onChange={updateField} />
+                  <AccessField prefix="mobile" name="firstNames" label="First Names" placeholder="Enter your first names" value={formValues.firstNames} onChange={updateField} Icon={User} />
+                  <AccessField prefix="mobile" name="surname" label="Surname" placeholder="Enter your surname" value={formValues.surname} onChange={updateField} Icon={User} />
+                  <AccessField prefix="mobile" name="email" label="Email Address" placeholder="Enter your email" type="email" value={formValues.email} onChange={updateField} Icon={Mail} />
+                  <AccessField prefix="mobile" name="cellNumber" label="Cell Number" placeholder="Enter your cell number" value={formValues.cellNumber} onChange={updateField} Icon={Phone} />
                 </>
               ) : null}
 
               {mobileStep === 2 ? (
                 <>
-                  <AccessField prefix="mobile" name="idNumber" label="ID Number" placeholder="Enter your ID number" value={formValues.idNumber} onChange={updateField} />
-                  <AccessField prefix="mobile" name="membershipNumber" label="DSA / Membership Number" placeholder="Enter your membership number" value={formValues.membershipNumber} onChange={updateField} />
-                  <AccessField prefix="mobile" name="association" label="Association" placeholder="(Optional) Enter your association" value={formValues.association} onChange={updateField} />
+                  <AccessField prefix="mobile" name="idNumber" label="ID Number" placeholder="Enter your ID number" value={formValues.idNumber} onChange={updateField} Icon={User} />
+                  <AccessField prefix="mobile" name="membershipNumber" label="DSA / Membership Number" placeholder="Enter your membership number" value={formValues.membershipNumber} onChange={updateField} Icon={ShieldCheck} />
+                  <AccessField prefix="mobile" name="association" label="Association" placeholder="(Optional) Enter your association" value={formValues.association} onChange={updateField} Icon={ShieldCheck} />
                 </>
               ) : null}
 
               {mobileStep === 3 ? (
                 <>
-                  <AccessField prefix="mobile" name="password" label="Password" placeholder="Create a password" type="password" value={formValues.password} onChange={updateField} />
-                  <AccessField prefix="mobile" name="confirmPassword" label="Confirm Password" placeholder="Confirm your password" type="password" value={formValues.confirmPassword} onChange={updateField} />
-                  <p className="mobile-register-review-note">
-                    Your request will be reviewed before access is activated.
-                  </p>
+                  <AccessField prefix="mobile" name="password" label="Password" placeholder="Create a password" type="password" value={formValues.password} onChange={updateField} Icon={LockKeyhole} />
+                  <AccessField prefix="mobile" name="confirmPassword" label="Confirm Password" placeholder="Confirm your password" type="password" value={formValues.confirmPassword} onChange={updateField} Icon={LockKeyhole} />
                 </>
               ) : null}
             </div>
@@ -136,7 +129,8 @@ export default function RegisterPage() {
                   className="secondary-btn mobile-register-back-btn"
                   onClick={() => setMobileStep((currentStep) => currentStep - 1)}
                 >
-                  Back
+                  <ArrowLeft aria-hidden="true" />
+                  <span>Back</span>
                 </button>
               ) : null}
 
@@ -147,13 +141,19 @@ export default function RegisterPage() {
                   if (mobileStep < 3) setMobileStep((currentStep) => currentStep + 1);
                 }}
               >
-                {mobileStep === 3 ? 'Submit Access Request' : 'Continue'}
+                <span>{mobileStep === 3 ? 'Submit Access Request' : 'Continue'}</span>
+                {mobileStep < 3 ? <ArrowRight aria-hidden="true" /> : null}
               </button>
             </div>
 
             <Link to="/login" className="mobile-auth-secondary-link">
               Already have access? Sign in
             </Link>
+
+            <p className="mobile-register-review-note">
+              <ShieldCheck aria-hidden="true" />
+              <span>All requests are reviewed by your association admin before activation.</span>
+            </p>
           </form>
         </section>
       </section>
@@ -169,7 +169,8 @@ function AccessField({
   type = 'text',
   value,
   onChange,
-  className = ''
+  className = '',
+  Icon = null
 }) {
   const id = `${prefix}-${name}`;
 
@@ -178,15 +179,18 @@ function AccessField({
       <label className="form-label" htmlFor={id}>
         {label}
       </label>
-      <input
-        id={id}
-        name={name}
-        className="form-input"
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-      />
+      <div className="auth-input-wrap">
+        {Icon ? <Icon className="auth-input-icon" aria-hidden="true" /> : null}
+        <input
+          id={id}
+          name={name}
+          className="form-input"
+          type={type}
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+        />
+      </div>
     </div>
   );
 }

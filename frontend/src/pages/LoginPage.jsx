@@ -1,7 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { Eye, EyeOff, LockKeyhole, LogIn, Mail, ShieldCheck } from 'lucide-react';
 import PageHeader from '../components/common/PageHeader';
 import { useAuth } from '../context/AuthContext';
+import odaLogo from '../assets/oda2-logo-512.webp';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -9,6 +11,7 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [resetMessage, setResetMessage] = useState('');
 
@@ -49,6 +52,12 @@ export default function LoginPage() {
   return (
     <div className="page-stack login-page">
       <section className="login-shell">
+        <div className="mobile-login-intro">
+          <img src={odaLogo} alt="Observatory Darts Association" />
+          <h1>Welcome back</h1>
+          <p>Sign in to manage fixtures, scores and player stats.</p>
+        </div>
+
         <div className="login-hero-panel">
           <PageHeader
             title="Welcome Back"
@@ -80,14 +89,17 @@ export default function LoginPage() {
               <label className="form-label" htmlFor="email">
                 Email Address
               </label>
-              <input
-                id="email"
-                className="form-input"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-              />
+              <div className="auth-input-wrap">
+                <Mail className="auth-input-icon" aria-hidden="true" />
+                <input
+                  id="email"
+                  className="form-input"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+              </div>
             </div>
 
             <div className="form-row">
@@ -105,14 +117,25 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              <input
-                id="password"
-                className="form-input"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-              />
+              <div className="auth-input-wrap">
+                <LockKeyhole className="auth-input-icon" aria-hidden="true" />
+                <input
+                  id="password"
+                  className="form-input"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                />
+                <button
+                  type="button"
+                  className="password-visibility-btn"
+                  onClick={() => setShowPassword((isVisible) => !isVisible)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+                </button>
+              </div>
             </div>
 
             {errorMessage ? <div className="form-error">{errorMessage}</div> : null}
@@ -120,12 +143,23 @@ export default function LoginPage() {
             {resetMessage ? <div className="form-success">{resetMessage}</div> : null}
 
             <button type="submit" className="primary-btn auth-submit-btn login-submit-btn">
-              Login
+              <span className="desktop-login-label">Login</span>
+              <LogIn className="mobile-login-action-icon" aria-hidden="true" />
+              <span className="mobile-login-label">Sign in</span>
             </button>
 
-            <Link to="/register" className="mobile-auth-secondary-link">
-              Request access
+            <div className="mobile-auth-divider"><span>or</span></div>
+
+            <Link to="/register" className="mobile-auth-secondary-link mobile-request-access-link">
+              <ShieldCheck aria-hidden="true" />
+              <span>Request access</span>
             </Link>
+
+            <div className="mobile-auth-trust">
+              <span>Secure</span><i />
+              <span>Trusted</span><i />
+              <span>Connected</span>
+            </div>
           </form>
         </section>
       </section>
