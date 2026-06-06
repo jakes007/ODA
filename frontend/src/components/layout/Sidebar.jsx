@@ -7,7 +7,7 @@ import { db } from '../../firebase';
 import guardiansLogo from '../../assets/guardians-logo.png';
 import seagullsLogo from '../../assets/seagulls-logo.png';
 import defaultTeamLogo from '../../assets/default-team-logo.png';
-import odaLogo from '../../assets/oda2-logo.png';
+import odaLogo from '../../assets/oda2-logo-512.webp';
 
 const publicNavItems = [
   { to: '/', label: 'Home', icon: 'home' },
