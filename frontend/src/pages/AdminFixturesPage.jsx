@@ -35,6 +35,8 @@ export default function AdminFixturesPage() {
   const [matchFormatId, setMatchFormatId] = useState('');
 
   const [message, setMessage] = useState('');
+  const [pageDataLoading, setPageDataLoading] = useState(true);
+  const [importingPlacementsFixtures, setImportingPlacementsFixtures] = useState(false);
   const [fixtureToDelete, setFixtureToDelete] = useState(null);
 
   const [editingFixtureId, setEditingFixtureId] = useState('');
@@ -56,28 +58,45 @@ const [openFixtureSections, setOpenFixtureSections] = useState({});
   }, []);
 
   async function loadPageData() {
-    const loadedSeasons = await getSeasons();
-    const loadedCompetitions = await getCompetitions();
-    const loadedDivisions = await getDivisions();
-    const loadedTeams = await getTeams();
-    const loadedFormats = await getMatchFormats();
-    const loadedFixtures = await getAdminFixtures();
+    try {
+      setPageDataLoading(true);
 
-    setSeasons(loadedSeasons);
-    setCompetitions(loadedCompetitions);
-    setDivisions(loadedDivisions);
-    setTeams(loadedTeams);
-    setMatchFormats(loadedFormats);
-    setFixtures(loadedFixtures);
+      const [
+        loadedSeasons,
+        loadedCompetitions,
+        loadedDivisions,
+        loadedTeams,
+        loadedFormats,
+        loadedFixtures
+      ] = await Promise.all([
+        getSeasons(),
+        getCompetitions(),
+        getDivisions(),
+        getTeams(),
+        getMatchFormats(),
+        getAdminFixtures()
+      ]);
 
-    const activeSeason = loadedSeasons.find((season) => season.status === 'active');
-    const activeCompetition = loadedCompetitions.find(
-      (competition) => competition.status === 'active'
-    );
+      setSeasons(loadedSeasons);
+      setCompetitions(loadedCompetitions);
+      setDivisions(loadedDivisions);
+      setTeams(loadedTeams);
+      setMatchFormats(loadedFormats);
+      setFixtures(loadedFixtures);
 
-    if (activeSeason) setSeasonId(activeSeason.id);
-    if (activeCompetition) setCompetitionId(activeCompetition.id);
-    if (loadedFormats[0]) setMatchFormatId(loadedFormats[0].id);
+      const activeSeason = loadedSeasons.find((season) => season.status === 'active');
+      const activeCompetition = loadedCompetitions.find(
+        (competition) => competition.status === 'active'
+      );
+
+      if (activeSeason) setSeasonId(activeSeason.id);
+      if (activeCompetition) setCompetitionId(activeCompetition.id);
+      if (loadedFormats[0]) setMatchFormatId(loadedFormats[0].id);
+    } catch (error) {
+      setMessage(error.message || 'Could not load fixture manager data.');
+    } finally {
+      setPageDataLoading(false);
+    }
   }
 
   function getSeasonName(id) {
@@ -231,6 +250,7 @@ const [openFixtureSections, setOpenFixtureSections] = useState({});
 
   async function handleImportPlacementsFixtures() {
     try {
+      setImportingPlacementsFixtures(true);
       setMessage('Importing fixtures...');
   
       function normalizeFixtureTeamName(value = '') {
@@ -305,6 +325,13 @@ const [openFixtureSections, setOpenFixtureSections] = useState({});
         Upper: upperDivision,
         Lower: lowerDivision
       };
+
+      const fixtureKey = ({ fixtureDate, homeTeamId, awayTeamId }) =>
+        `${fixtureDate}|${homeTeamId}|${awayTeamId}`;
+
+      const existingFixtureKeys = new Set(fixtures.map(fixtureKey));
+      let importedCount = 0;
+      let skippedCount = 0;
   
       for (const [divisionName, divisionData] of Object.entries(
         placementsFixturesData.divisions
@@ -353,6 +380,17 @@ const [openFixtureSections, setOpenFixtureSections] = useState({});
                   console.log(awayTeamName);
                   continue;
                 }
+
+                const newFixtureKey = fixtureKey({
+                  fixtureDate: fixtureDate.date,
+                  homeTeamId: homeTeam.id,
+                  awayTeamId: awayTeam.id
+                });
+
+                if (existingFixtureKeys.has(newFixtureKey)) {
+                  skippedCount += 1;
+                  continue;
+                }
   
                 await createAdminFixture({
                   seasonId: activeSeason.id,
@@ -365,6 +403,9 @@ const [openFixtureSections, setOpenFixtureSections] = useState({});
                   matchFormat: selectedFormat,
                   status: getFixtureStatusByDate(fixtureDate.date)
                 });
+
+                existingFixtureKeys.add(newFixtureKey);
+                importedCount += 1;
               }
             }
           }
@@ -404,6 +445,17 @@ const [openFixtureSections, setOpenFixtureSections] = useState({});
                 console.log(awayTeamName);
                 continue;
               }
+
+              const newFixtureKey = fixtureKey({
+                fixtureDate: fixtureDate.date,
+                homeTeamId: homeTeam.id,
+                awayTeamId: awayTeam.id
+              });
+
+              if (existingFixtureKeys.has(newFixtureKey)) {
+                skippedCount += 1;
+                continue;
+              }
   
               await createAdminFixture({
                 seasonId: activeSeason.id,
@@ -416,6 +468,9 @@ const [openFixtureSections, setOpenFixtureSections] = useState({});
                 matchFormat: format16,
                 status: getFixtureStatusByDate(fixtureDate.date)
               });
+
+              existingFixtureKeys.add(newFixtureKey);
+              importedCount += 1;
             }
           }
         }
@@ -423,10 +478,14 @@ const [openFixtureSections, setOpenFixtureSections] = useState({});
   
       await loadPageData();
   
-      setMessage('Placements fixtures imported successfully.');
+      setMessage(
+        `Placements fixtures imported successfully. ${importedCount} created, ${skippedCount} already existed.`
+      );
     } catch (error) {
       console.error(error);
       setMessage(error.message || 'Could not import fixtures.');
+    } finally {
+      setImportingPlacementsFixtures(false);
     }
   }
   async function confirmDeleteFixture() {
@@ -1005,8 +1064,13 @@ const [openFixtureSections, setOpenFixtureSections] = useState({});
       type="button"
       className="secondary-btn"
       onClick={handleImportPlacementsFixtures}
+      disabled={pageDataLoading || importingPlacementsFixtures}
     >
-      Import Placements Fixtures
+      {pageDataLoading
+        ? 'Loading Fixture Data...'
+        : importingPlacementsFixtures
+          ? 'Importing Fixtures...'
+          : 'Import Placements Fixtures'}
     </button>
 
     <Link to="/admin" className="panel-link">
