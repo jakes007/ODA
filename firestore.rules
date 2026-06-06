@@ -1,0 +1,110 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isBootstrapAdmin() {
+      return signedIn() && request.auth.token.email == 'admin@oda.com';
+    }
+
+    function hasProfile() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function profile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return isBootstrapAdmin() ||
+        (signedIn() && request.auth.token.admin == true) ||
+        (hasProfile() && profile().role == 'admin');
+    }
+
+    function isCaptain() {
+      return (
+        hasProfile() &&
+        profile().role == 'captain' &&
+        profile().playerId is string
+      ) || (
+        signedIn() &&
+        request.auth.token.email in ['captain@oda.com', 'captain2@oda.com']
+      );
+    }
+
+    function captainPlayerId() {
+      return hasProfile()
+        ? profile().playerId
+        : request.auth.token.email == 'captain@oda.com'
+          ? 'registry_DSA-140192'
+          : request.auth.token.email == 'captain2@oda.com'
+            ? 'registry_DSA-180194'
+            : '';
+    }
+
+    function isCaptainOfTeam(teamId) {
+      return isCaptain() &&
+        get(/databases/$(database)/documents/teams/$(teamId)).data.captainPlayerId ==
+          captainPlayerId();
+    }
+
+    function isHomeCaptainForFixture(fixtureData) {
+      return isCaptainOfTeam(fixtureData.homeTeamId);
+    }
+
+    match /users/{userId} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == userId);
+      allow write: if isAdmin();
+    }
+
+    match /seasons/{documentId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /competitions/{documentId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /divisions/{documentId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /teams/{documentId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /matchFormats/{documentId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /fixtures/{fixtureId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || isHomeCaptainForFixture(resource.data);
+    }
+
+    match /fixtureGames/{gameId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() ||
+        isHomeCaptainForFixture(
+          get(
+            /databases/$(database)/documents/fixtures/$(resource.data.fixtureId)
+          ).data
+        );
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

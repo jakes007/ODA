@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { flushSync } from 'react-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
 import { useAuth } from '../context/AuthContext';
 import { importedLandingData } from '../data/importedLandingData';
+import { importedRegistryData } from '../data/importedRegistryData';
 import { getSeasons } from '../services/adminSeasonService';
 import { getCompetitions } from '../services/adminCompetitionService';
 import { getDivisions } from '../services/adminDivisionService';
@@ -25,7 +27,8 @@ import {
 } from 'react-icons/fi';
 
 export default function AdminDashboardPage() {
-  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const { currentUser, startCaptainPreview } = useAuth();
 
   const [seasons, setSeasons] = useState([]);
   const [competitions, setCompetitions] = useState([]);
@@ -33,27 +36,42 @@ export default function AdminDashboardPage() {
   const [teams, setTeams] = useState([]);
   const [fixtures, setFixtures] = useState([]);
   const [bootstrappingPlacements, setBootstrappingPlacements] = useState(false);
+  const [selectedCaptainTeamId, setSelectedCaptainTeamId] = useState('');
+  const [dashboardMessage, setDashboardMessage] = useState('');
 
   async function loadAdminDashboardData() {
-    const [
-      loadedSeasons,
-      loadedCompetitions,
-      loadedDivisions,
-      loadedTeams,
-      loadedFixtures
-    ] = await Promise.all([
-      getSeasons(),
-      getCompetitions(),
-      getDivisions(),
-      getTeams(),
-      getAdminFixtures()
-    ]);
+    try {
+      const [
+        loadedSeasons,
+        loadedCompetitions,
+        loadedDivisions,
+        loadedTeams,
+        loadedFixtures
+      ] = await Promise.all([
+        getSeasons(),
+        getCompetitions(),
+        getDivisions(),
+        getTeams(),
+        getAdminFixtures()
+      ]);
 
-    setSeasons(loadedSeasons);
-    setCompetitions(loadedCompetitions);
-    setDivisions(loadedDivisions);
-    setTeams(loadedTeams);
-    setFixtures(loadedFixtures);
+      setSeasons(loadedSeasons);
+      setCompetitions(loadedCompetitions);
+      setDivisions(loadedDivisions);
+      setTeams(loadedTeams);
+      setFixtures(loadedFixtures);
+      setSelectedCaptainTeamId((current) => (
+        current || loadedTeams.find((team) => team.captainPlayerId)?.id || ''
+      ));
+      setDashboardMessage('');
+    } catch (error) {
+      console.error('Admin dashboard load failed:', error);
+      setDashboardMessage(
+        error?.code === 'permission-denied'
+          ? 'Firestore access is blocked. Enable Firebase Authentication and deploy the ODA security rules.'
+          : error.message || 'Could not load admin dashboard data.'
+      );
+    }
   }
 
   useEffect(() => {
@@ -65,11 +83,34 @@ export default function AdminDashboardPage() {
       setBootstrappingPlacements(true);
       await bootstrapPlacementsCompetition();
       await loadAdminDashboardData();
+      setDashboardMessage('Placements imported successfully.');
     } catch (error) {
       console.error(error);
+      setDashboardMessage(error.message || 'Could not import placements.');
     } finally {
       setBootstrappingPlacements(false);
     }
+  }
+
+  function handleCaptainPreview() {
+    const team = teams.find((item) => item.id === selectedCaptainTeamId);
+    if (!team?.captainPlayerId) {
+      setDashboardMessage('Select a team with an assigned captain.');
+      return;
+    }
+
+    const captain = importedRegistryData.players.find(
+      (player) => player.playerId === team.captainPlayerId
+    );
+
+    flushSync(() => {
+      startCaptainPreview({
+        playerId: team.captainPlayerId,
+        displayName: captain?.fullName || team.captainPlayerId,
+        teamName: team.name
+      });
+    });
+    navigate('/captain');
   }
 
   function getSeasonName(id) {
@@ -164,6 +205,12 @@ export default function AdminDashboardPage() {
         subtitle={`Welcome back, ${currentUser?.displayName ?? 'Admin'}`}
       />
 
+      {dashboardMessage ? (
+        <div className="form-success admin-dashboard-message">
+          {dashboardMessage}
+        </div>
+      ) : null}
+
       <div className="admin-stats-grid">
         <div className="admin-stat-card">
           <div className="admin-stat-icon orange"><FiShield /></div>
@@ -249,6 +296,48 @@ export default function AdminDashboardPage() {
               <FiChevronRight />
             </Link>
           </div>
+        </div>
+      </section>
+
+      <section className="panel premium-panel admin-captain-test-panel">
+        <div>
+          <div className="admin-section-kicker">Captain Testing</div>
+          <h3 className="panel-title">Preview a captain dashboard</h3>
+          <p className="muted-text">
+            Stay signed in as admin while testing any assigned captain.
+          </p>
+        </div>
+
+        <div className="admin-captain-test-actions">
+          <select
+            className="form-input"
+            value={selectedCaptainTeamId}
+            onChange={(event) => setSelectedCaptainTeamId(event.target.value)}
+          >
+            <option value="">Select a captain team</option>
+            {teams
+              .filter((team) => team.captainPlayerId)
+              .map((team) => {
+                const captain = importedRegistryData.players.find(
+                  (player) => player.playerId === team.captainPlayerId
+                );
+
+                return (
+                  <option key={team.id} value={team.id}>
+                    {team.name} - {captain?.fullName || team.captainPlayerId}
+                  </option>
+                );
+              })}
+          </select>
+
+          <button
+            type="button"
+            className="primary-btn"
+            onClick={handleCaptainPreview}
+            disabled={!selectedCaptainTeamId}
+          >
+            Test Captain Dashboard
+          </button>
         </div>
       </section>
 

@@ -15,12 +15,12 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [resetMessage, setResetMessage] = useState('');
 
-  function handleLogin(event) {
+  async function handleLogin(event) {
     event.preventDefault();
     setErrorMessage('');
     setResetMessage('');
 
-    const result = login(email, password);
+    const result = await login(email, password);
 
     if (!result.success) {
       setErrorMessage(result.message);

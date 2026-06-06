@@ -1,9 +1,15 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import logo from '../../assets/oda-logo.png';
 
 export default function Topbar({ onMenuClick }) {
-  const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
+  const {
+    currentUser,
+    isCaptainPreview,
+    logout,
+    stopCaptainPreview
+  } = useAuth();
 
   const dashboardRoute = getDashboardRoute(currentUser);
 
@@ -13,6 +19,11 @@ export default function Topbar({ onMenuClick }) {
     } catch (error) {
       console.error('Logout failed:', error);
     }
+  }
+
+  function handleExitCaptainPreview() {
+    stopCaptainPreview();
+    navigate('/admin', { replace: true });
   }
 
   return (
@@ -25,6 +36,16 @@ export default function Topbar({ onMenuClick }) {
         <div className="topbar-actions">
           {currentUser ? (
             <>
+              {isCaptainPreview ? (
+                <button
+                  type="button"
+                  className="secondary-btn topbar-action-btn"
+                  onClick={handleExitCaptainPreview}
+                >
+                  Exit Captain Test
+                </button>
+              ) : null}
+
               <Link to={dashboardRoute} className="secondary-btn topbar-action-btn">
                 My Dashboard
               </Link>

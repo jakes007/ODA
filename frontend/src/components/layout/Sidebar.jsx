@@ -24,7 +24,13 @@ const teamLogoMap = {
 };
 
 export default function Sidebar({ mobile = false, isOpen = false, onClose = null }) {
-  const { currentUser, isAuthenticated, logout } = useAuth();
+  const {
+    currentUser,
+    isAuthenticated,
+    isCaptainPreview,
+    logout,
+    stopCaptainPreview
+  } = useAuth();
   const [captainTeam, setCaptainTeam] = useState(null);
 
   const isCaptain = isAuthenticated && currentUser?.role === 'captain';
@@ -56,7 +62,10 @@ export default function Sidebar({ mobile = false, isOpen = false, onClose = null
       });
     }
 
-    loadCaptainTeam();
+    loadCaptainTeam().catch((error) => {
+      console.error('Could not load captain team:', error);
+      setCaptainTeam(null);
+    });
   }, [isCaptain, currentUser?.playerId]);
 
   const teamName = useMemo(() => {
@@ -162,6 +171,20 @@ export default function Sidebar({ mobile = false, isOpen = false, onClose = null
                 >
                   <Icon name="shield" />
                   <span>Captain Dashboard</span>
+                </NavLink>
+              ) : null}
+
+              {isCaptainPreview ? (
+                <NavLink
+                  to="/admin"
+                  onClick={() => {
+                    stopCaptainPreview();
+                    if (mobile && onClose) onClose();
+                  }}
+                  className="sidebar-link sidebar-login-link"
+                >
+                  <Icon name="shield" />
+                  <span>Exit Captain Test</span>
                 </NavLink>
               ) : null}
 

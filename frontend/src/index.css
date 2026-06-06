@@ -9139,3 +9139,258 @@ text-overflow: ellipsis; /* ... if too long */
   color: rgba(226, 232, 240, 0.68);
   font-weight: 800;
 }
+
+/* ===== CAPTAIN DASHBOARD MOBILE LAYOUT ===== */
+
+@media (max-width: 640px) {
+  .captain-command-page {
+    gap: 12px;
+  }
+
+  .captain-command-header {
+    gap: 14px;
+  }
+
+  .captain-command-header h1 {
+    margin: 5px 0 8px;
+    font-size: 28px;
+    line-height: 1.08;
+    letter-spacing: 0;
+  }
+
+  .captain-command-header p {
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .captain-command-role-pill {
+    min-height: 36px;
+    padding: 0 15px;
+  }
+
+  .captain-command-top-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .captain-command-team-card,
+  .captain-command-next-card,
+  .captain-command-action-card,
+  .captain-command-live-card,
+  .captain-command-tools-card,
+  .captain-command-fixtures-card,
+  .captain-command-panel {
+    min-width: 0;
+    min-height: auto;
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .captain-command-team-card,
+  .captain-command-next-card {
+    gap: 20px;
+  }
+
+  .captain-command-team-top {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .captain-command-team-mark {
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
+    font-size: 24px;
+  }
+
+  .captain-command-team-body {
+    min-width: 0;
+  }
+
+  .captain-command-team-body h2,
+  .captain-command-next-card h2 {
+    margin: 6px 0;
+    font-size: 25px;
+    line-height: 1.1;
+    letter-spacing: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .captain-command-team-body p,
+  .captain-command-next-card p {
+    line-height: 1.45;
+  }
+
+  .captain-command-team-kicker {
+    gap: 8px;
+  }
+
+  .captain-command-mini-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .captain-command-mini-stat,
+  .captain-command-next-stats div {
+    min-height: 72px;
+    padding: 10px 8px;
+    border-radius: 14px;
+  }
+
+  .captain-command-mini-stat strong,
+  .captain-command-next-stats strong {
+    font-size: 23px;
+  }
+
+  .captain-command-mini-stat span,
+  .captain-command-next-stats span {
+    margin-top: 8px;
+    font-size: 0.64rem;
+  }
+
+  .captain-command-section-head {
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .captain-command-section-head h2 {
+    font-size: 19px;
+    line-height: 1.25;
+  }
+
+  .captain-command-section-head span {
+    flex-shrink: 0;
+    font-size: 0.78rem;
+    text-align: right;
+  }
+
+  .premium-command-tools {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .premium-command-tools .captain-command-tool-tile {
+    min-height: 112px;
+    border-radius: 16px;
+  }
+
+  .captain-command-fixture-row {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px 12px;
+    padding: 12px;
+  }
+
+  .captain-command-status-badge {
+    min-width: 72px;
+    padding: 0 10px;
+  }
+
+  .captain-command-fixture-main {
+    min-width: 0;
+  }
+
+  .captain-command-fixture-main strong {
+    overflow-wrap: anywhere;
+  }
+
+  .captain-command-fixture-date,
+  .captain-command-fixture-status,
+  .captain-command-row-btn {
+    grid-column: 1 / -1;
+  }
+
+  .captain-command-fixture-date {
+    justify-content: flex-start;
+    min-height: 32px;
+  }
+
+  .captain-command-fixture-status,
+  .captain-command-row-btn {
+    min-height: 44px;
+  }
+
+  .captain-command-live-wide .captain-command-live-title {
+    font-size: 25px;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  .captain-command-live-score {
+    gap: 10px;
+  }
+
+  .captain-command-live-score strong {
+    font-size: 42px;
+  }
+
+  .captain-command-live-wide .captain-command-live-btn {
+    min-height: 52px;
+    font-size: 1rem;
+  }
+
+  .captain-modal-backdrop {
+    padding: 12px;
+  }
+
+  .captain-premium-modal {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .captain-premium-modal-head h2 {
+    font-size: 1.5rem;
+  }
+
+  .captain-modal-close {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+}
+
+/* ===== ADMIN CAPTAIN TESTING ===== */
+
+.admin-captain-test-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.admin-captain-test-panel .panel-title {
+  margin: 6px 0;
+}
+
+.admin-captain-test-panel p {
+  margin: 0;
+}
+
+.admin-captain-test-actions {
+  width: min(620px, 100%);
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) auto;
+  gap: 12px;
+}
+
+.admin-captain-test-actions .form-input,
+.admin-captain-test-actions .primary-btn {
+  min-height: 48px;
+}
+
+.admin-dashboard-message {
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .admin-captain-test-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-captain-test-actions {
+    grid-template-columns: 1fr;
+  }
+}
