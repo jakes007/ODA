@@ -2,6 +2,7 @@ import {
   addDoc,
   collection,
   deleteDoc,
+  deleteField,
   doc,
   getDocs,
   orderBy,
@@ -14,6 +15,119 @@ import {
 import { db } from '../firebase';
 
 const fixturesCollection = collection(db, 'fixtures');
+
+const activatedFixtureStatuses = new Set([
+  'waiting_for_opponent',
+  'ready_to_play',
+  'active',
+  'completed'
+]);
+
+function getLocalDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
+export function canResetAdminFixtureForTesting(fixture, today = getLocalDateKey()) {
+  if (!fixture?.fixtureDate || fixture.fixtureDate < today) return false;
+
+  return Boolean(
+    activatedFixtureStatuses.has(fixture.status) ||
+    fixture.liveSession ||
+    fixture.liveStartedAt ||
+    fixture.homeLineupSubmitted ||
+    fixture.awayLineupSubmitted ||
+    fixture.lineupsRevealed ||
+    fixture.postMatch ||
+    fixture.postMatchComplete ||
+    fixture.complete ||
+    fixture.scoreText
+  );
+}
+
+function getTestingResetPayload(fixtureDate, today) {
+  return {
+    status: fixtureDate === today ? 'ready_for_lineups' : 'upcoming',
+    score: { home: 0, away: 0 },
+    complete: false,
+    homeLineupPlayerIds: deleteField(),
+    awayLineupPlayerIds: deleteField(),
+    homeLineupSubmitted: deleteField(),
+    awayLineupSubmitted: deleteField(),
+    homeLineupSubmittedAt: deleteField(),
+    awayLineupSubmittedAt: deleteField(),
+    lineupsRevealed: deleteField(),
+    liveStartedAt: deleteField(),
+    liveSession: deleteField(),
+    scoreText: deleteField(),
+    postMatch: deleteField(),
+    postMatchComplete: deleteField()
+  };
+}
+
+async function commitUpdatesInChunks(updates, chunkSize = 450) {
+  for (let index = 0; index < updates.length; index += chunkSize) {
+    const batch = writeBatch(db);
+
+    updates.slice(index, index + chunkSize).forEach(({ ref, data }) => {
+      batch.update(ref, data);
+    });
+
+    await batch.commit();
+  }
+}
+
+export async function resetAdminTestingFixtures() {
+  const today = getLocalDateKey();
+  const fixturesQuery = query(fixturesCollection, where('fixtureDate', '>=', today));
+  const fixturesSnapshot = await getDocs(fixturesQuery);
+  const resettableFixtures = fixturesSnapshot.docs.filter((fixtureDoc) =>
+    canResetAdminFixtureForTesting(fixtureDoc.data(), today)
+  );
+  const updates = [];
+  let fixtureGameCount = 0;
+
+  for (const fixtureDoc of resettableFixtures) {
+    const fixture = fixtureDoc.data();
+    const gamesQuery = query(
+      collection(db, 'fixtureGames'),
+      where('fixtureId', '==', fixtureDoc.id)
+    );
+    const gamesSnapshot = await getDocs(gamesQuery);
+
+    updates.push({
+      ref: doc(db, 'fixtures', fixtureDoc.id),
+      data: getTestingResetPayload(fixture.fixtureDate, today)
+    });
+
+    gamesSnapshot.docs.forEach((gameDoc) => {
+      fixtureGameCount += 1;
+      updates.push({
+        ref: doc(db, 'fixtureGames', gameDoc.id),
+        data: {
+          status: 'pending',
+          homePlayers: [],
+          awayPlayers: [],
+          winner: null,
+          summary: null,
+          boardNumber: deleteField(),
+          result: deleteField(),
+          liveState: deleteField()
+        }
+      });
+    });
+  }
+
+  await commitUpdatesInChunks(updates);
+
+  return {
+    fixtureCount: resettableFixtures.length,
+    fixtureGameCount
+  };
+}
 
 export async function createAdminFixture({
   seasonId,

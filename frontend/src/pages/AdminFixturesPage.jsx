@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { RotateCcw } from 'lucide-react';
 import PageHeader from '../components/common/PageHeader';
 import CustomSelect from '../components/common/CustomSelect';
 import { getSeasons } from '../services/adminSeasonService';
@@ -9,8 +10,10 @@ import { getTeams } from '../services/adminTeamService';
 import { getMatchFormats } from '../services/adminMatchFormatService';
 import {
   createAdminFixture,
+  canResetAdminFixtureForTesting,
   deleteAdminFixture,
   getAdminFixtures,
+  resetAdminTestingFixtures,
   updateAdminFixture
 } from '../services/adminFixtureService';
 import AdminStepNavigation from '../components/admin/AdminStepNavigation';
@@ -38,6 +41,8 @@ export default function AdminFixturesPage() {
   const [pageDataLoading, setPageDataLoading] = useState(true);
   const [importingPlacementsFixtures, setImportingPlacementsFixtures] = useState(false);
   const [fixtureToDelete, setFixtureToDelete] = useState(null);
+  const [showTestingResetConfirmation, setShowTestingResetConfirmation] = useState(false);
+  const [resettingTestingFixtures, setResettingTestingFixtures] = useState(false);
 
   const [editingFixtureId, setEditingFixtureId] = useState('');
   const [editingSeasonId, setEditingSeasonId] = useState('');
@@ -220,6 +225,11 @@ const [openFixtureSections, setOpenFixtureSections] = useState({});
         team.divisionId === editingDivisionId
     );
   }, [teams, editingSeasonId, editingCompetitionId, editingDivisionId]);
+
+  const resettableTestingFixtureCount = useMemo(
+    () => fixtures.filter((fixture) => canResetAdminFixtureForTesting(fixture)).length,
+    [fixtures]
+  );
 
   async function handleCreateFixture(event) {
     event.preventDefault();
@@ -498,6 +508,25 @@ const [openFixtureSections, setOpenFixtureSections] = useState({});
       await loadPageData();
     } catch (error) {
       setMessage(error.message || 'Could not delete fixture.');
+    }
+  }
+
+  async function confirmResetTestingFixtures() {
+    try {
+      setResettingTestingFixtures(true);
+      const result = await resetAdminTestingFixtures();
+
+      setShowTestingResetConfirmation(false);
+      setMessage(
+        result.fixtureCount
+          ? `${result.fixtureCount} test fixture${result.fixtureCount === 1 ? '' : 's'} reset. Past fixtures were left unchanged.`
+          : 'No active test fixtures needed resetting.'
+      );
+      await loadPageData();
+    } catch (error) {
+      setMessage(error.message || 'Could not reset test fixtures.');
+    } finally {
+      setResettingTestingFixtures(false);
     }
   }
 
@@ -1062,6 +1091,18 @@ const [openFixtureSections, setOpenFixtureSections] = useState({});
   <div style={{ display: 'flex', gap: '0.75rem' }}>
     <button
       type="button"
+      className="secondary-btn danger-btn"
+      onClick={() => setShowTestingResetConfirmation(true)}
+      disabled={pageDataLoading || resettingTestingFixtures || resettableTestingFixtureCount === 0}
+    >
+      <RotateCcw size={17} />
+      {resettingTestingFixtures
+        ? 'Resetting...'
+        : `Reset Test Fixtures (${resettableTestingFixtureCount})`}
+    </button>
+
+    <button
+      type="button"
       className="secondary-btn"
       onClick={handleImportPlacementsFixtures}
       disabled={pageDataLoading || importingPlacementsFixtures}
@@ -1252,6 +1293,42 @@ const [openFixtureSections, setOpenFixtureSections] = useState({});
                 onClick={confirmDeleteFixture}
               >
                 Delete Fixture
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {showTestingResetConfirmation ? (
+        <div className="premium-confirm-backdrop">
+          <div className="premium-confirm-modal">
+            <div className="premium-confirm-kicker">Testing Reset</div>
+
+            <h3>Reset {resettableTestingFixtureCount} Test Fixture{resettableTestingFixtureCount === 1 ? '' : 's'}?</h3>
+
+            <p>
+              This clears submitted lineups, live boards, throws, scores, results, and post-match data
+              from fixtures dated today or later. <strong>Past fixtures and historical results will not be changed.</strong>
+            </p>
+
+            <div className="premium-confirm-actions">
+              <button
+                type="button"
+                className="secondary-btn"
+                onClick={() => setShowTestingResetConfirmation(false)}
+                disabled={resettingTestingFixtures}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="secondary-btn danger-btn"
+                onClick={confirmResetTestingFixtures}
+                disabled={resettingTestingFixtures}
+              >
+                <RotateCcw size={17} />
+                {resettingTestingFixtures ? 'Resetting Fixtures...' : 'Reset Test Fixtures'}
               </button>
             </div>
           </div>
