@@ -63,7 +63,7 @@ export default function PublicLiveBoardPage() {
       <header className="pb-board-topbar">
         <Link to={`/live/${fixtureId}`}><ArrowLeft size={21} /> Back to Match Centre</Link>
         <div className="pb-board-brand">ODA <strong>Live</strong></div>
-        <div className="pb-board-top-meta"><Target size={19} /> Board {matchup.boardNumber || '-'}<LivePulse label="Live Sync" /></div>
+        <div className="pb-board-top-meta"><Target size={19} /><span>Board {matchup.boardNumber || '-'}</span><LivePulse label="Live Sync" /></div>
       </header>
 
       <section className="pb-board-fixture-strip">
@@ -102,7 +102,7 @@ export default function PublicLiveBoardPage() {
           <div className="pb-throws-heading"><i /><h2>Latest Throws</h2><i /></div>
           <div className="pb-throws-table">
             <div className="pb-throws-table-head">
-              <span>Turn</span><strong>{players.home}</strong><span>Total Darts</span><strong>{players.away}</strong><span>Turn Darts</span>
+              <strong>{players.home}</strong><span>Total Darts</span><strong>{players.away}</strong>
             </div>
             {historyRows.map((row) => (
               <ThrowRow key={row.rowIndex} row={row} currentSide={currentSide} />
@@ -166,11 +166,9 @@ function ThrowRow({ row, currentSide }) {
   const isComplete = Boolean(row.homeTurn && row.awayTurn);
   return (
     <div className={`pb-throw-row ${isCurrent ? 'current' : ''}`}>
-      <span>{row.rowIndex + 1}</span>
       <TurnValue turn={row.homeTurn} waiting={isCurrent && currentSide === 'home'} side="home" />
       <span className={`pb-darts-used ${isComplete ? 'complete' : 'current'}`}>{row.dartsUsedTotal}</span>
       <TurnValue turn={row.awayTurn} waiting={isCurrent && currentSide === 'away'} side="away" />
-      <span>{row.homeTurn?.dartsUsed || row.awayTurn?.dartsUsed || 3}</span>
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import { Radio, Trophy } from 'lucide-react';
 import { GiDart } from 'react-icons/gi';
-import guardiansLogo from '../../assets/guardians-logo.png';
-import seagullsLogo from '../../assets/seagulls-logo.png';
-import defaultTeamLogo from '../../assets/default-team-logo.png';
+import { getTeamLogo } from '../../utils/teamLogos';
+
+export { getTeamLogo };
 
 export function TeamCrest({ teamName, side = 'home', size = 'medium' }) {
   return (
@@ -83,13 +83,6 @@ export function CompetitionLabel({ fixture }) {
       {getFixtureDivisionLabel(fixture)} / {fixture.competition?.season || '2026'}
     </span>
   );
-}
-
-export function getTeamLogo(name = '') {
-  const cleanName = name.toLowerCase();
-  if (cleanName.includes('guardian')) return guardiansLogo;
-  if (cleanName.includes('seagull')) return seagullsLogo;
-  return defaultTeamLogo;
 }
 
 export function getScoreParts(scoreText) {

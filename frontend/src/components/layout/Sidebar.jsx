@@ -4,10 +4,8 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { useAuth } from '../../context/AuthContext';
 import { db } from '../../firebase';
 
-import guardiansLogo from '../../assets/guardians-logo.png';
-import seagullsLogo from '../../assets/seagulls-logo.png';
-import defaultTeamLogo from '../../assets/default-team-logo.png';
 import odaLogo from '../../assets/oda2-logo-512.webp';
+import { getTeamLogo } from '../../utils/teamLogos';
 
 const publicNavItems = [
   { to: '/', label: 'Home', icon: 'home' },
@@ -17,11 +15,6 @@ const publicNavItems = [
   { to: '/competition/fixtures', label: 'Fixtures', icon: 'calendar' },
   { to: '/player/player_jason', label: 'Player Profile', icon: 'user' }
 ];
-
-const teamLogoMap = {
-  guardians: guardiansLogo,
-  seagulls: seagullsLogo
-};
 
 export default function Sidebar({ mobile = false, isOpen = false, onClose = null }) {
   const {
@@ -79,15 +72,7 @@ export default function Sidebar({ mobile = false, isOpen = false, onClose = null
     );
   }, [captainTeam, currentUser]);
 
-  const teamLogo = useMemo(() => {
-    const cleanTeamName = teamName.toLowerCase();
-
-    return (
-      Object.entries(teamLogoMap).find(([key]) =>
-        cleanTeamName.includes(key)
-      )?.[1] || defaultTeamLogo
-    );
-  }, [teamName]);
+  const teamLogo = useMemo(() => getTeamLogo(teamName), [teamName]);
 
   const sidebarClassName = mobile
     ? `sidebar premium-sidebar mobile-sidebar${isOpen ? ' open' : ''}`

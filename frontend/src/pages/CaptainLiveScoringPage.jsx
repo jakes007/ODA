@@ -20,9 +20,7 @@ import {
 import PageHeader from '../components/common/PageHeader';
 import EmptyState from '../components/common/EmptyState';
 import { useAuth } from '../context/AuthContext';
-import guardiansLogo from '../assets/guardians-logo.png';
-import seagullsLogo from '../assets/seagulls-logo.png';
-import defaultTeamLogo from '../assets/default-team-logo.png';
+import { getTeamLogo } from '../utils/teamLogos';
 import {
   getCaptainLiveScoringData,
   startCaptainFixtureMatchup,
@@ -513,13 +511,6 @@ function LiveEmpty({ icon, text }) {
 
 function getPlayerNames(players = [], fallback) {
   return players.map((player) => player.displayName).filter(Boolean).join(' & ') || fallback;
-}
-
-function getTeamLogo(name = '') {
-  const cleanName = name.toLowerCase();
-  if (cleanName.includes('guardian')) return guardiansLogo;
-  if (cleanName.includes('seagull')) return seagullsLogo;
-  return defaultTeamLogo;
 }
 
 function parseScore(scoreText = '0 - 0') {
