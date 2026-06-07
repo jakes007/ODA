@@ -1,8 +1,25 @@
-import { useEffect, useMemo, useState } from 'react';
+import { createElement, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import PageHeader from '../components/common/PageHeader';
+import {
+  Activity,
+  ArrowRight,
+  Clock3,
+  Radio,
+  RefreshCw,
+  Target,
+  UsersRound
+} from 'lucide-react';
+import { GiDart } from 'react-icons/gi';
 import EmptyState from '../components/common/EmptyState';
-
+import {
+  BroadcastHeading,
+  CompetitionLabel,
+  FixtureScoreboard,
+  LivePulse,
+  TeamCrest,
+  getFixtureDivisionLabel,
+  getScoreParts
+} from '../components/public/PublicBroadcast';
 import { getActivePublicLiveFixtures } from '../services/captainFixtureService';
 
 export default function PublicLiveHubPage() {
@@ -11,263 +28,128 @@ export default function PublicLiveHubPage() {
 
   useEffect(() => {
     loadFixtures();
-
-    const intervalId = setInterval(() => {
-      loadFixtures();
-    }, 5000);
-
+    const intervalId = setInterval(loadFixtures, 5000);
     return () => clearInterval(intervalId);
   }, []);
 
   async function loadFixtures() {
-    const liveFixtures = await getActivePublicLiveFixtures();
-  
-    setFixtures(sortLiveFixtures(liveFixtures));
+    setFixtures(sortLiveFixtures(await getActivePublicLiveFixtures()));
     setLoading(false);
   }
 
-  const hubStats = useMemo(() => {
-    const activeBoards = fixtures.reduce(
+  const hubStats = useMemo(() => ({
+    activeBoards: fixtures.reduce(
       (total, fixture) => total + Number(fixture.liveSession?.activeBoardCount || 0),
       0
-    );
-
-    const totalMatchups = fixtures.reduce(
+    ),
+    totalMatchups: fixtures.reduce(
       (total, fixture) => total + Number(fixture.liveSession?.games?.length || 0),
       0
-    );
+    )
+  }), [fixtures]);
 
-    return {
-      liveFixtures: fixtures.length,
-      activeBoards,
-      totalMatchups
-    };
-  }, [fixtures]);
+  if (loading) return <EmptyState message="Loading live fixtures..." />;
 
-  if (loading) {
-    return <EmptyState message="Loading live fixtures..." />;
-  }
+  const featuredFixture = fixtures[0];
+  const otherFixtures = fixtures.slice(1);
 
   return (
-    <div className="page-stack public-live-hub-page">
-      <div className="public-live-hero">
-        <div>
-          <div className="public-live-kicker">
-            <span className="live-dot" />
-            Live Scoring
+    <div className="pb-page pb-live-hub">
+      <BroadcastHeading
+        title="Live Match Centre"
+        subtitle={<>Matches happening <strong>now</strong></>}
+        action={
+          <div className="pb-auto-refresh">
+            <RefreshCw size={16} /> Auto-refresh <span>5s</span><i />
           </div>
+        }
+      />
 
-          <PageHeader
-            title="Live Match Hub"
-            subtitle="All fixtures currently being played live"
-          />
-        </div>
-
-        <div className="public-live-refresh">
-          <span>↻</span>
-          Auto refresh in 5s
-        </div>
-      </div>
-
-      <section className="public-live-stats-grid">
-  <div className="public-live-stat-card">
-    <div className="public-live-stat-icon">☈</div>
-
-    <div>
-      <strong>{hubStats.liveFixtures}</strong>
-      <span>Live Fixtures</span>
-    </div>
-  </div>
-
-  <div className="public-live-stat-card">
-    <div className="public-live-stat-icon">◎</div>
-
-    <div>
-      <strong>{hubStats.activeBoards}</strong>
-      <span>Active Boards</span>
-    </div>
-  </div>
-
-  <div className="public-live-stat-card">
-    <div className="public-live-stat-icon">⚔</div>
-
-    <div>
-      <strong>{hubStats.totalMatchups}</strong>
-      <span>Total Matchups</span>
-    </div>
-  </div>
-
-  <div className="public-live-stat-card live">
-    <div className="public-live-stat-icon">●</div>
-
-    <div>
-      <strong>Live</strong>
-      <span>Updates</span>
-    </div>
-  </div>
-</section>
-
-      {fixtures.length === 0 ? (
-        <section className="panel public-live-empty">
-          <div className="public-live-empty-icon">◎</div>
-          <h3>No fixtures are currently live</h3>
-          <p>Live fixtures will appear here automatically once scoring starts.</p>
+      {featuredFixture ? (
+        <section className="pb-featured-fixture">
+          <div className="pb-featured-label"><Radio size={18} /> Featured Live</div>
+          <FixtureScoreboard fixture={featuredFixture} />
+          <div className="pb-featured-footer">
+            <CompetitionLabel fixture={featuredFixture} />
+            <span><Target size={18} /> {featuredFixture.liveSession?.activeBoardCount || 0} active board</span>
+            <span><UsersRound size={18} /> {featuredFixture.liveSession?.games?.length || 0} matchups</span>
+            <Link to={`/live/${featuredFixture.fixtureId}`} className="pb-primary-action">
+              <Radio size={20} /><span>Watch Live</span><ArrowRight size={22} />
+            </Link>
+          </div>
         </section>
       ) : (
-        <div className="public-live-fixture-list">
-          {fixtures.map((fixture) => (
-            <article key={fixture.fixtureId} className="public-live-fixture-card">
-              <div className="public-live-card-top">
-                <div>
-                <div className="public-live-competition">
-  {getFixtureDivisionLabel(fixture)} •{' '}
-  {fixture.competition?.season || '2026'}
-</div>
-                </div>
-
-                <span className="public-live-badge">Live</span>
-              </div>
-
-              <div className="public-live-score-row">
-                <div className="public-live-team home">
-                <div className="public-live-team-mark">
-  {getTeamInitials(fixture.homeTeam.teamName)}
-</div>
-                  <h3>{fixture.homeTeam.teamName}</h3>
-                </div>
-
-                <div className="public-live-score">
-                  {formatScoreText(fixture.scoreText)}
-                </div>
-
-                <div className="public-live-team away">
-                  <h3>{fixture.awayTeam.teamName}</h3>
-                  <div className="public-live-team-mark">
-  {getTeamInitials(fixture.awayTeam.teamName)}
-</div>
-                </div>
-              </div>
-
-              <div className="public-live-meta-row">
-              <span
-  className={
-    fixture.status === 'active'
-      ? 'public-live-status-pill active'
-      : 'public-live-status-pill'
-  }
->
-  <span className="live-dot" />
-  {formatStatus(fixture.status)}
-</span>
-
-                <span>{fixture.liveSession?.activeBoardCount ?? 0} active boards</span>
-
-                <span>{fixture.liveSession?.games?.length ?? 0} matchups</span>
-              </div>
-
-              <div className="public-live-card-footer">
-                <div className="public-live-small-note">
-                  Scores update automatically while the fixture is live.
-                </div>
-
-                <Link to={`/live/${fixture.fixtureId}`} className="primary-btn public-live-watch-btn">
-                  Watch Live →
-                </Link>
-              </div>
-            </article>
-          ))}
-        </div>
+        <section className="pb-empty-state">
+          <Radio size={35} />
+          <h2>No fixtures are currently live</h2>
+          <p>Live fixtures will appear here automatically once scoring starts.</p>
+        </section>
       )}
 
-      <section className="public-live-info-card">
-        <div className="public-live-info-icon">i</div>
-        <div>
-          <strong>Live scoring updates automatically.</strong>
-          <p>Fixture scores and board activity refresh every few seconds.</p>
-        </div>
+      {featuredFixture && (
+        <section className="pb-live-list-section">
+          <div className="pb-section-heading">
+            <div><Radio size={20} /><h2>Other Live Fixtures</h2></div>
+            <span>{fixtures.length} live now</span>
+          </div>
+
+          <div className="pb-live-fixture-list">
+            {otherFixtures.length
+              ? otherFixtures.map((fixture) => <CompactFixtureRow key={fixture.fixtureId} fixture={fixture} />)
+              : <div className="pb-empty-state compact"><Radio size={25} /><p>No other fixtures are live right now.</p></div>}
+          </div>
+        </section>
+      )}
+
+      <section className="pb-activity-strip">
+        <div className="pb-activity-title"><Activity size={19} /><strong>Live Activity</strong></div>
+        <ActivityItem icon={GiDart} value="Live" label={`${hubStats.activeBoards} active boards`} />
+        <ActivityItem icon={UsersRound} value={hubStats.totalMatchups} label="matchups scheduled" />
+        <ActivityItem icon={Clock3} value="5s" label="score refresh" />
       </section>
     </div>
   );
 }
 
-function getTeamInitials(teamName = '') {
-  return teamName
-    .split(' ')
-    .map((word) => word.charAt(0))
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+function CompactFixtureRow({ fixture }) {
+  const score = getScoreParts(fixture.scoreText);
+
+  return (
+    <article className="pb-live-fixture-row">
+      <LivePulse />
+      <div className="pb-row-team home">
+        <TeamCrest teamName={fixture.homeTeam.teamName} side="home" size="small" />
+        <strong>{fixture.homeTeam.teamName}</strong>
+      </div>
+      <div className="pb-row-score"><b>{score.home}</b><span>-</span><b>{score.away}</b></div>
+      <div className="pb-row-team away">
+        <TeamCrest teamName={fixture.awayTeam.teamName} side="away" size="small" />
+        <strong>{fixture.awayTeam.teamName}</strong>
+      </div>
+      <div className="pb-row-meta">
+        <span>{getFixtureDivisionLabel(fixture)}</span>
+        <small>{fixture.liveSession?.activeBoardCount || 0} active board</small>
+      </div>
+      <Link to={`/live/${fixture.fixtureId}`} className="pb-outline-action">
+        Watch <ArrowRight size={17} />
+      </Link>
+    </article>
+  );
+}
+
+function ActivityItem({ icon, value, label }) {
+  return (
+    <div className="pb-activity-item">
+      {createElement(icon, { size: 20 })}
+      <div><strong>{value}</strong><span>{label}</span></div>
+    </div>
+  );
 }
 
 function sortLiveFixtures(fixtures) {
   return [...fixtures].sort((a, b) => {
-    const aPriority = getFixtureDivisionPriority(a);
-    const bPriority = getFixtureDivisionPriority(b);
-
-    if (aPriority !== bPriority) {
-      return aPriority - bPriority;
-    }
-
-    return String(a.fixtureName || '').localeCompare(String(b.fixtureName || ''));
+    const labels = [getFixtureDivisionLabel(a), getFixtureDivisionLabel(b)];
+    const priorities = labels.map((label) => label.toLowerCase().includes('upper') ? 1 : label.toLowerCase().includes('lower') ? 2 : 3);
+    return priorities[0] - priorities[1] || String(a.fixtureName || '').localeCompare(String(b.fixtureName || ''));
   });
-}
-
-function getFixtureDivisionPriority(fixture) {
-  const label = getFixtureDivisionLabel(fixture).toLowerCase();
-
-  if (label.includes('upper')) return 1;
-  if (label.includes('lower')) return 2;
-
-  return 3;
-}
-
-function getFixtureDivisionLabel(fixture) {
-  const searchableText = [
-    fixture.division,
-    fixture.divisionName,
-    fixture.competition?.division,
-    fixture.competition?.divisionName,
-    fixture.competition?.name,
-    fixture.fixtureName,
-    fixture.format?.name,
-    fixture.homeTeam?.teamName,
-    fixture.awayTeam?.teamName
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
-
-  const competitionName = fixture.competition?.name || 'Placements';
-
-  if (searchableText.includes('upper')) {
-    return `Upper ${competitionName}`;
-  }
-
-  if (searchableText.includes('lower')) {
-    return `Lower ${competitionName}`;
-  }
-
-  if (searchableText.includes(' 1') || searchableText.includes('1')) {
-    return `Upper ${competitionName}`;
-  }
-
-  if (searchableText.includes(' 2') || searchableText.includes(' 3')) {
-    return `Lower ${competitionName}`;
-  }
-
-  return competitionName;
-}
-
-function formatStatus(status) {
-  const labels = {
-    active: 'In Progress',
-    completed: 'Completed'
-  };
-
-  return labels[status] ?? status;
-}
-
-function formatScoreText(scoreText) {
-  if (!scoreText) return '0 - 0';
-  return scoreText;
 }

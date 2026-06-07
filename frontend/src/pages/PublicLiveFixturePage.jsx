@@ -1,328 +1,183 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import PageHeader from '../components/common/PageHeader';
+import {
+  ArrowLeft,
+  ArrowRight,
+  BarChart3,
+  CheckCircle2,
+  Clock3,
+  Radio,
+  Target
+} from 'lucide-react';
 import EmptyState from '../components/common/EmptyState';
+import {
+  BroadcastHeading,
+  CompetitionLabel,
+  FixtureScoreboard,
+  LivePulse,
+  getMatchupPlayers
+} from '../components/public/PublicBroadcast';
 import { getPublicLiveFixtureData } from '../services/captainFixtureService';
-
 
 export default function PublicLiveFixturePage() {
   const { fixtureId } = useParams();
-
   const [fixture, setFixture] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [mobileView, setMobileView] = useState('live');
 
   useEffect(() => {
     loadFixture();
-
-    const intervalId = setInterval(() => {
-      loadFixture();
-    }, 4000);
-
+    const intervalId = setInterval(loadFixture, 4000);
     return () => clearInterval(intervalId);
   }, [fixtureId]);
 
   async function loadFixture() {
-    const liveFixture = await getPublicLiveFixtureData(fixtureId);
-
-    setFixture(liveFixture);
+    setFixture(await getPublicLiveFixtureData(fixtureId));
     setLoading(false);
   }
 
-  const matchups = useMemo(
-    () => fixture?.liveSession?.games ?? [],
-    [fixture]
-  );
-
-  const activeMatchups = matchups.filter(
-    (game) => game.status === 'in_progress'
-  );
-
-  const waitingMatchups = matchups.filter(
-    (game) => game.status === 'waiting'
-  );
-
-  const completedMatchups = matchups.filter(
-    (game) => game.status === 'completed'
-  );
-
+  const matchups = useMemo(() => fixture?.liveSession?.games ?? [], [fixture]);
+  const active = matchups.filter((game) => game.status === 'in_progress');
+  const waiting = matchups.filter((game) => game.status === 'waiting');
+  const completed = matchups.filter((game) => game.status === 'completed');
   const groupedBlocks = groupMatchupsByBlock(matchups);
-  const scoreParts = getScoreParts(fixture?.scoreText);
 
-  if (loading) {
-    return <EmptyState message="Loading live fixture..." />;
-  }
-
-  if (!fixture) {
-    return <EmptyState message="Public live fixture not found." />;
-  }
+  if (loading) return <EmptyState message="Loading live fixture..." />;
+  if (!fixture) return <EmptyState message="Public live fixture not found." />;
 
   return (
-    <div className="plf-page">
-      <div className="plf-header-row">
-        <PageHeader
-          title="Live Match Centre"
-          subtitle={`${fixture.fixtureName} • ${fixture.competition?.name ?? 'Competition'} ${fixture.competition?.season ?? ''}`}
-        />
+    <div className="pb-page pb-fixture-centre">
+      <BroadcastHeading
+        title="Live Match Centre"
+        subtitle={<CompetitionLabel fixture={fixture} />}
+        action={<Link to="/live" className="pb-back-action"><ArrowLeft size={18} /> Back to live hub</Link>}
+      />
 
-        <Link to="/live" className="plf-back-link">
-          ← Back To Hub
-        </Link>
-      </div>
+      <FixtureScoreboard fixture={fixture} compact />
 
-      <section className="plf-hero-card">
-        <div className="plf-division-label">
-          {getFixtureDivisionLabel(fixture)} • {fixture.competition?.season ?? '2026'}
+      <section className="pb-active-boards-section">
+        <div className="pb-section-heading">
+          <div><Target size={21} /><h2>Active Boards</h2></div>
+          <LivePulse label={`${active.length} Live`} />
         </div>
-
-        
-
-        <div className="plf-score-row">
-          <div className="plf-team-side plf-home-side">
-            <div className="plf-team-badge">
-              {getTeamInitials(fixture.homeTeam?.teamName)}
-            </div>
-
-            <div className="plf-team-name">
-              {fixture.homeTeam?.teamName}
-            </div>
+        {active.length ? (
+          <div className={`pb-active-board-grid ${active.length === 1 ? 'single' : ''}`}>
+            {active.map((matchup) => (
+              <ActiveBoardPreview key={matchup.matchupId} fixture={fixture} matchup={matchup} />
+            ))}
           </div>
-
-          <div className="plf-centre-score">
-            <div className="plf-live-pill">
-              LIVE
-            </div>
-
-            <div className="plf-score-line">
-  <span className="plf-mobile-home-name">
-    {fixture.homeTeam?.teamName}
-  </span>
-
-  <div className="plf-score-values">
-    <span>{scoreParts.home}</span>
-
-    <span className="plf-score-divider">
-      -
-    </span>
-
-    <span>{scoreParts.away}</span>
-  </div>
-
-  <span className="plf-mobile-away-name">
-    {fixture.awayTeam?.teamName}
-  </span>
-</div>
-          </div>
-
-          <div className="plf-team-side plf-away-side">
-            <div className="plf-team-name">
-              {fixture.awayTeam?.teamName}
-            </div>
-
-            <div className="plf-team-badge plf-away-badge">
-              {getTeamInitials(fixture.awayTeam?.teamName)}
-            </div>
-          </div>
-        </div>
-
-        <div className="plf-meta-row">
-          <div className="plf-meta-pill plf-live-status">
-            <span className="plf-dot" />
-            {formatStatus(fixture.status)}
-          </div>
-
-          <div className="plf-meta-pill">
-            {fixture.liveSession?.activeBoardCount ?? 0} Active Boards
-          </div>
-
-          <div className="plf-meta-pill">
-            {matchups.length} Matchups
-          </div>
-
-          <div className="plf-meta-pill">
-            {fixture.format?.name ?? 'Fixture Format'}
-          </div>
-        </div>
+        ) : (
+          <div className="pb-empty-state compact"><Target size={27} /><p>No boards are currently active.</p></div>
+        )}
       </section>
 
-      <section className="plf-stat-grid">
-      <StatCard icon="◉" value={activeMatchups.length} label="Live Matchups" />
-<StatCard icon="✓" value={completedMatchups.length} label="Completed" />
-<StatCard icon="◷" value={waitingMatchups.length} label="Waiting" />
-<StatCard icon="⚔" value={fixture.liveSession?.activeBoardCount ?? 0} label="Active Boards" />
-      </section>
+      <nav className="pb-mobile-tabs">
+        <MobileTab label="Live" count={active.length} active={mobileView === 'live'} onClick={() => setMobileView('live')} />
+        <MobileTab label="Waiting" count={waiting.length} active={mobileView === 'waiting'} onClick={() => setMobileView('waiting')} />
+        <MobileTab label="Complete" count={completed.length} active={mobileView === 'complete'} onClick={() => setMobileView('complete')} />
+      </nav>
 
-      <section className="plf-panel">
-        <div className="plf-panel-header">
-          <div>
-            <h3>Progress Board</h3>
-            <p>Click any active matchup to watch live scoring once the dedicated board viewer is connected.</p>
-          </div>
+      <section className="pb-progress-section">
+        <div className="pb-section-heading">
+          <div><BarChart3 size={21} /><h2>Fixture Progress</h2></div>
+          <span>{completed.length}/{matchups.length} complete</span>
         </div>
-
-        <div className="plf-block-grid">
+        <div className="pb-block-grid">
           {groupedBlocks.map((block) => (
-            <div key={block.blockNumber} className="plf-block-card">
-              <div className="plf-block-title">
-                Block {block.blockNumber}
-              </div>
-
-              <div className="plf-matchup-list">
-                {block.matchups.map((matchup) => (
-                  <Link
-                  key={matchup.matchupId}
-                  to={`/live/${fixture.fixtureId}/board/${matchup.matchupId}`}
-                  className={`plf-matchup-card ${matchup.status}`}
-                >
-                    <div className="plf-matchup-title">
-                      {matchup.label}
-                    </div>
-
-                    <div className="plf-matchup-meta">
-                      {getMatchupStatusLabel(matchup.status)}
-                      {matchup.boardNumber ? ` • Board ${matchup.boardNumber}` : ''}
-                    </div>
-
-                    {matchup.status === 'in_progress' && (
-                      <div className="plf-watch-live-text">
-                        ▶ WATCH LIVE
-                      </div>
-                    )}
-                  </Link>
-                ))}
-              </div>
-            </div>
+            <ProgressBlock
+              key={block.blockNumber}
+              fixture={fixture}
+              block={block}
+              mobileView={mobileView}
+            />
           ))}
         </div>
       </section>
-
-
-       
-
-
-
-
-
-
-
     </div>
   );
 }
 
-function StatCard({ icon, value, label }) {
+function ActiveBoardPreview({ fixture, matchup }) {
+  const players = getMatchupPlayers(matchup);
+  const currentName = matchup.liveState?.currentTurnSide === 'away' ? players.away : players.home;
+
   return (
-    <div className="plf-stat-card">
-      <div className="plf-stat-icon">
-        {icon}
+    <article className="pb-active-board-preview">
+      <div className="pb-board-number">Board {matchup.boardNumber || '-'}</div>
+      <div className="pb-board-score-pair">
+        <div className="home"><strong>{players.home}</strong><b>{matchup.liveState?.homeScoreLeft ?? 501}</b><span>Remaining</span></div>
+        <div className="pb-board-vs">VS</div>
+        <div className="away"><strong>{players.away}</strong><b>{matchup.liveState?.awayScoreLeft ?? 501}</b><span>Remaining</span></div>
       </div>
-
-      <div>
-        <div className="plf-stat-value">
-          {value}
-        </div>
-
-        <div className="plf-stat-label">
-          {label}
-        </div>
-      </div>
-    </div>
+      <div className="pb-current-throw"><Target size={19} /><span>Current throw</span><strong>{currentName}</strong></div>
+      <Link to={`/live/${fixture.fixtureId}/board/${matchup.matchupId}`} className="pb-primary-action">
+        <Target size={21} /><span>Watch Board</span><ArrowRight size={21} />
+      </Link>
+    </article>
   );
+}
+
+function ProgressBlock({ fixture, block, mobileView }) {
+  const visibleMatchups = block.matchups.filter((matchup) => {
+    if (mobileView === 'live') return matchup.status === 'in_progress';
+    if (mobileView === 'complete') return matchup.status === 'completed';
+    return matchup.status === 'waiting';
+  });
+
+  return (
+    <article className="pb-progress-block">
+      <div className="pb-progress-block-head">
+        <strong>Block {block.blockNumber}</strong>
+        <BlockStatus matchups={block.matchups} />
+      </div>
+      <div className="pb-progress-matchups">
+        {block.matchups.map((matchup) => <ProgressMatchup key={matchup.matchupId} fixture={fixture} matchup={matchup} />)}
+        <div className="pb-mobile-progress-only">
+          {visibleMatchups.map((matchup) => <ProgressMatchup key={`mobile-${matchup.matchupId}`} fixture={fixture} matchup={matchup} />)}
+          {!visibleMatchups.length && <span>No {mobileView} matchups in this block.</span>}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ProgressMatchup({ fixture, matchup }) {
+  const Icon = matchup.status === 'completed' ? CheckCircle2 : matchup.status === 'in_progress' ? Radio : Clock3;
+  const players = getMatchupPlayers(matchup);
+  const winnerSide = matchup.liveState?.winnerSide || matchup.result?.winnerSide;
+  const winnerName = winnerSide === 'home' ? players.home : winnerSide === 'away' ? players.away : null;
+
+  return (
+    <Link to={`/live/${fixture.fixtureId}/board/${matchup.matchupId}`} className={`pb-progress-matchup ${matchup.status}`}>
+      <Icon size={17} />
+      <div>
+        <strong>{matchup.label}</strong>
+        <span className={winnerName ? 'pb-progress-winner' : ''}>
+          {winnerName ? <><b>Winner</b>{winnerName}</> : <>{matchup.formatLabel} {matchup.boardNumber ? `/ Board ${matchup.boardNumber}` : ''}</>}
+        </span>
+      </div>
+      <ArrowRight size={17} />
+    </Link>
+  );
+}
+
+function BlockStatus({ matchups }) {
+  const status = matchups.some((game) => game.status === 'in_progress') ? 'Live' : matchups.every((game) => game.status === 'completed') ? 'Complete' : 'Waiting';
+  return <span className={status.toLowerCase()}>{status}</span>;
+}
+
+function MobileTab({ label, count, active, onClick }) {
+  return <button type="button" className={active ? 'active' : ''} onClick={onClick}>{label}<b>{count}</b></button>;
 }
 
 function groupMatchupsByBlock(matchups) {
   const map = new Map();
-
   matchups.forEach((matchup) => {
-    if (!map.has(matchup.blockNumber)) {
-      map.set(matchup.blockNumber, []);
-    }
-
+    if (!map.has(matchup.blockNumber)) map.set(matchup.blockNumber, []);
     map.get(matchup.blockNumber).push(matchup);
   });
-
-  return Array.from(map.entries())
-    .sort((a, b) => a[0] - b[0])
-    .map(([blockNumber, blockMatchups]) => ({
-      blockNumber,
-      matchups: blockMatchups.sort((a, b) => a.blockOrder - b.blockOrder)
-    }));
-}
-
-function getMatchupStatusLabel(status) {
-  const labels = {
-    waiting: 'Waiting',
-    in_progress: 'In Progress',
-    completed: 'Completed'
-  };
-
-  return labels[status] ?? status;
-}
-
-function formatStatus(status) {
-  const labels = {
-    active: 'In Progress',
-    completed: 'Completed',
-    ready_for_lineups: 'Ready For Lineups',
-    waiting_for_opponent: 'Waiting For Opponent',
-    ready_to_play: 'Ready To Play'
-  };
-
-  return labels[status] ?? status;
-}
-
-function getTeamInitials(teamName = '') {
-  return teamName
-    .split(' ')
-    .filter(Boolean)
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-}
-
-function getScoreParts(scoreText) {
-  const parts = String(scoreText || '0 - 0')
-    .split('-')
-    .map((part) => part.trim());
-
-  return {
-    home: parts[0] || '0',
-    away: parts[1] || '0'
-  };
-}
-
-function getFixtureDivisionLabel(fixture) {
-  const searchableText = [
-    fixture?.division,
-    fixture?.divisionName,
-    fixture?.competition?.division,
-    fixture?.competition?.divisionName,
-    fixture?.competition?.name,
-    fixture?.fixtureName,
-    fixture?.format?.name,
-    fixture?.homeTeam?.teamName,
-    fixture?.awayTeam?.teamName
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
-
-  const competitionName = fixture?.competition?.name || 'Placements';
-
-  if (searchableText.includes('upper')) {
-    return `Upper ${competitionName}`;
-  }
-
-  if (searchableText.includes('lower')) {
-    return `Lower ${competitionName}`;
-  }
-
-  if (/\b1\b/.test(searchableText)) {
-    return `Upper ${competitionName}`;
-  }
-
-  if (/\b2\b/.test(searchableText) || /\b3\b/.test(searchableText)) {
-    return `Lower ${competitionName}`;
-  }
-
-  return competitionName;
+  return Array.from(map.entries()).sort((a, b) => a[0] - b[0]).map(([blockNumber, games]) => ({
+    blockNumber,
+    matchups: games.sort((a, b) => a.blockOrder - b.blockOrder)
+  }));
 }

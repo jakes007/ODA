@@ -1,6 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Radio,
+  Target
+} from 'lucide-react';
 import EmptyState from '../components/common/EmptyState';
+import {
+  GlowDart,
+  LivePulse,
+  TeamCrest,
+  getMatchupPlayers,
+  getScoreParts
+} from '../components/public/PublicBroadcast';
 import { getPublicLiveFixtureData } from '../services/captainFixtureService';
 
 export default function PublicLiveBoardPage() {
@@ -15,594 +31,245 @@ export default function PublicLiveBoardPage() {
   }, [fixtureId]);
 
   async function loadFixture() {
-    const liveFixture = await getPublicLiveFixtureData(fixtureId);
-    setFixture(liveFixture);
+    setFixture(await getPublicLiveFixtureData(fixtureId));
     setLoading(false);
   }
 
-  const matchup = useMemo(() => {
-    const games = fixture?.liveSession?.games ?? [];
-    return games.find((game) => String(game.matchupId) === String(matchupId));
-  }, [fixture, matchupId]);
+  const matchup = useMemo(
+    () => fixture?.liveSession?.games?.find((game) => String(game.matchupId) === String(matchupId)),
+    [fixture, matchupId]
+  );
+  const orderedMatchups = useMemo(
+    () => [...(fixture?.liveSession?.games || [])].sort(sortMatchups),
+    [fixture]
+  );
+  const matchupIndex = orderedMatchups.findIndex((game) => String(game.matchupId) === String(matchupId));
+  const previousMatchup = matchupIndex > 0 ? orderedMatchups[matchupIndex - 1] : null;
+  const nextMatchup = matchupIndex >= 0 && matchupIndex < orderedMatchups.length - 1 ? orderedMatchups[matchupIndex + 1] : null;
 
   if (loading) return <EmptyState message="Loading live board..." />;
   if (!fixture || !matchup) return <EmptyState message="Live board not found." />;
 
-  const players = getMatchupPlayerNames(matchup);
-const currentSide = matchup.liveState?.currentTurnSide ?? 'home';
-const winnerSide = getWinnerSide(matchup);
-
-const isResultEntryMode =
-  matchup.scoringMode === 'result_entry' &&
-  !winnerSide;
+  const players = getMatchupPlayers(matchup);
+  const currentSide = matchup.liveState?.currentTurnSide || 'home';
+  const currentPlayer = currentSide === 'home' ? players.home : players.away;
+  const score = getScoreParts(fixture.scoreText);
+  const historyRows = getVisibleHistoryRows(matchup);
+  const winnerSide = matchup.liveState?.winnerSide || matchup.result?.winnerSide || null;
+  const resultEntry = matchup.scoringMode === 'result_entry' && !winnerSide;
 
   return (
-    <div className="plb-page">
-      <div className="plb-top-bar">
-        <Link to={`/live/${fixtureId}`} className="plb-back-link">
-          ← Back To Progress Board
-        </Link>
+    <main className="pb-board-page">
+      <header className="pb-board-topbar">
+        <Link to={`/live/${fixtureId}`}><ArrowLeft size={21} /> Back to Match Centre</Link>
+        <div className="pb-board-brand">ODA <strong>Live</strong></div>
+        <div className="pb-board-top-meta"><Target size={19} /> Board {matchup.boardNumber || '-'}<LivePulse label="Live Sync" /></div>
+      </header>
 
-        <div className="plb-live-sync">
-          ● LIVE SYNC
+      <section className="pb-board-fixture-strip">
+        <div className="home"><TeamCrest teamName={fixture.homeTeam.teamName} side="home" size="small" /></div>
+        <div className="pb-board-fixture-score">
+          <div className="home"><span>{fixture.homeTeam.teamName}</span><b>{score.home}</b></div>
+          <em>-</em>
+          <div className="away"><b>{score.away}</b><span>{fixture.awayTeam.teamName}</span></div>
         </div>
-      </div>
+        <div className="away"><TeamCrest teamName={fixture.awayTeam.teamName} side="away" size="small" /></div>
+      </section>
 
-      <section className="plb-scoreboard">
-        <div className="plb-header">
-          <div className="plb-brand">ODA LIVE SCORER</div>
+      <section className="pb-board-score-grid">
+        <PlayerScore
+          side="home"
+          playerName={players.home}
+          score={matchup.liveState?.homeScoreLeft ?? 501}
+          active={currentSide === 'home'}
+        />
+        <div className="pb-board-score-vs">VS</div>
+        <PlayerScore
+          side="away"
+          playerName={players.away}
+          score={matchup.liveState?.awayScoreLeft ?? 501}
+          active={currentSide === 'away'}
+        />
+      </section>
 
-          <div>
-            <div className="plb-fixture-title">
-              {fixture.homeTeam?.teamName} vs {fixture.awayTeam?.teamName}
-            </div>
-
-            <div className="plb-board-meta">
-              Board {matchup.boardNumber ?? '-'} • {matchup.label}
-            </div>
-          </div>
-
-          <div className="plb-live-box">
-            LIVE
-          </div>
-        </div>
-
-        <div className="plb-main-grid">
-          <ScorePanel
-            side="home"
-            active={currentSide === 'home'}
-            playerName={players.home}
-            score={matchup.liveState?.homeScoreLeft ?? 501}
-          />
-
-          <div className="plb-vs">VS</div>
-
-          <ScorePanel
-            side="away"
-            active={currentSide === 'away'}
-            playerName={players.away}
-            score={matchup.liveState?.awayScoreLeft ?? 501}
-          />
-        </div>
-
-        <div className="plb-status-strip">
-  <div className="plb-status-item plb-status-left">
-    <span>Current Throw</span>
-    <strong>{currentSide === 'home' ? players.home : players.away}</strong>
-  </div>
-
-  <div className="plb-team-score-status">
-    <span>{fixture.homeTeam?.teamName}</span>
-    <strong>{getScoreParts(fixture.scoreText).home} - {getScoreParts(fixture.scoreText).away}</strong>
-    <span>{fixture.awayTeam?.teamName}</span>
-  </div>
-
-  <div className="plb-status-item plb-status-right">
-    <span>Leg Status</span>
-    <strong>In Progress</strong>
-  </div>
-  </div>
-
-{isResultEntryMode ? (
-  <div className="plb-result-entry-notice">
-    <div className="plb-result-entry-icon">!</div>
-
-    <div>
-      <strong>Result Entry Mode Selected</strong>
-      <span>
-        This leg will not be scored turn-by-turn. The final result and stats will appear once the captain submits the result.
-      </span>
-    </div>
-  </div>
-) : null}
-
-{!isResultEntryMode ? (
-  <div className="plb-history-board">
-  <div className="plb-turn-column">
-    <div className="plb-turn-title">{players.home}</div>
-  </div>
-
-  <div className="plb-du-column">
-    <div className="plb-du-title">D/U</div>
-  </div>
-
-  <div className="plb-turn-column away">
-    <div className="plb-turn-title">{players.away}</div>
-  </div>
-
-  {getVisibleHistoryRows(matchup).map((row) => (
-    <div className="plb-history-row" key={row.dartsUsedTotal}>
-      <div className="plb-turn-row">
-      {row.homeTurn ? (
-  <>
-    <div>{row.homeTurn.score}</div>
-    <span>→</span>
-    <div>{row.homeTurn.resultingScore}</div>
-  </>
-) : shouldShowWaitingBlock(row, 'home', matchup) ? (
-  <div
-    className={`plb-empty-history ${
-      isActiveWaitingRow(row, currentSide, 'home', matchup)
-        ? 'active-waiting'
-        : 'inactive-waiting'
-    }`}
-  >
-    {isActiveWaitingRow(row, currentSide, 'home', matchup) ? 'Waiting' : ''}
-  </div>
-) : (
-  <div className="plb-empty-history inactive-waiting" />
-)}
-      </div>
-
-      <div
-  className={`plb-du-bubble ${
-    row.homeTurn && row.awayTurn
-      ? 'completed'
-      : 'pending'
-  }`}
->
-  {row.dartsUsedTotal}
-</div>
-
-      <div className="plb-turn-row away">
-      {row.awayTurn ? (
-  <>
-    <div>{row.awayTurn.resultingScore}</div>
-    <span>←</span>
-    <div>{row.awayTurn.score}</div>
-  </>
-) : shouldShowWaitingBlock(row, 'away', matchup) ? (
-  <div
-    className={`plb-empty-history ${
-      isActiveWaitingRow(row, currentSide, 'away', matchup)
-        ? 'active-waiting'
-        : 'inactive-waiting'
-    }`}
-  >
-    {isActiveWaitingRow(row, currentSide, 'away', matchup) ? 'Waiting' : ''}
-  </div>
-) : (
-  <div className="plb-empty-history inactive-waiting" />
-)}
-      </div>
-    </div>
-  ))}
-</div>
-) : null}
-
-<div className="plb-stats-grid">
-          <StatPill label="AVG" value={getAverage(matchup, 'home')} />
-          <StatPill label="180s" value={getCount(matchup, 'home', 180)} />
-          <StatPill label="TON+" value={getTons(matchup, 'home')} />
-
-          <StatPill label="AVG" value={getAverage(matchup, 'away')} away />
-          <StatPill label="180s" value={getCount(matchup, 'away', 180)} away />
-          <StatPill label="TON+" value={getTons(matchup, 'away')} away />
-        </div>
+      {resultEntry ? (
+        <section className="pb-board-result-entry">
+          <Radio size={24} />
+          <div><strong>Result entry mode</strong><span>Turn-by-turn scores will appear when the captain submits the final result.</span></div>
         </section>
-
-        {winnerSide && (
-  <div className="plb-winner-overlay">
-    <div className="plb-winner-card">
-      <div className="plb-winner-kicker">
-        GAME COMPLETE
-      </div>
-
-      <h2>
-        {getWinnerName(matchup, players)} wins
-      </h2>
-
-      <div className="plb-winner-stats-grid">
-  <WinnerStats
-    playerName={players.home}
-    average={getAverage(matchup, 'home')}
-    oneEighties={getCount(matchup, 'home', 180)}
-    tons={getTons(matchup, 'home')}
-    highestScore={getHighestScore(matchup, 'home')}
-    totalDarts={getTotalDarts(matchup, 'home')}
-    scoreLeft={matchup.liveState?.homeScoreLeft}
-    checkout={getCheckoutScore(matchup, 'home')}
-    checkoutDarts={getCheckoutDarts(matchup, 'home')}
-    winner={winnerSide === 'home'}
-  />
-
-  <WinnerStats
-    playerName={players.away}
-    average={getAverage(matchup, 'away')}
-    oneEighties={getCount(matchup, 'away', 180)}
-    tons={getTons(matchup, 'away')}
-    highestScore={getHighestScore(matchup, 'away')}
-    totalDarts={getTotalDarts(matchup, 'away')}
-    scoreLeft={matchup.liveState?.awayScoreLeft}
-    checkout={getCheckoutScore(matchup, 'away')}
-    checkoutDarts={getCheckoutDarts(matchup, 'away')}
-    winner={winnerSide === 'away'}
-    away
-  />
-</div>
-
-      <Link
-        to={`/live/${fixtureId}`}
-        className="plb-winner-back-btn"
-      >
-        ← Back To Progress Board
-      </Link>
-    </div>
-  </div>
-)}
-
-</div>
-);
-}
-
-function ScorePanel({ side, active, playerName, score }) {
-  return (
-    <div className={`plb-score-panel ${side} ${active ? 'active' : ''}`}>
-      <div className="plb-player-row">
-        <span className="plb-player-dot" />
-        <strong>{playerName}</strong>
-      </div>
-
-      <div className="plb-score-number">
-        {score}
-      </div>
-    </div>
-  );
-}
-
-function TurnColumn({ title, turns, away = false }) {
-  const visibleTurns = turns.slice(-5);
-
-  return (
-    <div className={`plb-turn-column ${away ? 'away' : ''}`}>
-      <div className="plb-turn-title">{title}</div>
-
-      {visibleTurns.length === 0 ? (
-        <div className="plb-empty-history">Waiting for first score</div>
       ) : (
-        visibleTurns.map((turn, index) => (
-          <div key={`${turn.createdAt}-${index}`} className="plb-turn-row">
-            {!away ? (
-              <>
-                <div>{turn.score}</div>
-                <span>→</span>
-                <div>{turn.resultingScore}</div>
-              </>
-            ) : (
-              <>
-                <div>{turn.resultingScore}</div>
-                <span>←</span>
-                <div>{turn.score}</div>
-              </>
-            )}
+        <section className="pb-throws-panel">
+          <div className="pb-throws-heading"><i /><h2>Latest Throws</h2><i /></div>
+          <div className="pb-throws-table">
+            <div className="pb-throws-table-head">
+              <span>Turn</span><strong>{players.home}</strong><span>Total Darts</span><strong>{players.away}</strong><span>Turn Darts</span>
+            </div>
+            {historyRows.map((row) => (
+              <ThrowRow key={row.rowIndex} row={row} currentSide={currentSide} />
+            ))}
           </div>
-        ))
+          <div className="pb-next-throw"><GlowDart side={currentSide} size={22} /> {currentPlayer} to throw</div>
+        </section>
       )}
-    </div>
-  );
-}
 
-function StatPill({ label, value, away = false }) {
-  return (
-    <div className={`plb-stat-pill ${away ? 'away' : ''}`}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
+      <section className="pb-board-stats">
+        <PlayerStats side="home" teamName={fixture.homeTeam.teamName} playerName={players.home} matchup={matchup} />
+        <PlayerStats side="away" teamName={fixture.awayTeam.teamName} playerName={players.away} matchup={matchup} />
+      </section>
 
-function WinnerStats({
-  playerName,
-  average,
-  oneEighties,
-  tons,
-  highestScore,
-  totalDarts,
-  scoreLeft,
-  checkout,
-  checkoutDarts,
-  winner,
-  away = false
-}) {
-  return (
-    <div className={`plb-winner-player-card ${away ? 'away' : ''}`}>
-      <div className="plb-winner-player-header">
-        <h3>{playerName}</h3>
-
-        {winner && (
-          <span className="plb-winner-badge">
-            WINNER
-          </span>
+      <footer className="pb-board-navigation">
+        {previousMatchup ? (
+          <Link to={`/live/${fixtureId}/board/${previousMatchup.matchupId}`}><ChevronLeft size={20} /> Previous Board</Link>
+        ) : (
+          <span className="disabled"><ChevronLeft size={20} /> Previous Board</span>
         )}
-      </div>
+        <Link to={`/live/${fixtureId}`}><Target size={20} /> Back to Match Centre</Link>
+        {nextMatchup ? (
+          <Link to={`/live/${fixtureId}/board/${nextMatchup.matchupId}`}>Next Board <ChevronRight size={20} /></Link>
+        ) : (
+          <span className="disabled">Next Board <ChevronRight size={20} /></span>
+        )}
+      </footer>
 
-      {winner ? (
-        <div className="plb-checkout-banner">
-          Checkout {checkout}
-          <span>
-            • {checkoutDarts} dart finish
-          </span>
-        </div>
-      ) : (
-        <div className="plb-score-left-banner">
-          {scoreLeft} Remaining
+      {winnerSide && (
+        <div className="pb-winner-overlay">
+          <div className="pb-winner-card">
+            <div className="pb-winner-heading">
+              <CheckCircle2 size={42} />
+              <div><span>Game Complete</span><h2>{winnerSide === 'home' ? players.home : players.away} wins</h2></div>
+            </div>
+            <div className="pb-winner-stats">
+              <PlayerStats side="home" teamName={fixture.homeTeam.teamName} playerName={players.home} matchup={matchup} />
+              <PlayerStats side="away" teamName={fixture.awayTeam.teamName} playerName={players.away} matchup={matchup} />
+            </div>
+            <Link to={`/live/${fixtureId}`}>Back to Match Centre <ArrowRight size={20} /></Link>
+          </div>
         </div>
       )}
+    </main>
+  );
+}
 
-      <div className="plb-winner-stat-row">
-        <span>AVG</span>
-        <strong>{average}</strong>
+function PlayerScore({ side, playerName, score, active }) {
+  return (
+    <article className={`pb-player-score ${side} ${active ? 'active' : ''}`}>
+      {active && <span className="pb-current-ribbon"><Radio size={18} /><small>Current Throw</small><strong>{playerName}</strong></span>}
+      <div className="pb-player-score-main">
+        <div><strong>{playerName}</strong><b>{score}</b><span>Remaining</span></div>
       </div>
+    </article>
+  );
+}
 
-      <div className="plb-winner-stat-row">
-        <span>180s</span>
-        <strong>{oneEighties}</strong>
-      </div>
-
-      <div className="plb-winner-stat-row">
-        <span>TON+</span>
-        <strong>{tons}</strong>
-      </div>
-
-      <div className="plb-winner-stat-row">
-        <span>Highest Score</span>
-        <strong>{highestScore}</strong>
-      </div>
-
-      <div className="plb-winner-stat-row">
-        <span>Total Darts</span>
-        <strong>{totalDarts}</strong>
-      </div>
+function ThrowRow({ row, currentSide }) {
+  const isCurrent = !row.homeTurn || !row.awayTurn;
+  const isComplete = Boolean(row.homeTurn && row.awayTurn);
+  return (
+    <div className={`pb-throw-row ${isCurrent ? 'current' : ''}`}>
+      <span>{row.rowIndex + 1}</span>
+      <TurnValue turn={row.homeTurn} waiting={isCurrent && currentSide === 'home'} side="home" />
+      <span className={`pb-darts-used ${isComplete ? 'complete' : 'current'}`}>{row.dartsUsedTotal}</span>
+      <TurnValue turn={row.awayTurn} waiting={isCurrent && currentSide === 'away'} side="away" />
+      <span>{row.homeTurn?.dartsUsed || row.awayTurn?.dartsUsed || 3}</span>
     </div>
   );
 }
 
-function getWinnerName(matchup, players) {
-  const winnerSide = getWinnerSide(matchup);
-
-  if (winnerSide === 'home') return players.home;
-  if (winnerSide === 'away') return players.away;
-
-  return 'Winner';
-}
-
-function getWinnerSide(matchup) {
-  return matchup.liveState?.winnerSide || matchup.result?.winnerSide || null;
-}
-
-function getHighestScore(matchup, side) {
-  const turns = getTurnsForSide(matchup, side);
-
-  if (!turns.length) {
-    return 0;
-  }
-
-  return Math.max(...turns.map((turn) => Number(turn.score || 0)));
-}
-
-function getTotalDarts(matchup, side) {
-  const summaryKey = side === 'home' ? 'homeDartsUsed' : 'awayDartsUsed';
-
-  if (matchup.scoringMode === 'result_entry') {
-    return Number(matchup.summaryResult?.[summaryKey] || 0);
-  }
-
-  return getTurnsForSide(matchup, side).reduce(
-    (sum, turn) => sum + Number(turn.dartsUsed || 3),
-    0
+function TurnValue({ turn, waiting, side }) {
+  if (!turn) return <div className={`pb-turn-value ${side} empty`}>{waiting ? 'Waiting' : '-'}</div>;
+  const tier = getScoreTier(turn.score);
+  return (
+    <div className={`pb-turn-value ${side} ${tier}`}>
+      <strong>{turn.score}</strong>
+      {tier === 'maximum' && <span>Maximum</span>}
+    </div>
   );
 }
 
-function getCheckoutScore(matchup, side) {
-  if (matchup.scoringMode === 'result_entry') {
-    const key = side === 'home' ? 'homeHighCheckout' : 'awayHighCheckout';
-    return Number(matchup.summaryResult?.[key] || 0);
-  }
-
-  const turns = getTurnsForSide(matchup, side);
-
-  if (!turns.length) return 0;
-
-  const finalTurn = turns[turns.length - 1];
-
-  return finalTurn.score || 0;
+function PlayerStats({ side, teamName, playerName, matchup }) {
+  return (
+    <article className={`pb-player-stats ${side}`}>
+      <div className="pb-stats-player"><TeamCrest teamName={teamName} side={side} size="small" /><strong>{playerName}</strong></div>
+      <Stat label="Avg" value={getAverage(matchup, side)} />
+      <Stat label="180s" value={getCount(matchup, side, 180)} />
+      <Stat label="Ton+" value={getTons(matchup, side)} />
+      <Stat label="Highest" value={getHighestScore(matchup, side)} />
+      <Stat label="Darts" value={getTotalDarts(matchup, side)} />
+    </article>
+  );
 }
 
-function getCheckoutDarts(matchup, side) {
-  if (matchup.scoringMode === 'result_entry') {
-    return getTotalDarts(matchup, side);
-  }
-
-  const turns = getTurnsForSide(matchup, side);
-
-  if (!turns.length) return 0;
-
-  const finalTurn = turns[turns.length - 1];
-
-  return finalTurn.dartsUsed || 3;
-}
-
-function getMatchupPlayerNames(matchup) {
-  const parts = String(matchup.label || '').split(' vs ');
-
-  return {
-    home: parts[0]?.trim() || 'Home Player',
-    away: parts[1]?.trim() || 'Away Player'
-  };
-}
-
-function getCombinedTurns(matchup) {
-  return matchup.liveState?.turns ?? [];
+function Stat({ label, value }) {
+  return <div className="pb-stat"><span>{label}</span><strong>{value}</strong></div>;
 }
 
 function getTurnsForSide(matchup, side) {
-  return getCombinedTurns(matchup).filter((turn) => turn.side === side);
+  return (matchup.liveState?.turns || []).filter((turn) => turn.side === side);
 }
 
 function getAverage(matchup, side) {
   if (matchup.scoringMode === 'result_entry') {
-    const dartsUsed = getTotalDarts(matchup, side);
-
-    if (!dartsUsed) return '0.00';
-
-    const scoreLeftKey = side === 'home' ? 'homeScoreLeft' : 'awayScoreLeft';
-
-    const scoreLeft = Number(
-      matchup.summaryResult?.[scoreLeftKey] ??
-      matchup.liveState?.[scoreLeftKey] ??
-      501
-    );
-
-    const totalScored = 501 - scoreLeft;
-
-    return ((totalScored / dartsUsed) * 3).toFixed(2);
+    const darts = getTotalDarts(matchup, side);
+    const key = side === 'home' ? 'homeScoreLeft' : 'awayScoreLeft';
+    const left = Number(matchup.summaryResult?.[key] ?? matchup.liveState?.[key] ?? 501);
+    return darts ? (((501 - left) / darts) * 3).toFixed(2) : '0.00';
   }
-
-  const stats = side === 'home'
-    ? matchup.liveState?.homeStats
-    : matchup.liveState?.awayStats;
-
-  if (stats?.average !== undefined) {
-    return stats.average;
-  }
-
+  const stats = side === 'home' ? matchup.liveState?.homeStats : matchup.liveState?.awayStats;
+  if (stats?.average !== undefined) return stats.average;
   const turns = getTurnsForSide(matchup, side);
-
-  if (!turns.length) return '0.00';
-
-  const totalScored = turns.reduce(
-    (sum, turn) => sum + Number(turn.score || 0),
-    0
-  );
-
-  const dartsUsed = turns.reduce(
-    (sum, turn) => sum + Number(turn.dartsUsed || 3),
-    0
-  );
-
-  return dartsUsed
-    ? ((totalScored / dartsUsed) * 3).toFixed(2)
-    : '0.00';
+  const scored = turns.reduce((sum, turn) => sum + Number(turn.score || 0), 0);
+  const darts = turns.reduce((sum, turn) => sum + Number(turn.dartsUsed || 3), 0);
+  return darts ? ((scored / darts) * 3).toFixed(2) : '0.00';
 }
 
 function getCount(matchup, side, score) {
   if (matchup.scoringMode === 'result_entry' && score === 180) {
-    const key = side === 'home' ? 'homeOneEighties' : 'awayOneEighties';
-    return Number(matchup.summaryResult?.[key] || 0);
+    return Number(matchup.summaryResult?.[side === 'home' ? 'homeOneEighties' : 'awayOneEighties'] || 0);
   }
-
-  const stats = side === 'home'
-    ? matchup.liveState?.homeStats
-    : matchup.liveState?.awayStats;
-
-  if (score === 180 && stats?.oneEighties !== undefined) {
-    return stats.oneEighties;
-  }
-
-  return getTurnsForSide(matchup, side).filter(
-    (turn) => Number(turn.score) === score
-  ).length;
+  return getTurnsForSide(matchup, side).filter((turn) => Number(turn.score) === score).length;
 }
 
 function getTons(matchup, side) {
   if (matchup.scoringMode === 'result_entry') {
-    const key = side === 'home' ? 'homeTons' : 'awayTons';
-    return Number(matchup.summaryResult?.[key] || 0);
+    return Number(matchup.summaryResult?.[side === 'home' ? 'homeTons' : 'awayTons'] || 0);
   }
-
-  const stats = side === 'home'
-    ? matchup.liveState?.homeStats
-    : matchup.liveState?.awayStats;
-
-  if (stats?.tons !== undefined) {
-    return stats.tons;
-  }
-
-  return getTurnsForSide(matchup, side).filter(
-    (turn) => Number(turn.score) >= 100
-  ).length;
+  return getTurnsForSide(matchup, side).filter((turn) => Number(turn.score) >= 100).length;
 }
 
-function getScoreParts(scoreText) {
-  const parts = String(scoreText || '0 - 0')
-    .split('-')
-    .map((part) => part.trim());
+function getHighestScore(matchup, side) {
+  const turns = getTurnsForSide(matchup, side);
+  return turns.length ? Math.max(...turns.map((turn) => Number(turn.score || 0))) : 0;
+}
 
-  return {
-    home: parts[0] || '0',
-    away: parts[1] || '0'
-  };
+function getTotalDarts(matchup, side) {
+  if (matchup.scoringMode === 'result_entry') {
+    return Number(matchup.summaryResult?.[side === 'home' ? 'homeDartsUsed' : 'awayDartsUsed'] || 0);
+  }
+  return getTurnsForSide(matchup, side).reduce((sum, turn) => sum + Number(turn.dartsUsed || 3), 0);
 }
 
 function getVisibleHistoryRows(matchup) {
-  const homeTurns = getTurnsForSide(matchup, 'home');
-  const awayTurns = getTurnsForSide(matchup, 'away');
-
-  const isLegComplete = Boolean(matchup.liveState?.winnerSide);
-
-  let unlockedRows = Math.max(homeTurns.length, awayTurns.length, 1);
-
-  const lastUnlockedRowComplete =
-    homeTurns.length === awayTurns.length &&
-    homeTurns.length > 0 &&
-    !isLegComplete;
-
-  if (lastUnlockedRowComplete) {
-    unlockedRows += 1;
-  }
-
-  const rows = Array.from({ length: unlockedRows }).map((_, index) => ({
+  const home = getTurnsForSide(matchup, 'home');
+  const away = getTurnsForSide(matchup, 'away');
+  let count = Math.max(home.length, away.length, 1);
+  if (home.length === away.length && home.length && !matchup.liveState?.winnerSide) count += 1;
+  return Array.from({ length: count }).map((_, index) => ({
     rowIndex: index,
     dartsUsedTotal: (index + 1) * 3,
-    homeTurn: homeTurns[index] || null,
-    awayTurn: awayTurns[index] || null
-  }));
-
-  return rows.slice(-3);
+    homeTurn: home[index] || null,
+    awayTurn: away[index] || null
+  })).slice(-4).reverse();
 }
 
-function isActiveWaitingRow(row, currentSide, side, matchup) {
-  if (currentSide !== side) {
-    return false;
-  }
-
-  return shouldShowWaitingBlock(row, side, matchup);
+function getScoreTier(score) {
+  const value = Number(score || 0);
+  if (value === 180) return 'maximum';
+  if (value >= 100) return 'ton-plus';
+  return 'standard';
 }
 
-function shouldShowWaitingBlock(row, side, matchup) {
-  const startingSide = matchup.liveState?.startingSide || 'home';
-  const otherSide = side === 'home' ? 'away' : 'home';
-
-  const sideTurn = side === 'home' ? row.homeTurn : row.awayTurn;
-  const otherTurn = otherSide === 'home' ? row.homeTurn : row.awayTurn;
-
-  if (sideTurn) {
-    return false;
-  }
-
-  if (startingSide === side) {
-    return !otherTurn;
-  }
-
-  return Boolean(otherTurn);
+function sortMatchups(a, b) {
+  return Number(a.blockNumber || 0) - Number(b.blockNumber || 0)
+    || Number(a.blockOrder || 0) - Number(b.blockOrder || 0)
+    || Number(a.boardNumber || 0) - Number(b.boardNumber || 0);
 }
