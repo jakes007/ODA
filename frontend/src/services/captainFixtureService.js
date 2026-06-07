@@ -782,6 +782,8 @@ const liveSession = {
       fixture: {
         fixtureId: fixture.id,
         fixtureName: `${homeTeam.name} vs ${awayTeam.name}`,
+        homeTeamName: homeTeam.name,
+        awayTeamName: awayTeam.name,
         status: fixture.status
       },
       matchup
